@@ -1,19 +1,17 @@
-from setting import SCREEN_WIDTH, SCREEN_HEIGHT
+from setting import screen_height, wall_x
 
-# obejctif : Chemin exact suivi par les mobs
-# Spawn au milieu de la hauteur à gauche
 PATH = [
-    (0, SCREEN_HEIGHT//2),  # début spawn gauche
-    (150, SCREEN_HEIGHT//2),
-    (150, SCREEN_HEIGHT//2 + 100),
-    (150, SCREEN_HEIGHT//2 + 200),
-    (300, SCREEN_HEIGHT//2 + 200),
-    (300, SCREEN_HEIGHT//2 + 100),
-    (300, SCREEN_HEIGHT//2),
-    (450, SCREEN_HEIGHT//2),
-    (450, SCREEN_HEIGHT//2 + 100),
-    (600, SCREEN_HEIGHT//2 + 100),
-    (600, SCREEN_HEIGHT//2 + 200),
-    (750, SCREEN_HEIGHT//2 + 200),
-    (750, SCREEN_HEIGHT//2 + 150)  # fin proche de la muraille
+    (0, screen_height // 2),
+    (140, screen_height // 2),
+    (140, screen_height // 2 - 90),
+    (320, screen_height // 2 - 90),
+    (320, screen_height // 2 + 80),
+    (520, screen_height // 2 + 80),
+    (520, screen_height // 2 - 30),
+    (740, screen_height // 2 - 30),
+    (740, screen_height // 2 + 100),
+    (wall_x, screen_height // 2 + 100),
 ]
+
+def draw_path(screen, pygame_module):
+    pygame_module.draw.lines(screen, (146, 119, 86), False, PATH, 44)

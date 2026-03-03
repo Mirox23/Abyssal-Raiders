@@ -2,25 +2,22 @@ import pygame
 
 
 class Mob:
-    def __init__(self, start_position, speed, color):
+    def __init__(self, start_pos, speed, color):
 
-        self.x = float(start_position[0])
-        self.y = float(start_position[1])
-
+        self.x = float(start_pos[0])
+        self.y = float(start_pos[1])
         self.speed = speed
         self.color = color
-
         self.size = 12
+        self.point = 1
         self.health = 4
-        self.path_index = 1
 
-    def move(self, delta_time, path): #delta_time = temps écoulé depuis la dernière frame, path = liste de points que le mob doit suivre
+    def move(self, delta_time, path):
 
-        if self.path_index >= len(path):
+        if self.point >= len(path):
             return True
 
-        target_x = path[self.path_index][0]
-        target_y = path[self.path_index][1]
+        target_x, target_y = path[self.point]
 
         distance_x = target_x - self.x
         distance_y = target_y - self.y
@@ -29,10 +26,9 @@ class Mob:
         movement = self.speed * delta_time
 
         if distance <= movement:
-            self.x = target_x
-            self.y = target_y
-            self.path_index += 1
-            return self.path_index >= len(path)
+            self.x, self.y = target_x, target_y
+            self.point += 1
+            return self.point >= len(path)
 
         if distance > 0:
             self.x += (distance_x / distance) * movement

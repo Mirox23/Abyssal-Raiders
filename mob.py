@@ -1,37 +1,44 @@
+import pygame
+
+
 class Mob:
-    def __init__(self, start_pos, speed, color):
-        self.x = float(start_pos[0])
-        self.y = float(start_pos[1])
+    def __init__(self, start_position, speed, color):
+
+        self.x = float(start_position[0])
+        self.y = float(start_position[1])
+
         self.speed = speed
         self.color = color
-        self.size = 12
-        self.target_index = 1
-        self.health = 4
 
-    def move(self, delta_time, path): # delta_time = temps écoulé depuis la dernière mise à jour, path = liste de points du chemin
-        if self.target_index >= len(path):
+        self.size = 12
+        self.health = 4
+        self.path_index = 1
+
+    def move(self, delta_time, path): #delta_time = temps écoulé depuis la dernière frame, path = liste de points que le mob doit suivre
+
+        if self.path_index >= len(path):
             return True
 
-        target_x, target_y = path[self.target_index]
+        target_x = path[self.path_index][0]
+        target_y = path[self.path_index][1]
 
         distance_x = target_x - self.x
         distance_y = target_y - self.y
 
-        distance = (distance_x * distance_x + distance_y * distance_y) ** 0.5
+        distance = (distance_x ** 2 + distance_y ** 2) ** 0.5
+        movement = self.speed * delta_time
 
-        move_distance = self.speed * delta_time
-
-        if distance <= move_distance:
+        if distance <= movement:
             self.x = target_x
             self.y = target_y
-            self.target_index += 1
-            return self.target_index >= len(path)
+            self.path_index += 1
+            return self.path_index >= len(path)
 
         if distance > 0:
-            self.x += (distance_x / distance) * move_distance
-            self.y += (distance_y / distance) * move_distance
+            self.x += (distance_x / distance) * movement
+            self.y += (distance_y / distance) * movement
 
         return False
 
-    def draw(self, screen, pygame):
+    def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)

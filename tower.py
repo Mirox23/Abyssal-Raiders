@@ -1,30 +1,57 @@
+import pygame
 from setting import *
+from projectile import Projectile
+
 
 class Tower:
-    def __init__(self, pos):
-        self.x, self.y = pos
+    def __init__(self, position):
+
+        self.x = position[0]
+        self.y = position[1]
+
         self.range = tower_range
         self.fire_interval = tower_fire_interval
-        self.cooldown = 0
-        self.size = 18
+        self.time_since_last_shot = 0
 
-    def update(self, dt, enemies):
-        self.cooldown -= dt
-        if self.cooldown <= 0:
-            target = self.get_target(enemies)
-            if target:
-                target.life -= 1
-                self.cooldown = self.fire_interval
+        self.projectiles = []
 
-    def get_target(self, enemies):
-        for enemy in enemies:
-            dx = enemy.x - self.x # dx = distance x
-            dy = enemy.y - self.y # dy = distance y
-            dist = (dx*dx + dy*dy) ** 0.5
-            if dist <= self.range:
-                return enemy
-        return None
+        self.size = 15
+        self.color = couleur_tower
 
-    def draw(self, screen, pygame):
-        pygame.draw.circle(screen, couleur_tower, (self.x, self.y), self.size) # self.size = rayon de la tourelle
-        pygame.draw.circle(screen, (120,120,120), (self.x, self.y), self.range, 1) #self.rang = rayon de la portée, 1 = épaisseur du cercle de portée
+    def update(self, delta_time, enemies):
+
+        self.time_since_last_shot += delta_time
+
+        if self.time_since_last_shot >= self.fire_interval:
+
+            for enemy in enemies:
+
+                dx = enemy.x - self.x
+                dy = enemy.y - self.y
+                distance = (dx ** 2 + dy ** 2) ** 0.5
+
+                if distance <= self.range:
+                    projectile = Projectile(self.x, self.y, enemy)
+                    self.projectiles.append(projectile)
+                    self.time_since_last_shot = 0
+                    break
+
+        active_projectiles = []
+
+        for projectile in self.projectiles:
+            projectile.update(delta_time)
+            if projectile.active:
+                active_projectiles.append(projectile)
+
+        self.projectiles = active_projectiles
+
+    def draw(self, screen):
+
+        # Cercle de portée
+        pygame.draw.circle(screen, (100, 100, 255), (self.x, self.y), self.range, 1)
+
+        # Tour
+        pygame.draw.circle(screen, self.color, (self.x, self.y), self.size)
+
+        for projectile in self.projectiles:
+            projectile.draw(screen)

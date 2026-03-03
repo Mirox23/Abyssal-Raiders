@@ -16,6 +16,17 @@ enemy_speed = 110.0
 tower_fire_interval = 0.7
 tower_range = 180
 
+# Argent
+start_money = 20
+money_per_kill = 2
+money_per_wave = 15
+tower_price = 10
+max_towers = 5
+
+# Projectile
+projectile_speed = 400
+projectile_size = 4
+
 # Couleurs principales
 couleur_fond = (22, 36, 28)
 couleur_wall = (95, 97, 120)

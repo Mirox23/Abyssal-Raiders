@@ -1,186 +1,176 @@
 import pygame
 from setting import *
-from chemin import PATH, draw_decor, draw_path
+from chemin import CHEMIN, draw_decor, draw_path
 from mob import Mob
-from tower import Tower, SniperTower, CanonnierTower
-from ui import Button, PhonePanel
+from tower import Tour, TourSniper, TourCanonnier
+from ui import Bouton, PanneauTelephone
 
 
-class Game:
+class Jeu:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((screen_width, screen_height))
+
+        self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran))
         pygame.display.set_caption("Abyssal Raiders")
-        self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont("consolas", 22)
 
-        self.enemies = []
-        self.towers = []
+        self.horloge = pygame.time.Clock()
+        self.police = pygame.font.SysFont("consolas", 22)
 
-        self.enemies_spawned = 0
-        self.spawn_timer = 0
-        self.wall_life = wall_life_start
-        self.player_money = start_money
+        self.reinitialiser()
 
-        self.place_mode = False
-        self.selected_tower_class = None
-        self.selected_tower_for_buttons = None
+    def reinitialiser(self):
+        self.ennemis = []
+        self.tours = []
 
-        self.tower_button = Button(820, 470, 150, 40, "Tourelle")
-        self.phone = PhonePanel()
+        self.minuterie_spawn = 0
+        self.nb_ennemis_spawnes = 0
 
-    def draw_wall(self):
-        mur = pygame.Rect(wall_x, 0, wall_width, screen_height)
-        pygame.draw.rect(self.screen, couleur_wall, mur)
+        self.vie_mur = vie_mur_depart
+        self.argent = argent_depart
 
-    def is_on_path(self, position):
-        for i in range(len(PATH) - 1):
+        self.bouton_tour = Bouton(820, 470, 150, 40, "Tourelle")
+        self.telephone = PanneauTelephone()
+
+        self.mode_placement = False
+        self.type_tour_choisi = None
+        self.tour_selectionnee = None
+
+    def est_sur_chemin(self, pos):
+        for i in range(len(CHEMIN) - 1):
             zone = pygame.Rect(
-                min(PATH[i][0], PATH[i + 1][0]) - 22,
-                min(PATH[i][1], PATH[i + 1][1]) - 22,
-                abs(PATH[i][0] - PATH[i + 1][0]) + 44,
-                abs(PATH[i][1] - PATH[i + 1][1]) + 44,
+                min(CHEMIN[i][0], CHEMIN[i+1][0]) - 30,
+                min(CHEMIN[i][1], CHEMIN[i+1][1]) - 30,
+                abs(CHEMIN[i][0] - CHEMIN[i+1][0]) + 60,
+                abs(CHEMIN[i][1] - CHEMIN[i+1][1]) + 60,
             )
-            if zone.collidepoint(position):
+            if zone.collidepoint(pos):
                 return True
         return False
 
-    def run(self):
-        running = True
-        while running:
-            delta_time = self.clock.tick(FPS) / 1000
+    def lancer(self):
+        en_cours = True
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+        while en_cours:
+            dt = self.horloge.tick(FPS) / 1000
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    action = self.phone.handle_click(event.pos)
+            for evenement in pygame.event.get():
+                if evenement.type == pygame.QUIT:
+                    en_cours = False
 
+                if evenement.type == pygame.MOUSEBUTTONDOWN:
+
+                    action = self.telephone.gerer_clic(evenement.pos)
                     if action == "New Manche":
-                        self.enemies.clear()
-                        self.enemies_spawned = 0
-                        self.spawn_timer = 0
-                        self.player_money += money_per_wave
+                        self.ennemis.clear()
+                        self.nb_ennemis_spawnes = 0
+                        self.minuterie_spawn = 0
+                        self.argent += argent_par_vague
 
-                    if self.tower_button.rect.collidepoint(event.pos):
-                        self.place_mode = True
+                    if self.bouton_tour.rect.collidepoint(evenement.pos):
+                        self.mode_placement = True
+                        self.type_tour_choisi = None
+                        self.tour_selectionnee = None
 
-                    # Clique sur tour existante pour afficher boutons
-                    self.selected_tower_for_buttons = None
-                    for tower in self.towers:
-                        dx = event.pos[0] - tower.x
-                        dy = event.pos[1] - tower.y
-                        distance = (dx ** 2 + dy ** 2) ** 0.5
-                        if distance <= tower.size:
-                            self.selected_tower_for_buttons = tower
-                            break
+                    else:
+                        self.tour_selectionnee = None
+                        for t in self.tours:
+                            dist_x = evenement.pos[0] - t.x
+                            dist_y = evenement.pos[1] - t.y
+                            if (dist_x**2 + dist_y**2) ** 0.5 <= t.taille:
+                                self.tour_selectionnee = t
 
-                    # Pose tour
-                    if self.place_mode and self.selected_tower_class:
-                        if (len(self.towers) < max_towers and
-                            not self.is_on_path(event.pos) and
-                            event.pos[0] < wall_x - 10 and
-                            self.player_money >= tower_price):
-                            tower_instance = self.selected_tower_class(event.pos)
-                            self.towers.append(tower_instance)
-                            self.player_money -= tower_price
-                            self.place_mode = False
-                            self.selected_tower_class = None
+                    if self.mode_placement and self.type_tour_choisi is None:
+                        zone_sniper = pygame.Rect(400, 200, 150, 50)
+                        zone_canonnier = pygame.Rect(400, 270, 150, 50)
 
-            self.update(delta_time)
-            self.draw()
+                        if zone_sniper.collidepoint(evenement.pos):
+                            self.type_tour_choisi = TourSniper
+                        elif zone_canonnier.collidepoint(evenement.pos):
+                            self.type_tour_choisi = TourCanonnier
+
+                    elif self.mode_placement and self.type_tour_choisi:
+                        if (
+                            len(self.tours) < nb_tours_max
+                            and not self.est_sur_chemin(evenement.pos)
+                            and evenement.pos[0] < pos_mur - 10
+                            and self.argent >= prix_tour
+                        ):
+                            self.tours.append(self.type_tour_choisi(evenement.pos))
+                            self.argent -= prix_tour
+
+                        self.mode_placement = False
+                        self.type_tour_choisi = None
+
+            self.mettre_a_jour(dt)
+            self.dessiner()
+            pygame.display.flip()
 
         pygame.quit()
 
-    def update(self, delta_time):
-        # Spawn ennemis
-        if self.enemies_spawned < total_enemies:
-            self.spawn_timer += delta_time
-            if self.spawn_timer >= spawn_interval:
-                self.spawn_timer = 0
-                self.enemies.append(Mob(PATH[0], enemy_speed, couleur_ennemies))
-                self.enemies_spawned += 1
+    def mettre_a_jour(self, dt):
+        if self.nb_ennemis_spawnes < total_ennemis:
+            self.minuterie_spawn += dt
+            if self.minuterie_spawn >= intervalle_spawn:
+                self.minuterie_spawn = 0
+                self.ennemis.append(Mob(CHEMIN[0], vitesse_ennemi, couleur_ennemis))
+                self.nb_ennemis_spawnes += 1
 
-        # Update ennemis
-        alive = []
-        for enemy in self.enemies:
-            if enemy.health <= 0:
-                self.player_money += money_per_kill
+        survivants = []
+        for ennemi in self.ennemis:
+            if ennemi.vie <= 0:
+                self.argent += argent_par_kill
                 continue
-            reach_end = enemy.move(delta_time, PATH)
-            if reach_end:
-                self.wall_life -= 1
+            a_atteint = ennemi.avancer(dt, CHEMIN)
+            if a_atteint:
+                self.vie_mur -= 1
                 continue
-            alive.append(enemy)
-        self.enemies = alive
+            survivants.append(ennemi)
+        self.ennemis = survivants
 
-        # Update tours
-        for tower in self.towers:
-            tower.update(delta_time, self.enemies)
+        for tour in self.tours:
+            tour.mettre_a_jour(dt, self.ennemis)
 
-    def draw(self):
-        self.screen.fill(couleur_fond)
-        draw_decor(self.screen, pygame)
-        draw_path(self.screen, pygame)
-        self.draw_wall()
+    def dessiner(self):
+        self.fenetre.fill(couleur_fond)
 
-        # Tours et projectiles
-        for tower in self.towers:
-            tower.draw(self.screen)
+        draw_decor(self.fenetre, pygame)
+        draw_path(self.fenetre, pygame)
 
-        # Afficher boutons de la tour sélectionnée
-        if self.selected_tower_for_buttons:
-            tower = self.selected_tower_for_buttons
-            size = 30
-            spacing = 5
-            x_start = tower.x - size - spacing
-            y_start = tower.y + tower.size + 5
+        for tour in self.tours:
+            tour.dessiner(self.fenetre)
+        for ennemi in self.ennemis:
+            ennemi.dessiner(self.fenetre)
 
-            # Amélioration
-            pygame.draw.rect(self.screen, (0,255,0), (x_start, y_start, size, size))
-            self.screen.blit(self.font.render("A", True, (0,0,0)), (x_start + 8, y_start + 5))
+        self.bouton_tour.dessiner(self.fenetre)
+        self.telephone.dessiner(self.fenetre)
 
-            # Niveau
-            pygame.draw.rect(self.screen, (0,0,255), (x_start + size + spacing, y_start, size, size))
-            self.screen.blit(self.font.render("N", True, (255,255,255)), (x_start + size + spacing + 8, y_start + 5))
+        self.fenetre.blit(self.police.render(f"Vie : {self.vie_mur}", True, couleur_texte), (20, 20))
+        self.fenetre.blit(self.police.render(f"Argent : {self.argent}", True, couleur_texte), (20, 50))
 
-            # Type
-            if tower.type == "Canonnier":
-                pygame.draw.rect(self.screen, (139,69,19), (x_start + 2*(size + spacing), y_start, size, size))
-                self.screen.blit(self.font.render("C", True, (255,255,255)), (x_start + 2*(size + spacing) + 8, y_start + 5))
+        if self.tour_selectionnee:
+            t = self.tour_selectionnee
+            cote = 30
+            ecart = 5
+            bx = t.x - cote
+            by = t.y + t.taille + 5
 
-        # Mobs
-        for enemy in self.enemies:
-            enemy.draw(self.screen)
+            pygame.draw.rect(self.fenetre, (255, 200, 0), (bx, by, cote, cote))
+            self.fenetre.blit(self.police.render("A", True, (0, 0, 0)), (bx + 8, by + 5))
 
-        self.tower_button.draw(self.screen)
-        self.phone.draw(self.screen)
+            pygame.draw.rect(self.fenetre, (180, 180, 180), (bx + cote + ecart, by, cote, cote))
+            self.fenetre.blit(self.police.render(str(t.niveau), True, (0, 0, 0)), (bx + cote + ecart + 8, by + 5))
 
-        # Infos
-        self.screen.blit(self.font.render(f"Vie : {self.wall_life}", True, couleur_text), (20, 20))
-        self.screen.blit(self.font.render(f"Tours : {len(self.towers)} / {max_towers}", True, couleur_text), (20, 45))
-        self.screen.blit(self.font.render(f"Argent : {self.player_money}", True, couleur_text), (20, 70))
+        if self.mode_placement and self.type_tour_choisi is None:
+            zone_sniper = pygame.Rect(400, 200, 150, 50)
+            zone_canonnier = pygame.Rect(400, 270, 150, 50)
 
-        # Choix tourelle fenêtre
-        # Affichage choix tour
-        if self.place_mode and self.selected_tower_class is None:
-            sniper_rect = pygame.Rect(400, 200, 150, 50)
-            canonnier_rect = pygame.Rect(400, 270, 150, 50)
+            pygame.draw.rect(self.fenetre, (0, 0, 0), zone_sniper)
+            pygame.draw.rect(self.fenetre, (139, 69, 19), zone_canonnier)
 
-            pygame.draw.rect(self.screen, (0,0,0), sniper_rect)
-            pygame.draw.rect(self.screen, (139,69,19), canonnier_rect)
+            self.fenetre.blit(self.police.render("Sniper", True, (255, 255, 255)), (420, 210))
+            self.fenetre.blit(self.police.render("Canonnier", True, (255, 255, 255)), (420, 280))
 
-            self.screen.blit(self.font.render("Sniper", True, (255,255,255)), (420,210))
-            self.screen.blit(self.font.render("Canonnier", True, (255,255,255)), (420,280))
 
-            # Détection clic
-            mouse_pos = pygame.mouse.get_pos()
-            mouse_pressed = pygame.mouse.get_pressed()
-            if mouse_pressed[0]:  # clic gauche
-                if sniper_rect.collidepoint(mouse_pos):
-                    self.selected_tower_class = SniperTower
-                elif canonnier_rect.collidepoint(mouse_pos):
-                    self.selected_tower_class = CanonnierTower
-
-        pygame.display.flip()
+if __name__ == "__main__":
+    jeu = Jeu()
+    jeu.lancer()

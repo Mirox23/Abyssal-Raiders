@@ -1,47 +1,51 @@
 from setting import (
-    couleur_decor_grass,
-    couleur_decor_rock,
-    screen_height,
-    wall_x,
+    largeur_ecran, hauteur_ecran,
+    position_mur,
+    couleur_fond, couleur_decor_rock, couleur_decor_grass, couleur_wall
 )
 
-PATH = [
-    (0, screen_height // 2),
-    (140, screen_height // 2),
-    (140, screen_height // 2 - 90),
-    (320, screen_height // 2 - 90),
-    (320, screen_height // 2 + 80),
-    (520, screen_height // 2 + 80),
-    (520, screen_height // 2 - 30),
-    (740, screen_height // 2 - 30),
-    (740, screen_height // 2 + 100),
-    (wall_x, screen_height // 2 + 100),
+# Points du chemin que les ennemis suivent
+CHEMIN = [
+    (0,   200),
+    (150, 200),
+    (150, 350),
+    (350, 350),
+    (350, 130),
+    (600, 130),
+    (600, 400),
+    (800, 400),
+    (800, 280),
+    (position_mur, 280),
+]
+
+# Décors (rochers et herbe) placés autour du chemin
+DECORS = [
+    {"type": "rock",  "x": 80,  "y": 140, "r": 18},
+    {"type": "rock",  "x": 220, "y": 420, "r": 14},
+    {"type": "grass", "x": 450, "y": 220, "r": 22},
+    {"type": "rock",  "x": 680, "y": 310, "r": 16},
+    {"type": "grass", "x": 720, "y": 460, "r": 20},
+    {"type": "rock",  "x": 300, "y": 80,  "r": 12},
+    {"type": "grass", "x": 500, "y": 470, "r": 18},
+    {"type": "rock",  "x": 850, "y": 180, "r": 15},
 ]
 
 
-DECOR_ROCKS = [
-    (90, 120, 46, 28),
-    (250, 445, 58, 36),
-    (430, 90, 70, 42),
-    (645, 470, 64, 36),
-    (860, 155, 52, 30),
-]
-
-DECOR_GRASS = [
-    (180, 70, 18),
-    (370, 505, 24),
-    (560, 120, 20),
-    (700, 360, 22),
-    (905, 460, 20),
-]
+def draw_decor(fenetre, pygame):
+    """Dessine les éléments de décor (rochers, herbe)."""
+    for d in DECORS:
+        couleur = couleur_decor_rock if d["type"] == "rock" else couleur_decor_grass
+        pygame.draw.circle(fenetre, couleur, (d["x"], d["y"]), d["r"])
 
 
-def draw_path(screen, pygame_module):
-    pygame_module.draw.lines(screen, (146, 119, 86), False, PATH, 44)
+def draw_path(fenetre, pygame):
+    """Dessine le chemin et le mur."""
+    # Chemin
+    if len(CHEMIN) >= 2:
+        pygame.draw.lines(fenetre, (60, 80, 60), False, CHEMIN, 28)
+        pygame.draw.lines(fenetre, (75, 95, 75), False, CHEMIN, 4)
 
-
-def draw_decor(screen, pygame_module):
-    for x, y, w, h in DECOR_ROCKS:
-        pygame_module.draw.ellipse(screen, couleur_decor_rock, (x, y, w, h))
-    for x, y, r in DECOR_GRASS:
-        pygame_module.draw.circle(screen, couleur_decor_grass, (x, y), r)
+    # Mur
+    import pygame as pg
+    mur_rect = pg.Rect(position_mur, 0, largeur_ecran - position_mur, hauteur_ecran)
+    fenetre.fill(couleur_wall, mur_rect)

@@ -1,43 +1,56 @@
-# Général
-screen_width = 1000
-screen_height = 560
+# toutes les constantes du jeu regroupées ici pour pouvoir les modifier facilement
+
+# taille de la fenêtre
+largeur_ecran = 1000
+hauteur_ecran = 560
 FPS = 60
 
-# Map & Gameplay
-wall_x = screen_width - 70
-wall_width = 40
-wall_life_start = 20
+# le mur que les ennemis veulent atteindre
+position_mur = largeur_ecran - 70
+pos_mur = position_mur          
+largeur_mur = 40
+vie_mur_depart = 20
 
-# Vagues
-total_enemies = 18
-spawn_interval = 0.8
-enemy_speed = 110.0
+# les vagues d'ennemis
+total_ennemis = 18
+intervalle_spawn = 0.8   # secondes entre chaque apparition
+vitesse_ennemi = 110.0
 
-tower_fire_interval = 0.7
-tower_range = 180
+# les tours
+cadence_tour = 0.7    
+intervalle_tir = cadence_tour
+portee_tour = 180
 
-# Argent
-start_money = 20
-money_per_kill = 2
-money_per_wave = 15
-tower_price = 10
-max_towers = 5
+# l'argent
+argent_depart = 20
+argent_par_kill = 2
+argent_par_vague = 15
+prix_tour = 10
+nb_tours_max = 5
 
-# Projectile
-projectile_speed = 400
-projectile_size = 4
+# les projectiles
+vitesse_projectile = 400
+taille_projectile = 4
 
-# Couleurs principales
+# couleurs principales
 couleur_fond = (22, 36, 28)
-couleur_wall = (95, 97, 120)
-couleur_text = (240, 240, 240)
-couleur_ennemies = (190, 55, 55)
-couleur_tower = (200, 205, 218)
+couleur_mur = (95, 97, 120)
+couleur_texte = (240, 240, 240)
+couleur_ennemis  = (190, 55, 55)  
+couleur_ennemies = couleur_ennemis 
+couleur_tour = (200, 205, 218)
 
-# Boutons
-couleur_button = (70, 110, 145)
-couleur_button_active = (95, 140, 182)
+# boutons
+couleur_bouton = (70, 110, 145)
+couleur_bouton_survol = (95, 140, 182)
 
-# Décor (IMPORTANT pour chemin.py)
-couleur_decor_rock = (88, 100, 86)
-couleur_decor_grass = (58, 94, 60)
+# décor (utilisé dans chemin.py)
+couleur_rocher = (88, 100, 86)
+couleur_herbe = (58, 94, 60)
+
+# pour garder la compatibilité avec chemin.py qui utilise encore les anciens noms
+screen_height = hauteur_ecran
+wall_x = position_mur
+couleur_decor_rock = couleur_rocher
+couleur_decor_grass = couleur_herbe
+couleur_wall = couleur_mur

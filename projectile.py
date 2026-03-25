@@ -9,7 +9,7 @@ class Projectile:
         self.cible = cible
 
         self.vitesse = vitesse_projectile
-        self.taille = taille_projectile
+        self.taille  = taille_projectile
 
         self.actif = True
 

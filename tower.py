@@ -1,19 +1,19 @@
 import pygame
-from setting import *
+from setting import portee_tour, cadence_tour, couleur_tour
 from projectile import Projectile
 
 
 class Tour:
     def __init__(self, position):
         self.x, self.y = position
-        self.taille = 15
-        self.portee = portee_tour
+        self.taille  = 15
+        self.portee  = portee_tour
         self.cadence = cadence_tour
         self.temps_depuis_tir = 0
         self.projectiles = []
-        self.couleur = couleur_tour
+        self.couleur   = couleur_tour
         self.type_tour = "Base"
-        self.niveau = 1
+        self.niveau    = 1
 
     def mettre_a_jour(self, dt, ennemis):
         self.temps_depuis_tir += dt
@@ -22,8 +22,7 @@ class Tour:
             for ennemi in ennemis:
                 dx = ennemi.x - self.x
                 dy = ennemi.y - self.y
-                distance = (dx**2 + dy**2) ** 0.5
-                if distance <= self.portee:
+                if (dx**2 + dy**2) ** 0.5 <= self.portee:
                     self.projectiles.append(Projectile(self.x, self.y, ennemi))
                     self.temps_depuis_tir = 0
                     break
@@ -45,16 +44,16 @@ class Tour:
 class TourSniper(Tour):
     def __init__(self, position):
         super().__init__(position)
-        self.couleur = (0, 0, 0)
-        self.cadence = 1.5
-        self.portee = 180
+        self.couleur   = (20, 20, 20)
+        self.cadence   = 1.5
+        self.portee    = 250
         self.type_tour = "Sniper"
 
 
 class TourCanonnier(Tour):
     def __init__(self, position):
         super().__init__(position)
-        self.couleur = (139, 69, 19)
-        self.cadence = 0.5
-        self.portee = 100
+        self.couleur   = (139, 69, 19)
+        self.cadence   = 0.5
+        self.portee    = 100
         self.type_tour = "Canonnier"

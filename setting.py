@@ -1,4 +1,4 @@
-# toutes les constantes du jeu regroupées ici pour pouvoir les modifier facilement
+# toutes les constantes du jeu regroupées ici
 
 # taille de la fenêtre
 largeur_ecran = 1000
@@ -7,17 +7,17 @@ FPS = 60
 
 # le mur que les ennemis veulent atteindre
 position_mur = largeur_ecran - 70
-pos_mur = position_mur          
+pos_mur = position_mur
 largeur_mur = 40
 vie_mur_depart = 20
 
 # les vagues d'ennemis
 total_ennemis = 18
-intervalle_spawn = 0.8   # secondes entre chaque apparition
+intervalle_spawn = 0.8
 vitesse_ennemi = 110.0
 
 # les tours
-cadence_tour = 0.7    
+cadence_tour = 0.7
 intervalle_tir = cadence_tour
 portee_tour = 180
 
@@ -36,21 +36,24 @@ taille_projectile = 4
 couleur_fond = (22, 36, 28)
 couleur_mur = (95, 97, 120)
 couleur_texte = (240, 240, 240)
-couleur_ennemis  = (190, 55, 55)  
-couleur_ennemies = couleur_ennemis 
+couleur_ennemis  = (190, 55, 55)
+couleur_ennemies = couleur_ennemis
 couleur_tour = (200, 205, 218)
 
 # boutons
 couleur_bouton = (70, 110, 145)
 couleur_bouton_survol = (95, 140, 182)
 
-# décor (utilisé dans chemin.py)
+# décor
 couleur_rocher = (88, 100, 86)
 couleur_herbe = (58, 94, 60)
 
-# pour garder la compatibilité avec chemin.py qui utilise encore les anciens noms
+# alias pour chemin.py
 screen_height = hauteur_ecran
 wall_x = position_mur
 couleur_decor_rock = couleur_rocher
 couleur_decor_grass = couleur_herbe
 couleur_wall = couleur_mur
+
+# vie des mobs
+vie_mob = 50

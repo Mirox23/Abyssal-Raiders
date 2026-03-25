@@ -14,24 +14,24 @@ class Jeu:
         pygame.display.set_caption("Abyssal Raiders")
 
         self.horloge = pygame.time.Clock()
-        self.police = pygame.font.SysFont("consolas", 22)
+        self.police  = pygame.font.SysFont("consolas", 22)
 
         self.reinitialiser()
 
     def reinitialiser(self):
         self.ennemis = []
-        self.tours = []
+        self.tours   = []
 
-        self.minuterie_spawn = 0
+        self.minuterie_spawn   = 0
         self.nb_ennemis_spawnes = 0
 
         self.vie_mur = vie_mur_depart
-        self.argent = argent_depart
+        self.argent  = argent_depart
 
         self.bouton_tour = Bouton(820, 470, 150, 40, "Tourelle")
-        self.telephone = PanneauTelephone()
+        self.telephone   = PanneauTelephone()
 
-        self.mode_placement = False
+        self.mode_placement   = False
         self.type_tour_choisi = None
         self.tour_selectionnee = None
 
@@ -63,12 +63,12 @@ class Jeu:
                     if action == "New Manche":
                         self.ennemis.clear()
                         self.nb_ennemis_spawnes = 0
-                        self.minuterie_spawn = 0
+                        self.minuterie_spawn    = 0
                         self.argent += argent_par_vague
 
                     if self.bouton_tour.rect.collidepoint(evenement.pos):
-                        self.mode_placement = True
-                        self.type_tour_choisi = None
+                        self.mode_placement    = True
+                        self.type_tour_choisi  = None
                         self.tour_selectionnee = None
 
                     else:
@@ -80,7 +80,7 @@ class Jeu:
                                 self.tour_selectionnee = t
 
                     if self.mode_placement and self.type_tour_choisi is None:
-                        zone_sniper = pygame.Rect(400, 200, 150, 50)
+                        zone_sniper    = pygame.Rect(400, 200, 150, 50)
                         zone_canonnier = pygame.Rect(400, 270, 150, 50)
 
                         if zone_sniper.collidepoint(evenement.pos):
@@ -98,7 +98,7 @@ class Jeu:
                             self.tours.append(self.type_tour_choisi(evenement.pos))
                             self.argent -= prix_tour
 
-                        self.mode_placement = False
+                        self.mode_placement   = False
                         self.type_tour_choisi = None
 
             self.mettre_a_jour(dt)
@@ -148,7 +148,7 @@ class Jeu:
         self.fenetre.blit(self.police.render(f"Argent : {self.argent}", True, couleur_texte), (20, 50))
 
         if self.tour_selectionnee:
-            t = self.tour_selectionnee
+            t    = self.tour_selectionnee
             cote = 30
             ecart = 5
             bx = t.x - cote
@@ -161,16 +161,11 @@ class Jeu:
             self.fenetre.blit(self.police.render(str(t.niveau), True, (0, 0, 0)), (bx + cote + ecart + 8, by + 5))
 
         if self.mode_placement and self.type_tour_choisi is None:
-            zone_sniper = pygame.Rect(400, 200, 150, 50)
+            zone_sniper    = pygame.Rect(400, 200, 150, 50)
             zone_canonnier = pygame.Rect(400, 270, 150, 50)
 
-            pygame.draw.rect(self.fenetre, (0, 0, 0), zone_sniper)
-            pygame.draw.rect(self.fenetre, (139, 69, 19), zone_canonnier)
+            pygame.draw.rect(self.fenetre, (0, 0, 0),       zone_sniper)
+            pygame.draw.rect(self.fenetre, (139, 69, 19),   zone_canonnier)
 
-            self.fenetre.blit(self.police.render("Sniper", True, (255, 255, 255)), (420, 210))
+            self.fenetre.blit(self.police.render("Sniper",    True, (255, 255, 255)), (420, 210))
             self.fenetre.blit(self.police.render("Canonnier", True, (255, 255, 255)), (420, 280))
-
-
-if __name__ == "__main__":
-    jeu = Jeu()
-    jeu.lancer()

@@ -1,5 +1,5 @@
 import pygame
-from setting import *
+from setting import largeur_ecran, hauteur_ecran, couleur_bouton, couleur_bouton_survol
 
 
 class Bouton:
@@ -22,7 +22,7 @@ class Bouton:
 
 class PanneauTelephone:
     def __init__(self):
-        self.largeur = 170
+        self.largeur       = 170
         self.hauteur_ferme = 45
         self.hauteur_ouvert = 300
 

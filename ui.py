@@ -21,7 +21,7 @@ class Bouton:
         surface_texte = self.police.render(self.texte, True, couleur_texte)
         pos_x = self.rect.x + (self.rect.width - surface_texte.get_width()) // 2 #centrage horizontal du texte
         pos_y = self.rect.y + (self.rect.height - surface_texte.get_height()) // 2 #centrage vertical du texte
-        fenetre.blit(surface_texte, (pos_x, pos_y))
+        fenetre.blit(surface_texte, (pos_x, pos_y)) # affiche le texte du bouton centré à l'intérieur du rectangle du bouton pour une meilleure esthétique et lisibilité, en calculant la position du texte en fonction de la taille du bouton et de la taille du texte pour que le texte soit toujours parfaitement centré quelle que soit la taille du bouton ou du texte
 
     def est_survole(self):
         return self.rect.collidepoint(pygame.mouse.get_pos())
@@ -231,8 +231,8 @@ class EcranFinVague:
         surface_message = self.police_message.render(
             f"Vous avez terminé la vague {self.numero_vague} !",
             True, (200, 200, 200)
-        )
-        fenetre.blit(surface_message, (centre_x - surface_message.get_width() // 2, self.rect.y + 62))
+        ) 
+        fenetre.blit(surface_message, (centre_x - surface_message.get_width() // 2, self.rect.y + 62)) #message centré horizontalement
 
         self.bouton_nouvelle_vague.dessiner(fenetre)
         self.bouton_modification.dessiner(fenetre)

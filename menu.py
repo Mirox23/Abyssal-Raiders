@@ -2,7 +2,13 @@ import pygame
 import math
 from setting import largeur_ecran, hauteur_ecran
 
+"""
+Le principe du menu c'est de faire comme les poupées russes : il y a un menu principal, et à partir de ce menu on peut accéder à différents sous-menus (sélection de monde, carte du monde, options, etc.) qui sont tous gérés par la même classe Menu. 
+La classe Menu gère l'affichage et les interactions pour tous ces menus différents en fonction de son état actuel (indiqué par la variable self.etat) pour éviter d'avoir à créer une classe différente pour chaque menu et faciliter la gestion des transitions entre les différents menus.
+Chacuns des sous-menu ont des sortes de "tags" qui nous permettent de savoir quel menu est affiché et de gérer les interactions en conséquence. 
+Par exemple : si on clique sur le bouton "Jouer" du menu principal, on change l'état du menu pour afficher le menu de sélection de monde, et dans ce menu de sélection de monde, si on clique sur un monde débloqué, on retourne une indication pour lancer le jeu. De même, si on clique sur le bouton "Map" du menu principal, on change l'état du menu pour afficher la carte du monde, etc.
 
+"""
 class Menu:
     couleur_fond_menu = (14, 22, 18)
     couleur_titre = (210, 140, 35)
@@ -14,24 +20,24 @@ class Menu:
 
     def __init__(self, ecran):
         self.ecran = ecran
-        self.police_titre = pygame.font.SysFont("consolas", 52, bold=True)
+        self.police_titre = pygame.font.SysFont("consolas", 52, bold=True) #consolas pour un style pixelisé
         self.police_sous_titre = pygame.font.SysFont("consolas", 15)
         self.police_bouton = pygame.font.SysFont("consolas", 22, bold=True)
         self.police_monde = pygame.font.SysFont("consolas", 17, bold=True)
         self.police_avertissement = pygame.font.SysFont("consolas", 13)
         self.police_retour = pygame.font.SysFont("consolas", 16)
 
-        self.etat = "principal"   # "principal" | "mondes" | "map"
+        self.etat = "principal" #peut être "principal", "mondes" ou "map" pour indiquer quel menu est affiché
         self.minuterie_animation = 0.0
 
         centre_x = largeur_ecran // 2
 
         self.boutons_menu_principal = [
-            {"texte": "Jouer",       "rect": pygame.Rect(centre_x - 120, 210, 240, 50), "action": "ouvrir_mondes"},
-            {"texte": "Map",         "rect": pygame.Rect(centre_x - 120, 272, 240, 50), "action": "ouvrir_map"},
-            {"texte": "Options",     "rect": pygame.Rect(centre_x - 120, 334, 240, 50), "action": "options"},
-            {"texte": "Sauvegarde",  "rect": pygame.Rect(centre_x - 120, 396, 240, 50), "action": "sauvegarde"},
-            {"texte": "Quitter",     "rect": pygame.Rect(centre_x - 120, 458, 240, 50), "action": "quitter"},
+            {"texte": "Jouer", "rect": pygame.Rect(centre_x - 120, 210, 240, 50), "action": "ouvrir_mondes"},
+            {"texte": "Map", "rect": pygame.Rect(centre_x - 120, 272, 240, 50), "action": "ouvrir_map"},
+            {"texte": "Options", "rect": pygame.Rect(centre_x - 120, 334, 240, 50), "action": "options"},
+            {"texte": "Sauvegarde", "rect": pygame.Rect(centre_x - 120, 396, 240, 50), "action": "sauvegarde"},
+            {"texte": "Quitter", "rect": pygame.Rect(centre_x - 120, 458, 240, 50), "action": "quitter"},
         ]
 
         # Les 4 mondes sur l'écran de sélection
@@ -67,10 +73,10 @@ class Menu:
         ]
 
         # Bouton retour commun aux sous-menus
-        self.bouton_retour = pygame.Rect(largeur_ecran - 160, hauteur_ecran - 60, 140, 40)
+        self.bouton_retour = pygame.Rect(largeur_ecran - 160, hauteur_ecran - 60, 140, 40) 
 
     def gerer_evenement(self, evenement):
-        if evenement.type != pygame.MOUSEBUTTONDOWN:
+        if evenement.type != pygame.MOUSEBUTTONDOWN: # MOUSSEBUTTONDOWN correspond à un clic de souris
             return None
 
         position_clic = evenement.pos
@@ -123,7 +129,7 @@ class Menu:
 
     def dessiner_menu_principal(self):
         # Titre animé
-        pulsation = int(10 * math.sin(self.minuterie_animation * 2.0))
+        pulsation = int(10 * math.sin(self.minuterie_animation * 2.0)) #fait varier la couleur du titre pour lui donner un effet de pulsation (ne marche pas vraiment)
         rouge = min(255, self.couleur_titre[0] + pulsation)
         vert = min(255, self.couleur_titre[1] + pulsation)
         surface_titre = self.police_titre.render("ABYSSAL RAIDERS", True, (rouge, vert, self.couleur_titre[2]))
@@ -140,7 +146,7 @@ class Menu:
 
         position_souris = pygame.mouse.get_pos()
         for bouton in self.boutons_menu_principal:
-            est_survole = bouton["rect"].collidepoint(position_souris)
+            est_survole = bouton["rect"].collidepoint(position_souris) #vérifie si la souris est au-dessus du bouton pour changer sa couleur et donner un feedback visuel au joueur
             if est_survole:
                 couleur = self.couleur_bouton_survol
             else:
@@ -162,7 +168,7 @@ class Menu:
         self.ecran.blit(surface_version, (
             largeur_ecran - surface_version.get_width() - 12,
             hauteur_ecran - surface_version.get_height() - 8
-        ))
+        )) #affiche la version du jeu en bas à droite de l'écran (je pense ça sera surtout utile si on veut faire différentes versions tests. Par exemple : avec des menus différents, ou des foncitonnalités différents)
 
     def dessiner_selection_monde(self):
         surface_titre = self.police_titre.render("Choisir un Monde", True, (200, 200, 200))
@@ -197,8 +203,8 @@ class Menu:
             else:
                 couleur_nom = (100, 100, 100)
 
-            surface_nom = self.police_monde.render(monde["nom"], True, couleur_nom)
-            nom_x = rect_monde.x + (rect_monde.width - surface_nom.get_width()) // 2
+            surface_nom = self.police_monde.render(monde["nom"], True, couleur_nom) 
+            nom_x = rect_monde.x + (rect_monde.width - surface_nom.get_width()) // 2 #centrage horizontal du nom du monde sur le rectangle qui le représente pour que ce soit plus esthétique et lisible pour le joueur
             nom_y = rect_monde.y + rect_monde.height // 2 - surface_nom.get_height() // 2
             self.ecran.blit(surface_nom, (nom_x, nom_y))
 

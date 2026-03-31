@@ -14,7 +14,7 @@ vie_mur_depart = 20
 # Les vagues d'ennemis
 intervalle_spawn = 0.8
 vitesse_ennemi = 110.0
-total_ennemis = 18
+total_ennemis = 20
 
 # Les tours
 cadence_tour = 0.7

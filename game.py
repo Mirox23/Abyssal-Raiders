@@ -238,3 +238,6 @@ class Jeu:
 
         self.fenetre.blit(police_menu.render("Sniper  (longue portée)", True, (255, 255, 255)), (408, 214))
         self.fenetre.blit(police_menu.render("Canonnier  (tir rapide)", True, (255, 220, 180)), (408, 274))
+
+
+# aaaa

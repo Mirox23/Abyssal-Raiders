@@ -30,7 +30,8 @@ class Mob:
         self.vie_max = self.vie_de_base
         self.vie = self.vie_max
         self.recompense = self.recompense_mort
-
+        self.image = pygame.image.load("Roi des pirates.png").convert_alpha() #image de mob
+        self.image = pygame.transform.scale(self.image, (32, 32))
     def avancer(self, delta_temps, chemin):
         if self.etape >= len(chemin):
             return True
@@ -53,8 +54,11 @@ class Mob:
         return False
 
     def dessiner(self, fenetre):
-        pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
+        largeur = self.image.get_width()
+        hauteur = self.image.get_height()
 
+        #pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
+        fenetre.blit(self.image, (int(self.x - largeur // 2), int(self.y - hauteur // 2)))
         largeur_barre = 20
         hauteur_barre = 4
         ratio_vie = max(0, self.vie / self.vie_max)

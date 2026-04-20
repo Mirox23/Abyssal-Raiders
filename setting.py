@@ -32,11 +32,17 @@ argent_depart = 20
 argent_par_kill = 2
 argent_par_vague = 15
 prix_tour = 10
-nb_tours_max = 8
+nb_tours_max = 10
 
 # Les projectiles
 vitesse_projectile = 400
 taille_projectile = 4
+
+# Système d'expérience et de niveau
+xp_par_kill = 1
+xp_par_vague_base = 10
+niveau_joueur_depart = 1
+xp_pour_niveau_suivant_base = 20
 
 # Couleurs principales
 couleur_fond = (22, 36, 28)
@@ -54,7 +60,7 @@ couleur_bouton_survol = (95, 140, 182)
 couleur_rocher = (88, 100, 86)
 couleur_herbe = (58, 94, 60)
 
-# Alias pour chemin.py
+# Variables globales pour les classes
 screen_height = hauteur_ecran
 wall_x = position_mur
 couleur_decor_rock = couleur_rocher

@@ -1,6 +1,6 @@
 import pygame
 from setting import portee_tour, cadence_tour, couleur_tour, cout_amelioration, bonus_portee, bonus_cadence, niveau_max
-from projectile import Projectile
+from projectile import Projectile, ProjectileRalentissement
 
 
 class Tour:
@@ -62,6 +62,8 @@ class Tour:
 
 
 class TourSniper(Tour):
+    """Grande portée, cadence lente, dégâts élevés."""
+
     def __init__(self, position):
         super().__init__(position)
         self.couleur = (20, 20, 20)
@@ -69,11 +71,155 @@ class TourSniper(Tour):
         self.portee = 250
         self.type_tour = "Sniper"
 
+    def mettre_a_jour(self, delta_temps, liste_ennemis):
+        self.temps_depuis_dernier_tir += delta_temps
+
+        if self.temps_depuis_dernier_tir >= self.cadence:
+            for ennemi in liste_ennemis:
+                delta_x = ennemi.x - self.x
+                delta_y = ennemi.y - self.y
+                distance = (delta_x**2 + delta_y**2) ** 0.5
+                if distance <= self.portee:
+                    projectile = Projectile(self.x, self.y, ennemi)
+                    projectile.degats = 3
+                    projectile.couleur_projectile = (255, 80, 80)
+                    self.liste_projectiles.append(projectile)
+                    self.temps_depuis_dernier_tir = 0
+                    break
+
+        projectiles_actifs = []
+        for projectile in self.liste_projectiles:
+            projectile.mettre_a_jour(delta_temps)
+            if projectile.actif:
+                projectiles_actifs.append(projectile)
+        self.liste_projectiles = projectiles_actifs
+
 
 class TourCanonnier(Tour):
+    """Courte portée, cadence très rapide."""
+
     def __init__(self, position):
         super().__init__(position)
         self.couleur = (139, 69, 19)
         self.cadence = 0.5
         self.portee = 100
         self.type_tour = "Canonnier"
+
+
+class TourRalentissement(Tour):
+    """
+    Ralentit les ennemis touchés.
+    Projectiles bleus qui réduisent la vitesse de 50% pendant 2 secondes.
+    """
+
+    def __init__(self, position):
+        super().__init__(position)
+        self.couleur = (40, 160, 220)
+        self.cadence = 1.0
+        self.portee = 150
+        self.type_tour = "Ralentissement"
+        self.facteur_ralentissement = 0.5
+        self.duree_ralentissement = 2.0
+
+    def ameliorer(self, argent_joueur):
+        resultat = super().ameliorer(argent_joueur)
+        if resultat >= 0:
+            # Chaque niveau améliore le ralentissement et la durée
+            self.facteur_ralentissement = max(0.2, self.facteur_ralentissement - 0.05)
+            self.duree_ralentissement = min(4.0, self.duree_ralentissement + 0.3)
+        return resultat
+
+    def mettre_a_jour(self, delta_temps, liste_ennemis):
+        self.temps_depuis_dernier_tir += delta_temps
+
+        if self.temps_depuis_dernier_tir >= self.cadence:
+            for ennemi in liste_ennemis:
+                delta_x = ennemi.x - self.x
+                delta_y = ennemi.y - self.y
+                distance = (delta_x**2 + delta_y**2) ** 0.5
+                if distance <= self.portee:
+                    projectile = ProjectileRalentissement(
+                        self.x, self.y, ennemi,
+                        self.facteur_ralentissement,
+                        self.duree_ralentissement
+                    )
+                    self.liste_projectiles.append(projectile)
+                    self.temps_depuis_dernier_tir = 0
+                    break
+
+        projectiles_actifs = []
+        for projectile in self.liste_projectiles:
+            projectile.mettre_a_jour(delta_temps)
+            if projectile.actif:
+                projectiles_actifs.append(projectile)
+        self.liste_projectiles = projectiles_actifs
+
+    def dessiner(self, fenetre):
+        super().dessiner(fenetre)
+        # Anneau distinctif pour la tour de ralentissement
+        pygame.draw.circle(fenetre, (100, 200, 255), (int(self.x), int(self.y)), self.taille, 3)
+
+
+class TourSupport(Tour):
+    """
+    Tour de support : améliore la cadence de tir des tours voisines.
+    N'attaque pas directement les ennemis.
+    """
+
+    def __init__(self, position):
+        super().__init__(position)
+        self.couleur = (200, 180, 40)
+        self.cadence = 999
+        self.portee = 120
+        self.type_tour = "Support"
+        self.rayon_buff = 120
+        self.bonus_cadence_buff = 0.25
+        self.tours_bufferisees = []
+
+    def ameliorer(self, argent_joueur):
+        resultat = super().ameliorer(argent_joueur)
+        if resultat >= 0:
+            self.rayon_buff = min(200, self.rayon_buff + 15)
+            self.bonus_cadence_buff = min(0.5, self.bonus_cadence_buff + 0.05)
+        return resultat
+
+    def mettre_a_jour(self, delta_temps, liste_ennemis):
+        # La tour support ne tire pas, elle est mise à jour via appliquer_buff
+        pass
+
+    def appliquer_buff(self, liste_tours):
+        """
+        Réduit la cadence de tir des tours dans le rayon de buff.
+        Appelé depuis game.py à chaque frame.
+        """
+        for autre_tour in liste_tours:
+            if autre_tour is self:
+                continue
+            if autre_tour.type_tour == "Support":
+                continue
+            distance = ((autre_tour.x - self.x)**2 + (autre_tour.y - self.y)**2) ** 0.5
+            if distance <= self.rayon_buff:
+                # On applique le buff uniquement si pas déjà buffé par cette tour
+                if autre_tour not in self.tours_bufferisees:
+                    autre_tour.cadence = max(0.1, autre_tour.cadence * (1 - self.bonus_cadence_buff))
+                    self.tours_bufferisees.append(autre_tour)
+
+    def retirer_buff(self, liste_tours):
+        """Retire le buff quand la tour est supprimée."""
+        for tour_buffee in self.tours_bufferisees:
+            tour_buffee.cadence = min(2.0, tour_buffee.cadence / (1 - self.bonus_cadence_buff))
+        self.tours_bufferisees.clear()
+
+    def dessiner(self, fenetre):
+        pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
+        # Anneau du rayon de buff en jaune doré
+        pygame.draw.circle(fenetre, (220, 200, 50), (int(self.x), int(self.y)), self.rayon_buff, 1)
+        # Étoile au centre pour distinguer la tour
+        pygame.draw.circle(fenetre, (255, 240, 100), (int(self.x), int(self.y)), self.taille, 3)
+
+        police_niveau = pygame.font.SysFont("consolas", 10, bold=True)
+        surface_niveau = police_niveau.render(str(self.niveau), True, (0, 0, 0))
+        fenetre.blit(surface_niveau, (
+            int(self.x) - surface_niveau.get_width() // 2,
+            int(self.y) - surface_niveau.get_height() // 2
+        ))

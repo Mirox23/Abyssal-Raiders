@@ -6,14 +6,14 @@ from game import Jeu
 
 def main():
     pygame.init()
-    ecran = pygame.display.set_mode((largeur_ecran, hauteur_ecran)) #initialisation de la fenêtre du jeu avec les dimensions définies dans setting.py
+    ecran = pygame.display.set_mode((largeur_ecran, hauteur_ecran))
     pygame.display.set_caption("Abyssal Raiders")
     horloge = pygame.time.Clock()
 
     menu = Menu(ecran)
     etat_application = "menu"
 
-    while etat_application != "quitter": #tant que le joueur n'a pas choisi de quitter le jeu, on reste dans la boucle principale qui gère les différents états de l'application (menu, jeu, etc.)
+    while etat_application != "quitter":
         delta_temps = horloge.tick(FPS) / 1000
 
         if etat_application == "menu":
@@ -27,7 +27,7 @@ def main():
                     elif resultat == "quitter":
                         etat_application = "quitter"
 
-            menu.mise_a_jour(delta_temps) #met à jour les éléments du menu (animations, etc.) en fonction du temps écoulé depuis la dernière mise à jour pour que les animations soient fluides et indépendantes du nombre de frames par seconde
+            menu.mise_a_jour(delta_temps)
             menu.dessiner()
             pygame.display.flip()
 

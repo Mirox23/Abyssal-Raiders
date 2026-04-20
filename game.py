@@ -299,3 +299,7 @@ class Jeu:
 
             surface_desc = police_desc.render(description, True, (180, 180, 180))
             self.fenetre.blit(surface_desc, (zone.x + 8, zone.y + 24))
+
+        self.fenetre.blit(police_menu.render("Sniper  (longue portée)", True, (255, 255, 255)), (408, 214))
+        self.fenetre.blit(police_menu.render("Canonnier  (tir rapide)", True, (255, 220, 180)), (408, 274))
+

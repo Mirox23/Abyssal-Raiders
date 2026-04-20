@@ -23,18 +23,23 @@ class Mob:
         self.vie_max = self.vie_de_base
         self.vie = self.vie_max
         self.recompense = self.recompense_mort
+
         self.xp = self.xp_mort
 
         # Ralentissement appliqué par une tour de ralentissement
         self.facteur_ralentissement = 1.0
         self.minuterie_ralentissement = 0.0
 
+        self.image = pygame.image.load("Roi des pirates.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (32, 32))
+
     def appliquer_ralentissement(self, facteur, duree):
         """Réduit temporairement la vitesse du mob."""
         if facteur < self.facteur_ralentissement:
             self.facteur_ralentissement = facteur
             self.minuterie_ralentissement = duree
-
+        self.image = pygame.image.load("Roi des pirates.png").convert_alpha() #image de mob
+        self.image = pygame.transform.scale(self.image, (32, 32))
     def avancer(self, delta_temps, chemin):
         if self.etape >= len(chemin):
             return True
@@ -65,32 +70,22 @@ class Mob:
         return False
 
     def dessiner(self, fenetre):
-        couleur_affichage = self.couleur
-        # Teinte bleue si ralenti
-        if self.facteur_ralentissement < 1.0:
-            couleur_affichage = (
-                max(0, self.couleur[0] - 40),
-                max(0, self.couleur[1] - 20),
-                min(255, self.couleur[2] + 80),
-            )
+    couleur_affichage = self.couleur
+    # Teinte bleue si ralenti
+    if self.facteur_ralentissement < 1.0:
+        couleur_affichage = (
+            max(0, self.couleur[0] - 40),
+            max(0, self.couleur[1] - 20),
+            min(255, self.couleur[2] + 80),
+        )
 
-        pygame.draw.circle(fenetre, couleur_affichage, (int(self.x), int(self.y)), self.taille)
+    pygame.draw.circle(fenetre, couleur_affichage, (int(self.x), int(self.y)), self.taille)
 
-        largeur_barre = 20
-        hauteur_barre = 4
-        ratio_vie = max(0, self.vie / self.vie_max)
-        rouge = int(255 * (1 - ratio_vie))
-        vert = int(255 * ratio_vie)
+    largeur = self.image.get_width()
+    hauteur = self.image.get_height()
 
-        barre_x = self.x - largeur_barre // 2
-        barre_y = self.y - self.taille - 10
-        pygame.draw.rect(fenetre, (50, 50, 50), (barre_x, barre_y, largeur_barre, hauteur_barre))
-        pygame.draw.rect(fenetre, (rouge, vert, 0), (barre_x, barre_y, largeur_barre * ratio_vie, hauteur_barre))
-
-        police_nom = pygame.font.SysFont("consolas", 9)
-        surface_nom = police_nom.render(self.nom, True, (200, 200, 200))
-        fenetre.blit(surface_nom, (int(self.x) - surface_nom.get_width() // 2, int(barre_y) - 10))
-
+    #pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
+    fenetre.blit(self.image, (int(self.x - largeur // 2), int(self.y - hauteur // 2)))
 
 class MobRapide(Mob):
     """Mob rapide : bleu, peu de vie mais très véloce."""

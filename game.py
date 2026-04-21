@@ -268,18 +268,36 @@ class Jeu:
             surface_ligne = police_info.render(ligne, True, (230, 230, 230))
             self.fenetre.blit(surface_ligne, (info_x, info_y))
             info_y += 16
+   
+    def couper_texte(self, texte, police, largeur_max):
+        mots = texte.split(" ")
+        lignes = []
+        ligne = ""
 
+        for mot in mots:
+            test = ligne + (" " if ligne else "") + mot
+            if police.size(test)[0] <= largeur_max:
+                ligne = test
+            else:
+                lignes.append(ligne)
+                ligne = mot
+
+        if ligne:
+            lignes.append(ligne)
+
+        return lignes
+    
     def dessiner_menu_type_tour(self):
         police_menu = pygame.font.SysFont("consolas", 18)
+        police_desc = pygame.font.SysFont("consolas", 12)
 
         donnees_menu = [
-            (pygame.Rect(330, 180, 180, 44), (15, 15, 15),    (80, 80, 80),    "Sniper",          (255, 255, 255), "Longue portée, dégâts x3"),
-            (pygame.Rect(330, 230, 180, 44), (110, 55, 10),   (160, 100, 40),  "Canonnier",       (255, 220, 180), "Courte portée, très rapide"),
-            (pygame.Rect(330, 280, 180, 44), (20, 100, 160),  (40, 150, 210),  "Ralentissement",  (180, 230, 255), "Ralentit les ennemis"),
-            (pygame.Rect(330, 330, 180, 44), (140, 120, 10),  (200, 180, 30),  "Support",         (255, 240, 150), "Booste les tours proches"),
+            (pygame.Rect(330, 180, 180, 44), (15, 15, 15), (80, 80, 80), "Sniper", (255, 255, 255), "Longue portée, dégâts x3", 100),
+            (pygame.Rect(330, 230, 180, 44), (110, 55, 10), (160, 100, 40), "Canonnier", (255, 220, 180), "Courte portée, très rapide", 80),
+            (pygame.Rect(330, 280, 180, 44), (20, 100, 160), (40, 150, 210), "Ralentissement", (180, 230, 255), "Ralentit les ennemis", 90),
+            (pygame.Rect(330, 330, 180, 44), (140, 120, 10), (200, 180, 30), "Support", (255, 240, 150), "Booste les tours proches", 70),
         ]
 
-        # Fond général du menu
         rect_fond_menu = pygame.Rect(320, 170, 360, 215)
         pygame.draw.rect(self.fenetre, (20, 22, 35), rect_fond_menu, border_radius=10)
         pygame.draw.rect(self.fenetre, (70, 75, 110), rect_fond_menu, width=1, border_radius=10)
@@ -288,18 +306,23 @@ class Jeu:
         surface_titre_menu = police_titre_menu.render("Choisir une tour :", True, (160, 160, 200))
         self.fenetre.blit(surface_titre_menu, (rect_fond_menu.x + 10, rect_fond_menu.y + 6))
 
-        police_desc = pygame.font.SysFont("consolas", 12)
-
-        for (zone, couleur_fond, couleur_bord, nom, couleur_texte_nom, description) in donnees_menu:
+        for (zone, couleur_fond, couleur_bord, nom, couleur_texte_nom, description, prix) in donnees_menu:
             pygame.draw.rect(self.fenetre, couleur_fond, zone, border_radius=6)
             pygame.draw.rect(self.fenetre, couleur_bord, zone, width=1, border_radius=6)
 
+            # Nom
             surface_nom = police_menu.render(nom, True, couleur_texte_nom)
             self.fenetre.blit(surface_nom, (zone.x + 8, zone.y + 4))
 
-            surface_desc = police_desc.render(description, True, (180, 180, 180))
-            self.fenetre.blit(surface_desc, (zone.x + 8, zone.y + 24))
+            # Prix
+            surface_prix = police_desc.render(f"{prix} ¤", True, (255, 215, 0))
+            self.fenetre.blit(surface_prix, (zone.right - 60, zone.y + 4))
 
-        self.fenetre.blit(police_menu.render("Sniper  (longue portée)", True, (255, 255, 255)), (408, 214))
-        self.fenetre.blit(police_menu.render("Canonnier  (tir rapide)", True, (255, 220, 180)), (408, 274))
+            # Description coupée
+            lignes = self.couper_texte(description, police_desc, zone.width - 16)
 
+            y_offset = 24
+            for ligne in lignes:
+                surface_desc = police_desc.render(ligne, True, (180, 180, 180))
+                self.fenetre.blit(surface_desc, (zone.x + 8, zone.y + y_offset))
+                y_offset += 14

@@ -72,27 +72,34 @@ class Mob:
         return False
 
     def dessiner(self, fenetre):
-        couleur_affichage = self.couleur
-        # Teinte bleue si ralenti
-        if self.facteur_ralentissement < 1.0:
-            couleur_affichage = (
-                max(0, self.couleur[0] - 40),
-                max(0, self.couleur[1] - 20),
-                min(255, self.couleur[2] + 80),
-            )
-
-        pygame.draw.circle(fenetre, couleur_affichage, (int(self.x), int(self.y)), self.taille)
+        if not hasattr(self, "image") or self.image is None:
+            self.image = Mob.image_base
 
         largeur = self.image.get_width()
         hauteur = self.image.get_height()
 
         image_affichee = self.image
 
+        # Effet ralenti (teinte bleue)
         if self.facteur_ralentissement < 1.0:
             image_affichee = self.image.copy()
             image_affichee.fill((100, 100, 255, 80), special_flags=pygame.BLEND_RGBA_ADD)
 
+        # Dessin image
         fenetre.blit(image_affichee, (int(self.x - largeur // 2), int(self.y - hauteur // 2)))
+
+        # --- Barre de vie ---
+        largeur_barre = 30
+        hauteur_barre = 4
+
+        ratio_vie = self.vie / self.vie_max
+        vie_actuelle_largeur = int(largeur_barre * ratio_vie)
+
+        x_barre = int(self.x - largeur_barre // 2)
+        y_barre = int(self.y - hauteur // 2 - 8)
+
+        pygame.draw.rect(fenetre, (120, 0, 0), (x_barre, y_barre, largeur_barre, hauteur_barre))
+        pygame.draw.rect(fenetre, (0, 200, 0), (x_barre, y_barre, vie_actuelle_largeur, hauteur_barre))
 
 class MobRapide(Mob):
     """Mob rapide : bleu, peu de vie mais très véloce."""

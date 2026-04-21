@@ -6,6 +6,7 @@ from tower import Tour, TourSniper, TourCanonnier, TourRalentissement, TourSuppo
 from ui import Bouton, PanneauTelephone, PanneauInfos, PanneauAchevement, EcranFinVague, AffichageXP
 from vague import GestionnaireVague
 from progression import Progression
+from competence import GestionnaireCompetences
 
 
 class Jeu:
@@ -42,6 +43,100 @@ class Jeu:
         self.en_attente_lancement_vague = True
 
         self.progression = Progression()
+        self.gestionnaire_competences = GestionnaireCompetences()
+        self.journal_effets = []
+        self.mode_fete = False
+        self.sequence_easter_egg = []
+
+    def ajouter_effet(self, position, couleur, rayon_depart=8, rayon_fin=50, duree=0.35):
+        self.journal_effets.append({
+            "x": position[0],
+            "y": position[1],
+            "couleur": couleur,
+            "rayon_depart": rayon_depart,
+            "rayon_fin": rayon_fin,
+            "duree": duree,
+            "temps": 0.0,
+        })
+
+    def mettre_a_jour_effets(self, delta_temps):
+        effets_restants = []
+        for effet in self.journal_effets:
+            effet["temps"] += delta_temps
+            if effet["temps"] < effet["duree"]:
+                effets_restants.append(effet)
+        self.journal_effets = effets_restants
+
+    def dessiner_effets(self):
+        for effet in self.journal_effets:
+            progression = effet["temps"] / effet["duree"]
+            rayon = int(effet["rayon_depart"] + (effet["rayon_fin"] - effet["rayon_depart"]) * progression)
+            alpha = max(0, int(180 * (1 - progression)))
+
+            surface = pygame.Surface((rayon * 2 + 6, rayon * 2 + 6), pygame.SRCALPHA)
+            pygame.draw.circle(
+                surface,
+                (effet["couleur"][0], effet["couleur"][1], effet["couleur"][2], alpha),
+                (rayon + 3, rayon + 3),
+                rayon,
+                3
+            )
+            self.fenetre.blit(surface, (effet["x"] - rayon - 3, effet["y"] - rayon - 3))
+
+    def gerer_competence(self, touche):
+        cle_competence = self.gestionnaire_competences.obtenir_competence_par_touche(touche)
+        if not cle_competence:
+            return
+
+        donnees = self.gestionnaire_competences.competences[cle_competence]
+        if not self.gestionnaire_competences.peut_activer(cle_competence, self.argent):
+            return
+
+        if cle_competence == "tir_puissant":
+            if not self.liste_ennemis:
+                return
+            cible = max(self.liste_ennemis, key=lambda ennemi: ennemi.etape)
+            cible.vie -= 8
+            self.ajouter_effet((cible.x, cible.y), (255, 220, 80), rayon_depart=12, rayon_fin=65, duree=0.28)
+
+        elif cle_competence == "pluie_bombes":
+            if not self.liste_ennemis:
+                return
+            position_souris = pygame.mouse.get_pos()
+            rayon_explosion = 95
+            for ennemi in self.liste_ennemis:
+                distance = ((ennemi.x - position_souris[0]) ** 2 + (ennemi.y - position_souris[1]) ** 2) ** 0.5
+                if distance <= rayon_explosion:
+                    ennemi.vie -= 4
+            self.ajouter_effet(position_souris, (255, 120, 60), rayon_depart=18, rayon_fin=120, duree=0.45)
+
+        elif cle_competence == "buff_tours":
+            self.ajouter_effet((largeur_ecran // 2, hauteur_ecran // 2), (255, 220, 80), rayon_depart=35, rayon_fin=220, duree=0.6)
+
+        elif cle_competence == "ralentissement_zone":
+            position_souris = pygame.mouse.get_pos()
+            for ennemi in self.liste_ennemis:
+                distance = ((ennemi.x - position_souris[0]) ** 2 + (ennemi.y - position_souris[1]) ** 2) ** 0.5
+                if distance <= 130:
+                    ennemi.appliquer_ralentissement(0.35, 2.8)
+            self.ajouter_effet(position_souris, (120, 200, 255), rayon_depart=16, rayon_fin=145, duree=0.55)
+
+        self.argent -= donnees["cout"]
+        self.gestionnaire_competences.activer(cle_competence)
+
+    def gerer_easter_eggs(self, touche):
+        "Easter egg pour gagner de l'argent : en appuyant sur P, le joueur reçoit 25¤ et une animation dorée apparaît à côté du montant d'argent"
+        if touche == pygame.K_p:
+            self.argent += 25
+            self.ajouter_effet((120, 70), (255, 215, 0), rayon_depart=10, rayon_fin=70, duree=0.6)
+
+        self.sequence_easter_egg.append(touche)
+        self.sequence_easter_egg = self.sequence_easter_egg[-6:]
+        code_fete = [pygame.K_UP, pygame.K_UP, pygame.K_DOWN, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]
+        if self.sequence_easter_egg == code_fete:
+            self.mode_fete = not self.mode_fete
+            couleur = (255, 120, 220) if self.mode_fete else (150, 150, 150)
+            self.ajouter_effet((largeur_ecran // 2, 100), couleur, rayon_depart=20, rayon_fin=260, duree=0.8)
 
     def est_sur_chemin(self, position):
         for indice in range(len(CHEMIN) - 1):
@@ -73,6 +168,9 @@ class Jeu:
 
                 if evenement.type == pygame.MOUSEBUTTONDOWN:
                     self.gerer_clic(evenement.pos)
+                if evenement.type == pygame.KEYDOWN:
+                    self.gerer_competence(evenement.key)
+                    self.gerer_easter_eggs(evenement.key)
 
             self.mettre_a_jour(delta_temps)
             self.dessiner()
@@ -172,6 +270,12 @@ class Jeu:
 
     def mettre_a_jour(self, delta_temps):
         self.progression.mettre_a_jour(delta_temps)
+        self.gestionnaire_competences.mettre_a_jour(delta_temps)
+        self.mettre_a_jour_effets(delta_temps)
+
+        multiplicateur_buff = 1.0
+        if self.gestionnaire_competences.buff_actif():
+            multiplicateur_buff = self.gestionnaire_competences.competences["buff_tours"]["multiplicateur_cadence"]
 
         if not self.en_attente_lancement_vague and not self.ecran_fin_vague.visible:
             self.gestionnaire_vague.mettre_a_jour(delta_temps, self.liste_ennemis, CHEMIN)
@@ -188,6 +292,7 @@ class Jeu:
                     self.argent += ennemi.recompense
                     xp_gagnee = self.progression.xp_pour_kill()
                     self.progression.gagner_xp(xp_gagnee)
+                    self.ajouter_effet((ennemi.x, ennemi.y), (255, 80, 80), rayon_depart=8, rayon_fin=30, duree=0.25)
                     continue
 
                 a_atteint_le_mur = ennemi.avancer(delta_temps, CHEMIN)
@@ -195,8 +300,10 @@ class Jeu:
                 if a_atteint_le_mur:
                     if isinstance(ennemi, MobKamikaze): # isintance de MobKamikaze inflige des dégâts d'explosion au mur
                         self.points_de_vie_mur -= ennemi.degats_explosion
+                        self.ajouter_effet((pos_mur, hauteur_ecran // 2), (255, 120, 60), rayon_depart=12, rayon_fin=80, duree=0.35)
                     else:
                         self.points_de_vie_mur -= 1
+                        self.ajouter_effet((pos_mur, hauteur_ecran // 2), (230, 80, 80), rayon_depart=8, rayon_fin=55, duree=0.25)
                     continue
 
                 ennemis_survivants.append(ennemi)
@@ -212,7 +319,10 @@ class Jeu:
                 self.ecran_fin_vague.ouvrir(self.gestionnaire_vague.numero_vague, xp_vague)
 
         for tour in self.liste_tours:
+            cadence_originale = tour.cadence
+            tour.cadence = max(0.08, tour.cadence * multiplicateur_buff)
             tour.mettre_a_jour(delta_temps, self.liste_ennemis)
+            tour.cadence = cadence_originale
 
         # Les tours support appliquent leur buff en continu
         for tour in self.liste_tours:
@@ -220,7 +330,16 @@ class Jeu:
                 tour.appliquer_buff(self.liste_tours)
 
     def dessiner(self):
-        self.fenetre.fill(couleur_fond)
+        if self.mode_fete:
+            temps = pygame.time.get_ticks() * 0.002
+            fond = (
+                int(45 + 30 * (1 + pygame.math.Vector2(1, 0).rotate(temps * 40).x)),
+                int(35 + 30 * (1 + pygame.math.Vector2(1, 0).rotate(temps * 65).y)),
+                int(55 + 20 * (1 + pygame.math.Vector2(1, 0).rotate(temps * 90).x)),
+            )
+            self.fenetre.fill(fond)
+        else:
+            self.fenetre.fill(couleur_fond)
 
         draw_decor(self.fenetre, pygame)
         draw_path(self.fenetre, pygame)
@@ -229,6 +348,7 @@ class Jeu:
             tour.dessiner(self.fenetre)
         for ennemi in self.liste_ennemis:
             ennemi.dessiner(self.fenetre)
+        self.dessiner_effets()
 
         self.fenetre.blit(self.police_hud.render(f"Vie : {self.points_de_vie_mur}", True, couleur_texte), (20, 20))
         self.fenetre.blit(self.police_hud.render(f"Argent : {self.argent} ¤", True, couleur_texte), (20, 48))
@@ -241,6 +361,7 @@ class Jeu:
         self.fenetre.blit(surface_vague, (largeur_ecran // 2 - surface_vague.get_width() // 2, 14))
 
         self.affichage_xp.dessiner(self.fenetre, self.progression)
+        self.dessiner_hud_competences()
 
         if self.tour_actuellement_selectionnee:
             self.dessiner_info_tour()
@@ -252,6 +373,29 @@ class Jeu:
         self.panneau_infos.dessiner(self.fenetre)
         self.panneau_achevement.dessiner(self.fenetre)  
         self.ecran_fin_vague.dessiner(self.fenetre)
+
+    def dessiner_hud_competences(self):
+        police = pygame.font.SysFont("consolas", 14)
+        x_depart = 18
+        y_depart = hauteur_ecran - 120
+        largeur_bloc = 230
+        hauteur_bloc = 24
+
+        ordre = ["tir_puissant", "pluie_bombes", "buff_tours", "ralentissement_zone"]
+        for indice, cle in enumerate(ordre):
+            donnees = self.gestionnaire_competences.competences[cle]
+            y = y_depart + indice * 26
+            rect = pygame.Rect(x_depart, y, largeur_bloc, hauteur_bloc)
+            pygame.draw.rect(self.fenetre, (20, 20, 30), rect, border_radius=5)
+            pygame.draw.rect(self.fenetre, (70, 80, 115), rect, width=1, border_radius=5)
+
+            cooldown = donnees["cooldown"]
+            texte = f"[{pygame.key.name(donnees['touche']).upper()}] {donnees['nom']} ({donnees['cout']}¤)"
+            if cooldown > 0:
+                texte = f"{texte} - {cooldown:.1f}s"
+            couleur_texte = (200, 220, 255) if cooldown <= 0 and self.argent >= donnees["cout"] else (140, 140, 150)
+            surface = police.render(texte, True, couleur_texte)
+            self.fenetre.blit(surface, (x_depart + 8, y + 4))
 
     def dessiner_info_tour(self):
         tour = self.tour_actuellement_selectionnee

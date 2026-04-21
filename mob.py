@@ -1,4 +1,5 @@
 import pygame
+import math
 
 
 class Mob:
@@ -86,8 +87,9 @@ class Mob:
             image_affichee = self.image.copy()
             image_affichee.fill((100, 100, 255, 80), special_flags=pygame.BLEND_RGBA_ADD)
 
-        # Dessin image
-        fenetre.blit(image_affichee, (int(self.x - largeur // 2), int(self.y - hauteur // 2)))
+        # Petite animation de flottement pour donner de la vie aux mobs
+        oscillation = math.sin((pygame.time.get_ticks() * 0.01) + self.x * 0.04) * 2.2
+        fenetre.blit(image_affichee, (int(self.x - largeur // 2), int(self.y - hauteur // 2 + oscillation)))
 
         # --- Barre de vie ---
         largeur_barre = 30
@@ -97,7 +99,7 @@ class Mob:
         vie_actuelle_largeur = int(largeur_barre * ratio_vie)
 
         x_barre = int(self.x - largeur_barre // 2)
-        y_barre = int(self.y - hauteur // 2 - 8)
+        y_barre = int(self.y - hauteur // 2 - 8 + oscillation)
 
         pygame.draw.rect(fenetre, (120, 0, 0), (x_barre, y_barre, largeur_barre, hauteur_barre))
         pygame.draw.rect(fenetre, (0, 200, 0), (x_barre, y_barre, vie_actuelle_largeur, hauteur_barre))

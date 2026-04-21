@@ -32,6 +32,7 @@ class Projectile:
             self.y += (delta_y / distance) * self.vitesse * delta_temps
 
     def dessiner(self, fenetre):
+        pygame.draw.circle(fenetre, (255, 255, 255), (int(self.x), int(self.y)), self.taille + 2, 1)
         pygame.draw.circle(fenetre, self.couleur_projectile, (int(self.x), int(self.y)), self.taille)
 
 

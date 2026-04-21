@@ -3,7 +3,7 @@ import pygame
 
 class Mob:
     """Mob de base : Zombie vert, vitesse normale."""
-
+    image_base = None
     nom = "Zombie"
     couleur_mob = (60, 180, 60)
     vie_de_base = 4
@@ -29,17 +29,19 @@ class Mob:
         # Ralentissement appliqué par une tour de ralentissement
         self.facteur_ralentissement = 1.0
         self.minuterie_ralentissement = 0.0
+        
+        if Mob.image_base is None:
+            Mob.image_base = pygame.image.load("Roi des pirates.png").convert_alpha()
+            Mob.image_base = pygame.transform.scale(Mob.image_base, (32, 32))
 
-        self.image = pygame.image.load("Roi des pirates.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (32, 32))
+        self.image = Mob.image_base
 
     def appliquer_ralentissement(self, facteur, duree):
         """Réduit temporairement la vitesse du mob."""
         if facteur < self.facteur_ralentissement:
             self.facteur_ralentissement = facteur
             self.minuterie_ralentissement = duree
-        self.image = pygame.image.load("Roi des pirates.png").convert_alpha() #image de mob
-        self.image = pygame.transform.scale(self.image, (32, 32))
+
     def avancer(self, delta_temps, chemin):
         if self.etape >= len(chemin):
             return True
@@ -70,22 +72,27 @@ class Mob:
         return False
 
     def dessiner(self, fenetre):
-    couleur_affichage = self.couleur
-    # Teinte bleue si ralenti
-    if self.facteur_ralentissement < 1.0:
-        couleur_affichage = (
-            max(0, self.couleur[0] - 40),
-            max(0, self.couleur[1] - 20),
-            min(255, self.couleur[2] + 80),
-        )
+        couleur_affichage = self.couleur
+        # Teinte bleue si ralenti
+        if self.facteur_ralentissement < 1.0:
+            couleur_affichage = (
+                max(0, self.couleur[0] - 40),
+                max(0, self.couleur[1] - 20),
+                min(255, self.couleur[2] + 80),
+            )
 
-    pygame.draw.circle(fenetre, couleur_affichage, (int(self.x), int(self.y)), self.taille)
+        pygame.draw.circle(fenetre, couleur_affichage, (int(self.x), int(self.y)), self.taille)
 
-    largeur = self.image.get_width()
-    hauteur = self.image.get_height()
+        largeur = self.image.get_width()
+        hauteur = self.image.get_height()
 
-    #pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
-    fenetre.blit(self.image, (int(self.x - largeur // 2), int(self.y - hauteur // 2)))
+        image_affichee = self.image
+
+        if self.facteur_ralentissement < 1.0:
+            image_affichee = self.image.copy()
+            image_affichee.fill((100, 100, 255, 80), special_flags=pygame.BLEND_RGBA_ADD)
+
+        fenetre.blit(image_affichee, (int(self.x - largeur // 2), int(self.y - hauteur // 2)))
 
 class MobRapide(Mob):
     """Mob rapide : bleu, peu de vie mais très véloce."""

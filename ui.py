@@ -11,10 +11,7 @@ class Bouton:
     def dessiner(self, fenetre, couleur_fond=None, couleur_texte=(255, 255, 255)):
         position_souris = pygame.mouse.get_pos()
         if couleur_fond is None:
-            if self.rect.collidepoint(position_souris):
-                couleur = couleur_bouton_survol
-            else:
-                couleur = couleur_bouton
+            couleur = couleur_bouton_survol if self.rect.collidepoint(position_souris) else couleur_bouton
         else:
             couleur = couleur_fond
         pygame.draw.rect(fenetre, couleur, self.rect, border_radius=5)
@@ -41,28 +38,20 @@ class AffichageXP:
         barre_x = largeur_ecran - largeur_barre - 20
         barre_y = 20
 
-        # Fond de la barre
         pygame.draw.rect(fenetre, (40, 40, 50), (barre_x, barre_y, largeur_barre, hauteur_barre), border_radius=6)
-
-        # Partie remplie
         largeur_remplie = int(largeur_barre * progression.ratio_xp())
         if largeur_remplie > 0:
             pygame.draw.rect(fenetre, (80, 180, 240), (barre_x, barre_y, largeur_remplie, hauteur_barre), border_radius=6)
-
-        # Contour
         pygame.draw.rect(fenetre, (100, 120, 160), (barre_x, barre_y, largeur_barre, hauteur_barre), width=1, border_radius=6)
 
-        # Texte niveau
         texte_niveau = f"Niv. {progression.niveau}"
         surface_niveau = self.police_niveau.render(texte_niveau, True, (220, 220, 255))
         fenetre.blit(surface_niveau, (barre_x - surface_niveau.get_width() - 8, barre_y - 2))
 
-        # Texte XP
         texte_xp = f"{progression.xp_actuelle} / {progression.xp_necessaire} XP"
         surface_xp = self.police_xp.render(texte_xp, True, (160, 180, 200))
         fenetre.blit(surface_xp, (barre_x + largeur_barre // 2 - surface_xp.get_width() // 2, barre_y + hauteur_barre + 2))
 
-        # Message de montée de niveau
         if progression.message_niveau_up:
             surface_msg = self.police_message.render(f"⬆ {progression.message_niveau_up}", True, (255, 230, 50))
             pos_msg_x = largeur_ecran // 2 - surface_msg.get_width() // 2
@@ -72,15 +61,14 @@ class AffichageXP:
 class PanneauTelephone:
     """
     Téléphone rétractable en bas à droite.
-    Ordre du haut vers le bas : Amélioration, Objets, Compétence, Infos, New vague, Paramètre.
-    + Bouton Tourelle juste au-dessus du bouton Phone.
+    Ordre du haut vers le bas : Info, Objets, Competence, Achèvement, New vague, Parametre.
     """
 
     noms_boutons = [
-        "Amelioration",
+        "Info",       
         "Objets",
         "Competence",
-        "Infos",
+        "Achèvement",  # ouvre le panneau d'achèvement
         "New vague",
         "Parametre",
     ]
@@ -106,7 +94,7 @@ class PanneauTelephone:
             decalage = position_depuis_bas * (self.hauteur_bouton + self.marge)
             self.liste_boutons.append(
                 Bouton(self.x, self.y - decalage, self.largeur, self.hauteur_bouton, nom)
-            )
+            ) # Boutons du menu déroulant, positionnés les uns au-dessus des autres, avec une marge entre eux
 
     def gerer_clic(self, position_clic):
         if self.bouton_principal.rect.collidepoint(position_clic):
@@ -141,7 +129,7 @@ class PanneauTelephone:
         self.bouton_principal.dessiner(fenetre)
 
 
-class PanneauAmelioration:
+class PanneauInfos:
     def __init__(self):
         self.visible = False
         self.tour_selectionnee = None
@@ -209,13 +197,12 @@ class PanneauAmelioration:
         fenetre.blit(self.police_info.render(f"Cadence : {tour.cadence:.2f} s", True, (200, 200, 200)), (pos_x, pos_y))
         pos_y += 24
 
-        # Infos spécifiques selon le type
         if tour.type_tour == "Ralentissement":
-            texte_special = f"Ralenti  : {int((1 - tour.facteur_ralentissement) * 100)}% / {tour.duree_ralentissement:.1f}s"
+            texte_special = f"Ralenti  : {int((1 - tour.facteur_ralentissement) * 100)}% / {tour.duree_ralentissement:.1f}s" # Affiche le pourcentage de ralentissement et la durée du ralentissement, s": applique à la tour de ralentissement
             fenetre.blit(self.police_info.render(texte_special, True, (100, 200, 255)), (pos_x, pos_y))
             pos_y += 24
         elif tour.type_tour == "Support":
-            texte_special = f"Rayon buff : {int(tour.rayon_buff)} / Bonus : {int(tour.bonus_cadence_buff * 100)}%"
+            texte_special = f"Rayon buff : {int(tour.rayon_buff)} / Bonus : {int(tour.bonus_cadence_buff * 100)}%" # Affiche le rayon d'effet du buff et le bonus de cadence que la tour de support applique aux tours voisines
             fenetre.blit(self.police_info.render(texte_special, True, (255, 220, 80)), (pos_x, pos_y))
             pos_y += 24
 
@@ -227,6 +214,194 @@ class PanneauAmelioration:
 
         self.bouton_ameliorer.dessiner(fenetre)
         self.bouton_fermer.dessiner(fenetre)
+
+
+class PanneauAchevement:
+    """
+    Fenêtre d'achèvement : affiche la progression du joueur dans chaque monde.
+    4 mondes × 8 niveaux × 4 vagues.
+    Les vagues terminées = vert foncé, les autres = gris.
+    Chaque monde a son propre onglet.
+    """
+
+    # Noms des 4 mondes affichés dans les onglets
+    noms_mondes = ["Pirate", "Japonais", "Médiéval", "Samouraï"]
+    cles_mondes = ["pirate", "japonais", "medieval", "samourai"]
+
+    def __init__(self):
+        self.visible = False
+
+        # Fenêtre centrée, assez grande pour afficher 8 niveaux × 4 vagues
+        self.rect = pygame.Rect(
+            largeur_ecran // 2 - 340,
+            hauteur_ecran // 2 - 230,
+            680,
+            460
+        )
+
+        self.police_titre = pygame.font.SysFont("consolas", 20, bold=True)
+        self.police_onglet = pygame.font.SysFont("consolas", 15, bold=True)
+        self.police_label = pygame.font.SysFont("consolas", 13)
+
+        # Progression : dictionnaire {cle_monde: [[bool×4] × 8]}
+        # False = vague non terminée, True = vague terminée
+        self.progression = {
+            cle: [[False] * 4 for _ in range(8)]
+            for cle in self.cles_mondes
+        }
+
+        # Quel onglet est actif (index dans cles_mondes)
+        self.onglet_actif = 0
+
+        # Bouton fermer en haut à droite
+        self.bouton_fermer = Bouton(
+            self.rect.right - 90,
+            self.rect.y + 8,
+            80, 30,
+            "Fermer", 14
+        )
+
+        # Rectangles des onglets 
+        self.rects_onglets = []
+        largeur_onglet = self.rect.width // 4
+        for i in range(4):
+            rx = self.rect.x + i * largeur_onglet
+            ry = self.rect.y + 48
+            self.rects_onglets.append(pygame.Rect(rx, ry, largeur_onglet, 30))
+
+    def ouvrir(self):
+        self.visible = True
+
+    def fermer(self):
+        self.visible = False
+
+    def terminer_vague(self, cle_monde, numero_niveau, numero_vague):
+        """
+        Marque une vague comme terminée.
+        numero_niveau : 0 à 7
+        numero_vague  : 0 à 3
+        """
+        if cle_monde in self.progression:
+            self.progression[cle_monde][numero_niveau][numero_vague] = True
+
+    def gerer_clic(self, position_clic):
+        """Retourne True si le clic a été consommé (pour bloquer les clics derrière)"""
+        if not self.visible:
+            return False
+
+        # Bouton fermer
+        if self.bouton_fermer.rect.collidepoint(position_clic):
+            self.fermer()
+            return True
+
+        # Clic sur un onglet
+        for i, rect_onglet in enumerate(self.rects_onglets):
+            if rect_onglet.collidepoint(position_clic):
+                self.onglet_actif = i
+                return True
+
+        # Clic dans la fenêtre = consommé
+        if self.rect.collidepoint(position_clic):
+            return True
+
+        return False
+
+    def dessiner(self, fenetre):
+        if not self.visible:
+            return
+
+        # Fond semi-transparent pour assombrir le reste de l'écran
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile.fill((0, 0, 0, 120))
+        fenetre.blit(voile, (0, 0))
+
+        # Fond du panneau 
+        pygame.draw.rect(fenetre, (22, 24, 38), self.rect, border_radius=12)
+        pygame.draw.rect(fenetre, (80, 90, 150), self.rect, width=2, border_radius=12)
+
+        # Titre
+        surface_titre = self.police_titre.render("Achèvements", True, (220, 210, 255))
+        fenetre.blit(surface_titre, (self.rect.x + 16, self.rect.y + 12))
+
+        self.bouton_fermer.dessiner(fenetre)
+
+        # Onglets des 4 mondes  
+        for i, (nom, rect_onglet) in enumerate(zip(self.noms_mondes, self.rects_onglets)):
+            if i == self.onglet_actif:
+                # Onglet actif : fond clair
+                pygame.draw.rect(fenetre, (60, 70, 120), rect_onglet)
+                couleur_texte_onglet = (255, 255, 255)
+            else:
+                # Onglet inactif : fond sombre
+                pygame.draw.rect(fenetre, (35, 38, 60), rect_onglet)
+                couleur_texte_onglet = (150, 150, 180)
+
+            pygame.draw.rect(fenetre, (80, 90, 140), rect_onglet, width=1)
+
+            surface_onglet = self.police_onglet.render(nom, True, couleur_texte_onglet)
+            fenetre.blit(surface_onglet, (
+                rect_onglet.x + (rect_onglet.width - surface_onglet.get_width()) // 2,
+                rect_onglet.y + (rect_onglet.height - surface_onglet.get_height()) // 2
+            ))
+
+        # Grille des niveaux et vagues
+        # Zone de contenu sous les onglets
+        zone_y_depart = self.rect.y + 88
+        marge_gauche = self.rect.x + 30
+
+        cle_monde = self.cles_mondes[self.onglet_actif]
+        progression_monde = self.progression[cle_monde]
+
+        # Taille de chaque petit rectangle de vague
+        taille_rect_vague = 22
+        espacement_vague = 6   # espacement entre les rectangles de vagues sur la même ligne
+        espacement_niveau = 10  # espacement entre les lignes de niveaux
+
+        # En-tête des colonnes (Vague 1, 2, 3, 4)
+        for v in range(4):
+            x_entete = marge_gauche + 80 + v * (taille_rect_vague + espacement_vague)
+            surface_v = self.police_label.render(f"V{v+1}", True, (160, 160, 200))
+            fenetre.blit(surface_v, (x_entete, zone_y_depart))
+
+        # Lignes : une par niveau
+        for niv in range(8):
+            y_ligne = zone_y_depart + 20 + niv * (taille_rect_vague + espacement_niveau)
+
+            # Label du niveau à gauche
+            surface_niv = self.police_label.render(f"Niveau {niv + 1}", True, (200, 200, 200))
+            fenetre.blit(surface_niv, (marge_gauche, y_ligne + 3))
+
+            # 4 petits rectangles pour les 4 vagues
+            for vague in range(4):
+                x_rect = marge_gauche + 80 + vague * (taille_rect_vague + espacement_vague)
+
+                # Vert foncé si terminé, gris sinon
+                if progression_monde[niv][vague]:
+                    couleur_rect = (0, 130, 0)   # vert foncé = terminé
+                else:
+                    couleur_rect = (100, 100, 110)  # gris = pas encore fait
+
+                pygame.draw.rect(
+                    fenetre, couleur_rect,
+                    (x_rect, y_ligne, taille_rect_vague, taille_rect_vague),
+                    border_radius=3
+                )
+                # Petit contour pour distinguer les cases
+                pygame.draw.rect(
+                    fenetre, (60, 60, 80),
+                    (x_rect, y_ligne, taille_rect_vague, taille_rect_vague),
+                    width=1, border_radius=3
+                )
+
+        # Légende en bas
+        legende_y = self.rect.bottom - 28
+        pygame.draw.rect(fenetre, (0, 130, 0), (marge_gauche, legende_y, 14, 14), border_radius=2)
+        surface_leg1 = self.police_label.render("= Terminé", True, (180, 180, 180))
+        fenetre.blit(surface_leg1, (marge_gauche + 18, legende_y))
+
+        pygame.draw.rect(fenetre, (100, 100, 110), (marge_gauche + 120, legende_y, 14, 14), border_radius=2)
+        surface_leg2 = self.police_label.render("= Non terminé", True, (180, 180, 180))
+        fenetre.blit(surface_leg2, (marge_gauche + 138, legende_y))
 
 
 class EcranFinVague:

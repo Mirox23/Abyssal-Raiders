@@ -30,8 +30,9 @@ class Mob:
         self.facteur_ralentissement = 1.0
         self.minuterie_ralentissement = 0.0
         
+        # image spécifique pour le mob de base seulement
         if Mob.image_base is None:
-            Mob.image_base = pygame.image.load("Roi des pirates.png").convert_alpha()
+            Mob.image_base = pygame.image.load("image/Roi_des_pirates.png").convert_alpha()
             Mob.image_base = pygame.transform.scale(Mob.image_base, (32, 32))
 
         self.image = Mob.image_base
@@ -112,6 +113,8 @@ class MobRapide(Mob):
     recompense_mort = 3
     xp_mort = 1
 
+    image_rapide = None
+
     def __init__(self, position_depart, vitesse=None, couleur=None):
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
@@ -121,6 +124,12 @@ class MobRapide(Mob):
         self.vie = self.vie_max
         self.recompense = self.recompense_mort
         self.xp = self.xp_mort
+        
+        if MobRapide.image_rapide is None:
+            MobRapide.image_rapide = pygame.image.load("image/marin_spectral.png").convert_alpha()
+            MobRapide.image_rapide = pygame.transform.scale(MobRapide.image_rapide, (28, 28))
+
+        self.image = MobRapide.image_rapide
 
 
 class MobTank(Mob):
@@ -134,6 +143,8 @@ class MobTank(Mob):
     recompense_mort = 6
     xp_mort = 3
 
+    image_tank = None
+
     def __init__(self, position_depart, vitesse=None, couleur=None):
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
@@ -143,7 +154,12 @@ class MobTank(Mob):
         self.vie = self.vie_max
         self.recompense = self.recompense_mort
         self.xp = self.xp_mort
+        
+        if MobTank.image_tank is None:
+            MobTank.image_tank = pygame.image.load("image/pirate_triton.png").convert_alpha()
+            MobTank.image_tank = pygame.transform.scale(MobTank.image_tank, (36, 36))
 
+        self.image = MobTank.image_tank
 
 class MobKamikaze(Mob):
     """
@@ -160,6 +176,8 @@ class MobKamikaze(Mob):
     xp_mort = 2
     degats_explosion = 3
 
+    image_kamikaze = None
+
     def __init__(self, position_depart, vitesse=None, couleur=None):
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
@@ -169,7 +187,12 @@ class MobKamikaze(Mob):
         self.vie = self.vie_max
         self.recompense = self.recompense_mort
         self.xp = self.xp_mort
+        
+        if MobKamikaze.image_kamikaze is None:
+            MobKamikaze.image_kamikaze = pygame.image.load("image/demon_pirate.png").convert_alpha()
+            MobKamikaze.image_kamikaze = pygame.transform.scale(MobKamikaze.image_kamikaze, (28, 28))
 
+        self.image = MobKamikaze.image_kamikaze
 
 class MobSoigneur(Mob):
     """
@@ -188,6 +211,8 @@ class MobSoigneur(Mob):
     soin_par_tick = 1
     cadence_soin = 2.0
 
+    image_soigneur = None
+
     def __init__(self, position_depart, vitesse=None, couleur=None):
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
@@ -198,6 +223,12 @@ class MobSoigneur(Mob):
         self.recompense = self.recompense_mort
         self.xp = self.xp_mort
         self.minuterie_soin = 0.0
+        
+        if MobSoigneur.image_soigneur is None:
+            MobSoigneur.image_soigneur = pygame.image.load("image/requin_humanoïde.png").convert_alpha()
+            MobSoigneur.image_soigneur = pygame.transform.scale(MobSoigneur.image_soigneur, (28, 28))
+
+        self.image = MobSoigneur.image_soigneur
 
     def soigner_alentours(self, delta_temps, liste_ennemis):
         """Soigne les mobs proches toutes les cadence_soin secondes."""

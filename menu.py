@@ -23,7 +23,8 @@ class Menu:
 
         self.etat = "principal"
         self.minuterie_animation = 0.0
-
+        self.image_map = None
+        
         centre_x = largeur_ecran // 2
 
         self.boutons_menu_principal = [
@@ -96,6 +97,18 @@ class Menu:
             if self.bouton_retour.collidepoint(position_clic):
                 self.etat = "principal"
                 return None
+
+            # clic sur les points de la map
+            if hasattr(self, "points_map"):
+                for point in self.points_map:
+                    px, py = point["pos"]
+                    distance = ((position_clic[0] - px)**2 + (position_clic[1] - py)**2) ** 0.5
+
+                    if distance <= 10:
+                        if point["debloque"]:
+                            return "lancer_jeu"
+                        else:
+                            print("Monde verrouillé")
 
         return None
 
@@ -220,21 +233,40 @@ class Menu:
         surface_titre = self.police_titre.render("Carte du Monde", True, (200, 200, 200))
         self.ecran.blit(surface_titre, (largeur_ecran // 2 - surface_titre.get_width() // 2, 80))
 
+        # Charger l'image une seule fois  
+        if self.image_map is None:
+            self.image_map = pygame.image.load("image/map_entier.png").convert()
+            self.image_map = pygame.transform.scale(
+                self.image_map,
+                (largeur_ecran - 160, hauteur_ecran - 260)
+            )
+
         rect_carte = pygame.Rect(80, 160, largeur_ecran - 160, hauteur_ecran - 260)
-        pygame.draw.rect(self.ecran, (20, 35, 25), rect_carte, border_radius=12)
-        pygame.draw.rect(self.ecran, (50, 80, 55), rect_carte, width=2, border_radius=12)
 
-        surface_vide = self.police_sous_titre.render("— Carte à venir —", True, (60, 80, 60))
-        self.ecran.blit(surface_vide, (
-            largeur_ecran // 2 - surface_vide.get_width() // 2,
-            rect_carte.centery - surface_vide.get_height() // 2
-        ))
+        # Affichage de la map
+        self.ecran.blit(self.image_map, rect_carte.topleft)
 
+        # Points cliquables sur la carte
+        self.points_map = [
+            {"nom": "Pirate", "pos": (200, 300), "debloque": True},
+            {"nom": "Japon", "pos": (400, 260), "debloque": True},
+            {"nom": "Médiéval", "pos": (600, 320), "debloque": True},
+            {"nom": "Démoniaque", "pos": (800, 280), "debloque": False},
+        ]
+
+        for point in self.points_map:
+            couleur = (0, 255, 100) if point["debloque"] else (120, 120, 120)
+
+            pygame.draw.circle(self.ecran, couleur, point["pos"], 8)
+
+            # petit texte au dessus
+            texte = self.police_avertissement.render(point["nom"], True, (255, 255, 255))
+            self.ecran.blit(texte, (point["pos"][0] - texte.get_width() // 2, point["pos"][1] - 20))
+
+        # bouton retour
         position_souris = pygame.mouse.get_pos()
-        if self.bouton_retour.collidepoint(position_souris):
-            couleur_retour = (60, 80, 60)
-        else:
-            couleur_retour = (35, 50, 38)
+        couleur_retour = (60, 80, 60) if self.bouton_retour.collidepoint(position_souris) else (35, 50, 38)
+
         pygame.draw.rect(self.ecran, couleur_retour, self.bouton_retour, border_radius=6)
         surface_retour = self.police_retour.render("← Retour", True, (200, 200, 200))
         self.ecran.blit(surface_retour, (

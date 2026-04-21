@@ -18,7 +18,7 @@ def main():
 
         if etat_application == "menu":
             for evenement in pygame.event.get():
-                if evenement.type == pygame.QUIT:
+                if evenement.type == pygame.QUIT: 
                     etat_application = "quitter"
                 else:
                     resultat = menu.gerer_evenement(evenement)

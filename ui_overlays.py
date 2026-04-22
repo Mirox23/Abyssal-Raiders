@@ -70,8 +70,8 @@ class PanneauInfos:
 
 
 class PanneauAchevement:
-    noms_mondes = ["Pirate", "Japonais", "Médiéval", "Samouraï"]
-    cles_mondes = ["pirate", "japonais", "medieval", "samourai"]
+    noms_mondes = ["Pirate", "Samouraï", "Médiéval", "Démoniaque"]
+    cles_mondes = ["pirate", "Samouraï", "medieval", "Démoniaque"]
 
     def __init__(self):
         self.visible = False

@@ -173,16 +173,16 @@ class Menu:
         pygame.draw.rect(self.ecran, (45, 45, 58), barre, border_radius=6)
         pygame.draw.rect(self.ecran, (100, 200, 130), (barre.x, barre.y, int(barre.width * self.volume_son), barre.height), border_radius=6)
         info = [
-            "Objectif : protege le mur, pose des tours, lance les vagues et survive.",
-            "Competences : A tir puissant, Z pluie de bombes, E buff tours, R givre de zone.",
-            "Easter eggs : touche P = petite pluie d'or ; haut haut bas bas gauche droite = mode fete.",
+            "Objectif : protège le mur, pose des tours, lance les vagues et survie.",
+            "Compétences : touche A = tir puissant, touche Z = pluie de bombes, touche E = boost tours, touche R = gèle une zone.",
+            "Easter eggs : touche P = petite pluie d'or ; flèche du : haut, haut, bas, bas, gauche, droite = ouvre un mode fête.",
         ]
         rect_aide = pygame.Rect(120, 325, 760, 170)
         pygame.draw.rect(self.ecran, (20, 28, 28), rect_aide, border_radius=10)
         pygame.draw.rect(self.ecran, (75, 120, 90), rect_aide, width=2, border_radius=10)
         for i, ligne in enumerate(info):
             self.ecran.blit(self.police_avertissement.render(ligne, True, (200, 220, 205)), (rect_aide.x + 16, rect_aide.y + 18 + i * 28))
-        blague = "Silence total : les demons n'entendent plus tes plans." if self.volume_son <= 0.01 else "Volume max : meme le Roi Demon se bouche les oreilles."
+        blague = "Silence total : les démons n'entendent plus tes plans." if self.volume_son <= 0.01 else "Volume max : même le Roi Démon se bouche les oreilles."
         self.ecran.blit(self.police_avertissement.render(blague, True, (255, 190, 120)), (rect_aide.x + 16, rect_aide.bottom - 28))
         self._dessiner_retour()
 

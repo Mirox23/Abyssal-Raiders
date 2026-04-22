@@ -15,6 +15,7 @@ class Progression:
         self.xp_necessaire = xp_pour_niveau_suivant_base
         self.message_niveau_up = ""
         self.minuterie_message = 0.0
+        self.points_talent = 0
 
     def calculer_xp_necessaire(self, niveau):
         # Chaque niveau demande un peu plus d'XP que le précédent
@@ -29,6 +30,7 @@ class Progression:
             self.xp_actuelle -= self.xp_necessaire
             self.niveau += 1
             self.xp_necessaire = self.calculer_xp_necessaire(self.niveau)
+            self.points_talent += 1
             messages.append(f"Niveau {self.niveau} !")
 
         if messages:

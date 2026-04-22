@@ -23,6 +23,9 @@ class Menu:
 
         self.etat = "principal"
         self.minuterie_animation = 0.0
+        self.volume_son = 0.5
+        self.bouton_volume_moins = pygame.Rect(360, 230, 56, 44)
+        self.bouton_volume_plus = pygame.Rect(584, 230, 56, 44)
 
         # On stocke UNE image par monde (None = pas encore chargée)
         # Clé = nom du monde en minuscule sans accent
@@ -133,6 +136,8 @@ class Menu:
                         # La map globale s'ouvre (pas de monde spécifique)
                         self.etat = "map"
                         self.monde_map_detail = None
+                    elif bouton["action"] == "options":
+                        self.etat = "options"
                     return None
 
         elif self.etat == "mondes":
@@ -182,6 +187,19 @@ class Menu:
                             print("Niveau verrouillé")
                         return None
 
+        elif self.etat == "options":
+            if self.bouton_retour.collidepoint(position_clic):
+                self.etat = "principal"
+                return None
+            if self.bouton_volume_moins.collidepoint(position_clic):
+                self.volume_son = max(0.0, self.volume_son - 0.1)
+                self._appliquer_volume()
+                return None
+            if self.bouton_volume_plus.collidepoint(position_clic):
+                self.volume_son = min(1.0, self.volume_son + 0.1)
+                self._appliquer_volume()
+                return None
+
         return None
 
     def mise_a_jour(self, delta_temps):
@@ -202,6 +220,8 @@ class Menu:
             self.dessiner_selection_monde()
         elif self.etat == "map":
             self.dessiner_map()
+        elif self.etat == "options":
+            self.dessiner_options()
 
     def dessiner_menu_principal(self):
         pulsation = int(10 * math.sin(self.minuterie_animation * 2.0))
@@ -441,3 +461,53 @@ class Menu:
             self.bouton_retour.x + (self.bouton_retour.width - surface_retour.get_width()) // 2,
             self.bouton_retour.y + (self.bouton_retour.height - surface_retour.get_height()) // 2
         )) # centrage du texte dans le bouton
+
+    def _appliquer_volume(self):
+        try:
+            pygame.mixer.music.set_volume(self.volume_son)
+        except Exception:
+            pass
+
+    def dessiner_options(self):
+        titre = self.police_titre.render("Options du capitaine", True, (205, 205, 225))
+        self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 70))
+
+        rect_audio = pygame.Rect(280, 170, 440, 130)
+        pygame.draw.rect(self.ecran, (25, 34, 46), rect_audio, border_radius=10)
+        pygame.draw.rect(self.ecran, (90, 120, 170), rect_audio, width=2, border_radius=10)
+        txt_audio = self.police_monde.render("Volume du canon-son", True, (220, 230, 255))
+        self.ecran.blit(txt_audio, (rect_audio.x + 20, rect_audio.y + 14))
+
+        pygame.draw.rect(self.ecran, (95, 65, 50), self.bouton_volume_moins, border_radius=7)
+        pygame.draw.rect(self.ecran, (95, 65, 50), self.bouton_volume_plus, border_radius=7)
+        self.ecran.blit(self.police_bouton.render("-", True, (255, 220, 180)), (self.bouton_volume_moins.x + 20, self.bouton_volume_moins.y + 4))
+        self.ecran.blit(self.police_bouton.render("+", True, (255, 220, 180)), (self.bouton_volume_plus.x + 18, self.bouton_volume_plus.y + 4))
+
+        barre = pygame.Rect(430, 244, 144, 14)
+        pygame.draw.rect(self.ecran, (45, 45, 58), barre, border_radius=6)
+        remplissage = int(barre.width * self.volume_son)
+        pygame.draw.rect(self.ecran, (100, 200, 130), (barre.x, barre.y, remplissage, barre.height), border_radius=6)
+        pourcentage = self.police_monde.render(f"{int(self.volume_son * 100)}%", True, (220, 255, 220))
+        self.ecran.blit(pourcentage, (barre.x + 50, barre.y - 26))
+
+        rect_aide = pygame.Rect(120, 325, 760, 190)
+        pygame.draw.rect(self.ecran, (20, 28, 28), rect_aide, border_radius=10)
+        pygame.draw.rect(self.ecran, (75, 120, 90), rect_aide, width=2, border_radius=10)
+        lignes = [
+            "Objectif : protege le mur, pose des tours, lance les vagues et survive.",
+            "Competences : A tir puissant, Z pluie de bombes, E buff tours, R givre de zone.",
+            "Easter eggs : touche P = petite pluie d'or ; code haut haut bas bas gauche droite = mode fete.",
+            "Astuce fun : si le son est a 0%, ton pirate dit 'mode infiltration active'.",
+        ]
+        for i, ligne in enumerate(lignes):
+            surf = self.police_avertissement.render(ligne, True, (200, 220, 205))
+            self.ecran.blit(surf, (rect_aide.x + 16, rect_aide.y + 18 + i * 28))
+
+        if self.volume_son <= 0.01:
+            blague = self.police_avertissement.render("Silence total : les demons n'entendent plus tes plans.", True, (255, 190, 120))
+            self.ecran.blit(blague, (rect_aide.x + 16, rect_aide.bottom - 28))
+        elif self.volume_son >= 0.99:
+            blague = self.police_avertissement.render("Volume max : meme le Roi Demon se bouche les oreilles.", True, (255, 190, 120))
+            self.ecran.blit(blague, (rect_aide.x + 16, rect_aide.bottom - 28))
+
+        self._dessiner_bouton_retour()

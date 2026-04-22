@@ -1,4 +1,4 @@
-﻿import pygame
+import pygame
 from setting import largeur_ecran, hauteur_ecran, FPS
 from menu import Menu
 from game import Jeu
@@ -32,7 +32,7 @@ def main():
             pygame.display.flip()
 
         elif etat_application == "jeu":
-            jeu = Jeu()
+            jeu = Jeu(menu.monde_selectionne, menu.volume_son)
             jeu.lancer()
             etat_application = "quitter"
 

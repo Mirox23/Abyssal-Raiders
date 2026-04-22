@@ -1,6 +1,6 @@
 import pygame
 from setting import largeur_ecran, hauteur_ecran, cout_amelioration, niveau_max
-from ui_core import Bouton
+from ui_noyau import Bouton
 
 
 class PanneauInfos:

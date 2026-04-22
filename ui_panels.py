@@ -1,6 +1,6 @@
 import pygame
 from setting import largeur_ecran, hauteur_ecran
-from ui_core import Bouton
+from ui_noyau import Bouton
 
 
 class FenetreRecompensesTalents:
@@ -39,34 +39,34 @@ class FenetreRecompensesTalents:
             return ("fermer", None)
         for i, rect in enumerate(self.boutons_recompenses):
             niveau = i + 1
-            if rect.collidepoint(position_clic) and progression.niveau >= niveau and niveau not in self.niveaux_recuperes:
+            if rect.collidepoint(position_clic) and progression.niveau >= niveau and niveau not in self.niveaux_recuperes: # rect.collidepoint(position_clic) = le clic est sur le bouton de récompense du niveau "niveau" 
                 self.niveaux_recuperes.add(niveau)
                 return ("recompense", 8 + niveau * 2)
-        for cle, rect in self.boutons_talents:
+        for cle, rect in self.boutons_talents: # pour chaque talent, on regarde si le clic est sur le bouton du talent et si le joueur a des points de talent et si le talent n'est pas déjà au niveau max
             talent = self.talents[cle]
-            if rect.collidepoint(position_clic) and progression.points_talent > 0 and talent["niveau"] < talent["max"]:
+            if rect.collidepoint(position_clic) and progression.points_talent > 0 and talent["niveau"] < talent["max"]: # le clic est sur le bouton du talent et le joueur a des points de talent et le talent n'est pas déjà au niveau max
                 progression.points_talent -= 1
                 talent["niveau"] += 1
                 return ("talent", cle)
-        if self.rect.collidepoint(position_clic):
+        if self.rect.collidepoint(position_clic): # le clic est sur la fenêtre mais pas sur un bouton, on considère que le joueur veut juste fermer la fenêtre
             return ("consomme", None)
         return None
 
     def dessiner(self, fenetre, progression):
         if not self.visible:
             return
-        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA) # on crée une surface transparente pour faire un voile sombre sur le reste de l'écran
         voile.fill((0, 0, 0, 150))
         fenetre.blit(voile, (0, 0))
         pygame.draw.rect(fenetre, (20, 25, 40), self.rect, border_radius=14)
-        pygame.draw.rect(fenetre, (90, 120, 175), self.rect, width=2, border_radius=14)
+        pygame.draw.rect(fenetre, (90, 120, 175), self.rect, width=2, border_radius=14) # on dessine la fenêtre principale, puis les deux sous-fenêtres pour les récompenses et les talents, puis les titres et les boutons
         fenetre.blit(self.police_titre.render("Recompenses & Arbre de talents", True, (220, 230, 255)), (self.rect.x + 14, self.rect.y + 16))
         fenetre.blit(self.police_texte.render(f"Nombre point d'amelioration : {progression.points_talent}", True, (255, 220, 130)), (self.rect.x + 14, self.rect.y + 46))
         self.bouton_fermer.dessiner(fenetre)
         pygame.draw.rect(fenetre, (26, 34, 52), self.rect_recompense, border_radius=10)
         pygame.draw.rect(fenetre, (65, 105, 165), self.rect_recompense, width=1, border_radius=10)
         fenetre.blit(self.police_texte.render("Recompense XP", True, (185, 220, 255)), (self.rect_recompense.x + 10, self.rect_recompense.y + 8))
-        for i, rect in enumerate(self.boutons_recompenses):
+        for i, rect in enumerate(self.boutons_recompenses): # pour chaque bouton de récompense, on regarde si le joueur a déjà récupéré la récompense ou s'il peut la récupérer, et on affiche le bouton dans une couleur différente selon le cas
             niveau = i + 1
             claim = progression.niveau >= niveau and niveau not in self.niveaux_recuperes
             deja = niveau in self.niveaux_recuperes
@@ -76,13 +76,13 @@ class FenetreRecompensesTalents:
             pygame.draw.rect(fenetre, couleur, rect, border_radius=6)
             texte = f"Niv {niveau} : +{8 + niveau * 2} or"
             if deja:
-                texte += " (recupere)"
-            fenetre.blit(self.police_petite.render(texte, True, (230, 235, 230)), (rect.x + 8, rect.y + 8))
+                texte += " (recupere)" # si le joueur a déjà récupéré la récompense, on l'indique à côté du texte de la récompense
+            fenetre.blit(self.police_petite.render(texte, True, (230, 235, 230)), (rect.x + 8, rect.y + 8)) # on affiche le texte de la récompense sur le bouton, avec une indication si le joueur a déjà récupéré la récompense
         pygame.draw.rect(fenetre, (26, 34, 52), self.rect_talents, border_radius=10)
         pygame.draw.rect(fenetre, (65, 105, 165), self.rect_talents, width=1, border_radius=10)
         fenetre.blit(self.police_texte.render("Arbre de talents du joueur", True, (185, 220, 255)), (self.rect_talents.x + 10, self.rect_talents.y + 8))
         fenetre.blit(self.police_petite.render("1 point = 1 niveau", True, (205, 215, 235)), (self.rect_talents.x + 12, self.rect_talents.y + 24))
-        for cle, rect in self.boutons_talents:
+        for cle, rect in self.boutons_talents: # pour chaque bouton de talent, on affiche le nom du talent, son niveau actuel et son niveau max, et une indication que le joueur peut cliquer pour améliorer le talent s'il a des points de talent disponibles et si le talent n'est pas déjà au niveau max
             talent = self.talents[cle]
             pygame.draw.rect(fenetre, (44, 56, 86), rect, border_radius=7)
             pygame.draw.rect(fenetre, (95, 130, 182), rect, width=1, border_radius=7)
@@ -105,7 +105,7 @@ class PanneauCompetences:
     def gerer_clic(self, position_clic):
         if not self.visible:
             return None
-        if self.bouton_fermer.rect.collidepoint(position_clic):
+        if self.bouton_fermer.rect.collidepoint(position_clic): # si le clic est sur le bouton fermer, on ferme la fenêtre et on ne consomme pas le clic (on retourne None pour indiquer que le clic n'est pas consommé, ce qui permet de faire d'autres actions comme fermer une autre fenêtre ou interagir avec le jeu)
             self.visible = False
             return None
         for cle, rect in self.boutons:
@@ -127,7 +127,7 @@ class PanneauCompetences:
         self.bouton_fermer.dessiner(fenetre)
         self.boutons = []
         y = self.rect.y + 70
-        for cle, donnees in gestionnaire_competences.competences.items():
+        for cle, donnees in gestionnaire_competences.competences.items(): # pour chaque compétence, on crée un bouton avec le nom de la compétence, son cooldown actuel, son coût en or, et une indication visuelle si le joueur peut se permettre d'améliorer la compétence (en ayant assez d'or) ou si la compétence est en cooldown, et on ajoute le bouton à la liste des boutons de la fenêtre pour pouvoir gérer les clics sur les compétences
             rect = pygame.Rect(self.rect.x + 18, y, self.rect.width - 36, 64)
             self.boutons.append((cle, rect))
             pygame.draw.rect(fenetre, (40, 56, 82), rect, border_radius=8)
@@ -152,7 +152,7 @@ class PanneauObjets:
     def ouvrir(self):
         self.visible = True
 
-    def gerer_clic(self, position_clic):
+    def gerer_clic(self, position_clic): # cette méthode gère les clics sur la fenêtre des objets, en vérifiant d'abord si la fenêtre est visible, puis si le clic est sur le bouton fermer (dans ce cas on ferme la fenêtre et on retourne None pour indiquer que le clic n'est pas consommé), ensuite on vérifie si le clic est sur l'un des boutons d'objets (dans ce cas on retourne la clé de l'objet correspondant pour indiquer que le joueur veut utiliser cet objet), et enfin si le clic est sur la fenêtre mais pas sur un bouton, on considère que le joueur veut juste fermer la fenêtre sans consommer le clic (en retournant "consomme" pour indiquer que le clic est consommé mais sans action spécifique à faire)
         if not self.visible:
             return None
         if self.bouton_fermer.rect.collidepoint(position_clic):
@@ -165,7 +165,7 @@ class PanneauObjets:
             return "consomme"
         return None
 
-    def dessiner(self, fenetre, inventaire_objets):
+    def dessiner(self, fenetre, inventaire_objets): # cette méthode dessine la fenêtre des objets, en affichant pour chaque objet défini dans la liste des définitions d'objets un bouton avec le nom de l'objet, sa description, et le nombre d'objets que le joueur possède dans son inventaire, en utilisant une couleur différente pour le texte du nombre d'objets si le joueur en possède au moins un (indiquant qu'il peut utiliser l'objet) ou s'il n'en possède aucun (indiquant que l'objet est indisponible), et en ajoutant chaque bouton à la liste des boutons de la fenêtre pour pouvoir gérer les clics sur les objets
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
@@ -179,7 +179,7 @@ class PanneauObjets:
             ("potion_mur", "Potion de planches", "Restaure +2 vie mur"),
             ("bourse_or", "Bourse de secours", "Gagne +6 or"),
             ("totem_froid", "Totem de givre", "Ralentit tous les mobs 1.2s"),
-        ]
+        ] # liste des objets avec leur clé d'identification, leur nom à afficher, et leur description, qui sera utilisée pour dessiner les boutons des objets dans la fenêtre et pour gérer les clics sur les objets
         self.boutons = []
         y = self.rect.y + 72
         for cle, nom, desc in definitions:
@@ -187,7 +187,7 @@ class PanneauObjets:
             self.boutons.append((cle, rect))
             pygame.draw.rect(fenetre, (62, 47, 27), rect, border_radius=8)
             pygame.draw.rect(fenetre, (170, 135, 80), rect, width=1, border_radius=8)
-            fenetre.blit(self.police_texte.render(f"{nom} x{inventaire_objets.get(cle, 0)}", True, (255, 240, 200)), (rect.x + 10, rect.y + 10))
+            fenetre.blit(self.police_texte.render(f"{nom} x{inventaire_objets.get(cle, 0)}", True, (255, 240, 200)), (rect.x + 10, rect.y + 10)) # on affiche le nom de l'objet suivi du nombre d'objets que le joueur possède dans son inventaire, en utilisant une couleur plus vive si le joueur en possède au moins un (indiquant que l'objet est utilisable) ou une couleur plus terne s'il n'en possède aucun (indiquant que l'objet est indisponible)
             fenetre.blit(self.police_texte.render(desc, True, (230, 210, 170)), (rect.x + 10, rect.y + 32))
             y += 70
 
@@ -205,7 +205,7 @@ class PanneauParametresMusique:
     def ouvrir(self):
         self.visible = True
 
-    def gerer_clic(self, position_clic):
+    def gerer_clic(self, position_clic): # cette méthode gère les clics sur la fenêtre des paramètres de musique, en vérifiant d'abord si la fenêtre est visible, puis si le clic est sur le bouton fermer (dans ce cas on ferme la fenêtre et on retourne None pour indiquer que le clic n'est pas consommé), ensuite on vérifie si le clic est sur le bouton moins (dans ce cas on retourne "moins" pour indiquer que le joueur veut baisser le volume de la musique) ou sur le bouton plus (dans ce cas on retourne "plus" pour indiquer que le joueur veut augmenter le volume de la musique), et enfin si le clic est sur la fenêtre mais pas sur un bouton, on considère que le joueur veut juste fermer la fenêtre sans consommer le clic (en retournant "consomme" pour indiquer que le clic est consommé mais sans action spécifique à faire)
         if not self.visible:
             return None
         if self.bouton_fermer.rect.collidepoint(position_clic):
@@ -231,10 +231,10 @@ class PanneauParametresMusique:
         self.bouton_fermer.dessiner(fenetre)
         pygame.draw.rect(fenetre, (95, 65, 50), self.bouton_moins, border_radius=7)
         pygame.draw.rect(fenetre, (95, 65, 50), self.bouton_plus, border_radius=7)
-        fenetre.blit(self.police_titre.render("-", True, (255, 220, 180)), (self.bouton_moins.x + 15, self.bouton_moins.y + 2))
+        fenetre.blit(self.police_titre.render("-", True, (255, 220, 180)), (self.bouton_moins.x + 15, self.bouton_moins.y + 2)) # on affiche un "-" sur le bouton moins et un "+" sur le bouton plus, en utilisant une couleur claire pour faire ressortir les symboles sur les boutons de couleur sombre
         fenetre.blit(self.police_titre.render("+", True, (255, 220, 180)), (self.bouton_plus.x + 13, self.bouton_plus.y + 2))
-        fenetre.blit(self.police_texte.render(f"Volume musique : {int(volume * 100)}%", True, (205, 225, 255)), (self.rect.x + 145, self.rect.y + 78))
+        fenetre.blit(self.police_texte.render(f"Volume musique : {int(volume * 100)}%", True, (205, 225, 255)), (self.rect.x + 145, self.rect.y + 78)) # on affiche le texte indiquant le volume actuel de la musique en pourcentage, en utilisant une couleur claire pour le faire ressortir sur le fond sombre de la fenêtre
         barre = pygame.Rect(self.rect.x + 140, self.rect.y + 114, 150, 14)
         pygame.draw.rect(fenetre, (42, 48, 65), barre, border_radius=6)
-        rempli = int(barre.width * volume)
+        rempli = int(barre.width * volume) # on calcule la largeur de la partie remplie de la barre en fonction du volume actuel (qui est un nombre entre 0 et 1), et on dessine un rectangle rempli par-dessus la barre pour représenter visuellement le volume actuel, avec une couleur plus vive que celle de la barre pour le faire ressortir
         pygame.draw.rect(fenetre, (100, 200, 130), (barre.x, barre.y, rempli, barre.height), border_radius=6)

@@ -1,5 +1,5 @@
 import random
-from mob import Mob, MobRapide
+from mob import Mob, MobRapide, MobTank, MobKamikaze, MobSoigneur
 
 
 def generer_vague(numero_vague):
@@ -9,11 +9,30 @@ def generer_vague(numero_vague):
     nombre_total = 8 + (numero_vague - 1) * 4
 
     for i in range(nombre_total):
-        seuil_rapide = min(0.6, 0.1 + numero_vague * 0.08)
-        if random.random() < seuil_rapide:
+        tirage = random.random()
+
+        # Plus la vague est avancée, plus les mobs rares apparaissent
+        seuil_rapide = min(0.35, 0.05 + numero_vague * 0.04)
+        seuil_tank = min(0.20, 0.0 + numero_vague * 0.025) if numero_vague >= 2 else 0
+        seuil_kamikaze = min(0.15, 0.0 + numero_vague * 0.02) if numero_vague >= 3 else 0
+        seuil_soigneur = min(0.10, 0.0 + numero_vague * 0.015) if numero_vague >= 4 else 0
+
+        cumul_rapide = seuil_rapide
+        cumul_tank = cumul_rapide + seuil_tank
+        cumul_kamikaze = cumul_tank + seuil_kamikaze
+        cumul_soigneur = cumul_kamikaze + seuil_soigneur
+
+        if tirage < cumul_rapide:
             liste_mobs.append((MobRapide, temps_courant))
+        elif tirage < cumul_tank:
+            liste_mobs.append((MobTank, temps_courant))
+        elif tirage < cumul_kamikaze:
+            liste_mobs.append((MobKamikaze, temps_courant))
+        elif tirage < cumul_soigneur:
+            liste_mobs.append((MobSoigneur, temps_courant))
         else:
             liste_mobs.append((Mob, temps_courant))
+
         temps_courant += intervalle
 
     return liste_mobs

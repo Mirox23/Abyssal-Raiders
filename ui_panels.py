@@ -1,6 +1,6 @@
 import pygame
 from setting import largeur_ecran, hauteur_ecran
-from ui_noyau import Bouton
+from interface import Bouton
 
 
 class FenetreRecompensesTalents:

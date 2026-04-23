@@ -10,11 +10,11 @@ from ui import (
 from vague import GestionnaireVague
 from progression import Progression
 from competence import GestionnaireCompetences
-from musique_manager import MusiqueManager
+from musique import MusiqueManager
 
 
 class Jeu:
-    def __init__(self, continent="pirate", volume_musique=0.5):
+    def __init__(self, continent="pirate", volume_musique=0.5, niveau=1):
         pygame.init()
         self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran))
         pygame.display.set_caption("Abyssal Raiders")
@@ -23,6 +23,7 @@ class Jeu:
         self.police_vague = pygame.font.SysFont("consolas", 24, bold=True)
         self.continent = continent
         self.volume_musique = volume_musique
+        self.niveau = niveau
         self.musique = MusiqueManager(self.volume_musique)
         self._lancer_musique_continent()
         self.reinitialiser()
@@ -51,6 +52,9 @@ class Jeu:
         self.mode_placement_actif, self.type_tour_a_placer = False, None
         self.tour_actuellement_selectionnee = None
         self.gestionnaire_vague = GestionnaireVague()
+        # 1 niveau = 4 vagues, on décale le compteur pour commencer au bon endroit
+        self.gestionnaire_vague.numero_vague = max(0, (self.niveau - 1) * 4)
+        self.vague_max = self.gestionnaire_vague.numero_vague + 4
         self.en_attente_lancement_vague = True
         self.progression = Progression()
         self.gestionnaire_competences = GestionnaireCompetences()
@@ -219,6 +223,8 @@ class Jeu:
         return False
 
     def lancer_nouvelle_vague(self):
+        if self.gestionnaire_vague.numero_vague >= self.vague_max:
+            return
         self.argent += argent_par_vague
         self.gestionnaire_vague.demarrer_vague(CHEMIN[0])
         self.en_attente_lancement_vague = False

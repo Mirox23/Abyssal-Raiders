@@ -32,7 +32,7 @@ def main():
             pygame.display.flip()
 
         elif etat_application == "jeu":
-            jeu = Jeu(menu.monde_selectionne, menu.volume_son)
+            jeu = Jeu(menu.monde_selectionne, menu.volume_son, menu.niveau_selectionne)
             jeu.lancer()
             etat_application = "quitter"
 

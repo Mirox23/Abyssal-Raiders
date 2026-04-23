@@ -2,6 +2,7 @@ import math
 import pygame
 from setting import largeur_ecran, hauteur_ecran
 from musique import MusiqueManager
+from progression_monde import ProgressionMonde
 
 
 class Menu:
@@ -37,20 +38,19 @@ class Menu:
             {"nom": "Monde Démoniaque", "cle": "demoniaque", "couleur": (55, 55, 55), "survol": (70, 70, 70), "debloque": False, "rect": pygame.Rect(710, 200, 170, 160)},
         ]
         self.points_map_globale = [
-            {"nom": "Pirate", "pos": (200, 300), "debloque": True, "cle": "pirate"},
-            {"nom": "Japonais", "pos": (400, 260), "debloque": True, "cle": "japonais"},
-            {"nom": "Médiéval", "pos": (600, 320), "debloque": True, "cle": "medieval"},
-            {"nom": "Démoniaque", "pos": (800, 280), "debloque": False, "cle": "demoniaque"},
+            {"nom": "Samourai", "pos": (180, 430), "debloque": True, "cle": "samourai"},
+            {"nom": "Medieval", "pos": (220, 320), "debloque": True, "cle": "medieval"},
+            {"nom": "Pirate", "pos": (560, 300), "debloque": True, "cle": "pirate"},
+            {"nom": "Demoniaque", "pos": (820, 290), "debloque": False, "cle": "demoniaque"},
         ]
         self.monde_map_detail = None
         self.afficher_carte_continent = False
         self.continent_carte = None
         self.bouton_lancer_niveau = pygame.Rect(largeur_ecran // 2 - 110, hauteur_ecran // 2 + 160, 220, 44)
-        self.niveaux_par_continent = {
-            "pirate": [(1, (360, 280)), (2, (480, 320)), (3, (610, 260))],
-            "japonais": [(1, (360, 280)), (2, (500, 250)), (3, (620, 320))],
-            "medieval": [(1, (360, 320)), (2, (500, 260)), (3, (620, 310))],
-        }
+        self.niveaux_par_continent = {cle: [] for cle in ["pirate", "medieval", "samourai", "demoniaque"]}
+        self.progression_monde = ProgressionMonde()
+        self.map_entier = None
+        self._creer_positions_niveaux()
         self.bouton_retour = pygame.Rect(largeur_ecran - 160, hauteur_ecran - 60, 140, 40)
         self.bouton_volume_moins = pygame.Rect(360, 230, 56, 44)
         self.bouton_volume_plus = pygame.Rect(584, 230, 56, 44)
@@ -123,13 +123,15 @@ class Menu:
             niveaux = self.niveaux_par_continent.get(self.continent_carte, [])
             for numero, pos in niveaux:
                 if ((clic[0] - pos[0]) ** 2 + (clic[1] - pos[1]) ** 2) ** 0.5 <= 14:
-                    self.niveau_selectionne = numero
+                    if self.progression_monde.est_niveau_debloque(self.continent_carte, numero):
+                        self.niveau_selectionne = numero
                     return None
             # Lancer niveau (obligatoire)
             if self.bouton_lancer_niveau.collidepoint(clic):
-                self.monde_selectionne = self.continent_carte or "pirate"
-                self.afficher_carte_continent = False
-                return "lancer_jeu"
+                if self.progression_monde.est_niveau_debloque(self.continent_carte, self.niveau_selectionne):
+                    self.monde_selectionne = self.continent_carte or "pirate"
+                    self.afficher_carte_continent = False
+                    return "lancer_jeu"
         return None
 
     def mise_a_jour(self, delta_temps):
@@ -187,7 +189,17 @@ class Menu:
     def _dessiner_map(self):
         titre = self.police_titre.render("Carte du Monde", True, (200, 200, 200))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 30))
-        pygame.draw.rect(self.ecran, (30, 60, 100), (80, 110, largeur_ecran - 160, hauteur_ecran - 200), border_radius=8)
+        rect_carte = pygame.Rect(80, 110, largeur_ecran - 160, hauteur_ecran - 200)
+        if self.map_entier is None:
+            try:
+                img = pygame.image.load("image/map_entier.png").convert()
+                self.map_entier = pygame.transform.scale(img, (rect_carte.width, rect_carte.height))
+            except Exception:
+                self.map_entier = False
+        if self.map_entier:
+            self.ecran.blit(self.map_entier, rect_carte.topleft)
+        else:
+            pygame.draw.rect(self.ecran, (30, 60, 100), rect_carte, border_radius=8)
         for point in self.points_map_globale:
             px, py = point["pos"]
             couleur = (0, 220, 100) if point["debloque"] else (100, 100, 100)
@@ -223,16 +235,25 @@ class Menu:
 
         niveaux = self.niveaux_par_continent.get(self.continent_carte, [])
         for numero, pos in niveaux:
-            couleur = (0, 220, 100) if numero == self.niveau_selectionne else (255, 255, 255)
+            debloque = self.progression_monde.est_niveau_debloque(self.continent_carte, numero)
+            conquis = self.progression_monde.est_conquis(self.continent_carte, numero)
+            if conquis:
+                couleur = (0, 220, 100)
+            elif not debloque:
+                couleur = (120, 120, 120)
+            else:
+                couleur = (255, 255, 255)
+            if numero == self.niveau_selectionne and debloque:
+                couleur = (255, 230, 120)
             pygame.draw.circle(self.ecran, couleur, pos, 14)
             pygame.draw.circle(self.ecran, (20, 20, 25), pos, 12)
             txt = self.police_avertissement.render(str(numero), True, (255, 255, 255))
             self.ecran.blit(txt, (pos[0] - txt.get_width() // 2, pos[1] - txt.get_height() // 2))
 
-            # petites vagues (4 carrés)
+            # petites vagues (3 carrés)
             base_x = pos[0] - 26
             base_y = pos[1] + 22
-            for v in range(4):
+            for v in range(3):
                 pygame.draw.rect(self.ecran, (100, 100, 110), (base_x + v * 14, base_y, 10, 10), border_radius=2)
 
         # bouton lancer (obligatoire)
@@ -242,6 +263,26 @@ class Menu:
         self.ecran.blit(txt, (self.bouton_lancer_niveau.centerx - txt.get_width() // 2, self.bouton_lancer_niveau.centery - txt.get_height() // 2))
 
         self._dessiner_retour()
+
+    def _creer_positions_niveaux(self):
+        # positions simples en grille sur la mini-carte
+        rect = pygame.Rect(140, 80, 720, 400)
+        zone = pygame.Rect(rect.x + 16, rect.y + 52, rect.width - 32, rect.height - 120)
+        xs = [zone.x + 120, zone.x + 260, zone.x + 400, zone.x + 540]
+        ys = [zone.y + 70, zone.y + 150]
+        positions = []
+        i = 1
+        for y in ys:
+            for x in xs:
+                positions.append((i, (x, y)))
+                i += 1
+        self.niveaux_par_continent["pirate"] = positions[:8]
+        self.niveaux_par_continent["medieval"] = positions[:8]
+        self.niveaux_par_continent["samourai"] = positions[:8]
+        self.niveaux_par_continent["demoniaque"] = positions[:8]
+
+    def appliquer_progression(self, progression_monde):
+        self.progression_monde = progression_monde
 
     def _dessiner_options(self):
         titre = self.police_titre.render("Options du capitaine", True, (205, 205, 225))

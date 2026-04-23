@@ -2,6 +2,7 @@ import pygame
 from setting import largeur_ecran, hauteur_ecran, FPS
 from menu import Menu
 from game import Jeu
+from progression_monde import ProgressionMonde
 
 
 def main():
@@ -11,6 +12,7 @@ def main():
     horloge = pygame.time.Clock()
 
     menu = Menu(ecran)
+    progression_monde = ProgressionMonde()
     etat_application = "menu"
 
     while etat_application != "quitter":
@@ -32,9 +34,10 @@ def main():
             pygame.display.flip()
 
         elif etat_application == "jeu":
-            jeu = Jeu(menu.monde_selectionne, menu.volume_son, menu.niveau_selectionne)
-            jeu.lancer()
-            etat_application = "quitter"
+            jeu = Jeu(menu.monde_selectionne, menu.volume_son, menu.niveau_selectionne, progression_monde)
+            resultat = jeu.lancer()
+            menu.appliquer_progression(progression_monde)
+            etat_application = "menu"
 
     pygame.quit()
 

@@ -5,7 +5,7 @@ from mob import MobKamikaze, MobSoigneur
 from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
 from ui import (
     PanneauTelephone, PanneauInfos, PanneauAchevement, EcranFinVague, AffichageXP,
-    FenetreRecompensesTalents, PanneauCompetences, PanneauObjets, PanneauParametresMusique
+    FenetreRecompensesTalents, PanneauCompetences, PanneauObjets, PanneauParametresMusique, FenetreNiveauConquis
 )
 from vague import GestionnaireVague
 from progression import Progression
@@ -14,7 +14,7 @@ from musique import MusiqueManager
 
 
 class Jeu:
-    def __init__(self, continent="pirate", volume_musique=0.5, niveau=1):
+    def __init__(self, continent="pirate", volume_musique=0.5, niveau=1, progression_monde=None):
         pygame.init()
         self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran))
         pygame.display.set_caption("Abyssal Raiders")
@@ -24,6 +24,7 @@ class Jeu:
         self.continent = continent
         self.volume_musique = volume_musique
         self.niveau = niveau
+        self.progression_monde = progression_monde
         self.musique = MusiqueManager(self.volume_musique)
         self._lancer_musique_continent()
         self.reinitialiser()
@@ -49,13 +50,16 @@ class Jeu:
         self.panneau_competences = PanneauCompetences()
         self.panneau_objets = PanneauObjets()
         self.panneau_parametres = PanneauParametresMusique()
+        self.fenetre_niveau_conquis = FenetreNiveauConquis()
         self.mode_placement_actif, self.type_tour_a_placer = False, None
         self.tour_actuellement_selectionnee = None
         self.gestionnaire_vague = GestionnaireVague()
         # 1 niveau = 4 vagues, on décale le compteur pour commencer au bon endroit
-        self.gestionnaire_vague.numero_vague = max(0, (self.niveau - 1) * 4)
-        self.vague_max = self.gestionnaire_vague.numero_vague + 4
+        # 1 niveau = 3 vagues
+        self.gestionnaire_vague.numero_vague = max(0, (self.niveau - 1) * 3)
+        self.vague_max = self.gestionnaire_vague.numero_vague + 3
         self.en_attente_lancement_vague = True
+        self.demande_retour_map = False
         self.progression = Progression()
         self.gestionnaire_competences = GestionnaireCompetences()
         self.mode_fete, self.sequence_easter_egg = False, []
@@ -79,7 +83,14 @@ class Jeu:
             self.mettre_a_jour(delta_temps)
             self.dessiner()
             pygame.display.flip()
+            if self.demande_retour_map:
+                jeu_en_cours = False
         pygame.quit()
+        return {
+            "continent": self.continent,
+            "niveau": self.niveau,
+            "niveau_conquis": self.progression_monde.est_conquis(self.continent, self.niveau) if self.progression_monde else False,
+        }
 
     def gerer_competence(self, touche):
         cle = self.gestionnaire_competences.obtenir_competence_par_touche(touche)
@@ -113,6 +124,9 @@ class Jeu:
             self.mode_fete = not self.mode_fete
 
     def gerer_clic(self, clic):
+        if self.fenetre_niveau_conquis.gerer_clic(clic):
+            self.demande_retour_map = True
+            return
         if self.bouton_recompense.collidepoint(clic):
             self.fenetre_recompenses.ouvrir()
             return
@@ -258,6 +272,10 @@ class Jeu:
                 xp = self.progression.xp_pour_vague(self.gestionnaire_vague.numero_vague)
                 self.progression.gagner_xp(xp)
                 self.ecran_fin_vague.ouvrir(self.gestionnaire_vague.numero_vague, xp)
+                if self.gestionnaire_vague.numero_vague >= self.vague_max:
+                    if self.progression_monde:
+                        self.progression_monde.marquer_conquis(self.continent, self.niveau)
+                    self.fenetre_niveau_conquis.ouvrir()
         mult = self.gestionnaire_competences.competences["buff_tours"]["multiplicateur_cadence"] if self.gestionnaire_competences.buff_actif() else 1.0
         for tour in self.liste_tours:
             c0 = tour.cadence
@@ -295,10 +313,15 @@ class Jeu:
         self.panneau_objets.dessiner(self.fenetre, self.inventaire_objets)
         self.panneau_parametres.dessiner(self.fenetre, self.volume_musique)
         self.fenetre_recompenses.dessiner(self.fenetre, self.progression)
+        self.fenetre_niveau_conquis.dessiner(self.fenetre)
 
     def _dessiner_bouton_recompense(self):
+        # mieux intégré sous la barre XP (même zone en haut à droite)
+        x = largeur_ecran - 200
+        y = 46
+        self.bouton_recompense = pygame.Rect(x, y, 170, 30)
         survol = self.bouton_recompense.collidepoint(pygame.mouse.get_pos())
-        pygame.draw.rect(self.fenetre, (70, 130, 70) if survol else (45, 95, 52), self.bouton_recompense, border_radius=7)
+        pygame.draw.rect(self.fenetre, (60, 120, 70) if survol else (35, 82, 45), self.bouton_recompense, border_radius=7)
         pygame.draw.rect(self.fenetre, (150, 220, 150), self.bouton_recompense, width=1, border_radius=7)
         txt = pygame.font.SysFont("consolas", 14, bold=True).render("Recompense", True, (235, 255, 235))
         self.fenetre.blit(txt, (self.bouton_recompense.centerx - txt.get_width() // 2, self.bouton_recompense.y + 7))

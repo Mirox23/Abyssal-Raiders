@@ -69,6 +69,9 @@ class Jeu:
         self.bouton_recompense = pygame.Rect(largeur_ecran - 200, 46, 170, 30)
         self.couts_tours = {TourSniper: 14, TourCanonnier: 10, TourRalentissement: 12, TourSupport: 11}
         self.effets_visuels = []
+        self.map_jeu_ouverte = False
+        self.bouton_retour_jeu = pygame.Rect(largeur_ecran // 2 - 120, hauteur_ecran - 92, 240, 44)
+        self.temps_vague_actuelle = 0.0
         configurer_chemin_niveau_vague(self.continent, self.niveau, 1)
 
     def lancer(self):
@@ -108,6 +111,7 @@ class Jeu:
         elif cle == "pluie_bombes" and self.liste_ennemis:
             pos = pygame.mouse.get_pos()
             self._ajouter_effet(pos, (255, 90, 80), 90, 0.3)
+            self._jouer_son_effet("explosion")
             for ennemi in self.liste_ennemis:
                 if ((ennemi.x - pos[0]) ** 2 + (ennemi.y - pos[1]) ** 2) ** 0.5 <= 95:
                     ennemi.vie -= 4 + self.talents_appliques["degats_competence"]
@@ -133,8 +137,19 @@ class Jeu:
 
     def gerer_clic(self, clic):
         self._ajouter_effet(clic, (130, 210, 255), 16, 0.2)
-        if self.fenetre_niveau_conquis.gerer_clic(clic):
+        self._jouer_son_effet("clic")
+        if self.map_jeu_ouverte:
+            if self.bouton_retour_jeu.collidepoint(clic):
+                self.map_jeu_ouverte = False
+            return
+
+        action_niveau = self.fenetre_niveau_conquis.gerer_clic(clic)
+        if action_niveau == "retour_map":
             self.demande_retour_map = True
+            return
+        if action_niveau == "niveau_suivant":
+            self.niveau = min(8, self.niveau + 1)
+            self.reinitialiser()
             return
         if self.bouton_recompense.collidepoint(clic):
             self.fenetre_recompenses.ouvrir()
@@ -214,7 +229,7 @@ class Jeu:
             self.panneau_parametres.ouvrir()
             return
         if action_tel == "Map":
-            self.demande_retour_map = True
+            self.map_jeu_ouverte = True
             return
 
         if not self.mode_placement_actif:
@@ -299,11 +314,13 @@ class Jeu:
         self.gestionnaire_vague.demarrer_vague(CHEMIN[0])
         self.en_attente_lancement_vague = False
         self.ecran_fin_vague.fermer()
+        self.temps_vague_actuelle = 0.0
 
     def mettre_a_jour(self, delta_temps):
         self.progression.mettre_a_jour(delta_temps)
         self.gestionnaire_competences.mettre_a_jour(delta_temps)
         if not self.en_attente_lancement_vague and not self.ecran_fin_vague.visible:
+            self.temps_vague_actuelle += delta_temps
             self.gestionnaire_vague.mettre_a_jour(delta_temps, self.liste_ennemis, CHEMIN)
             for ennemi in self.liste_ennemis:
                 if isinstance(ennemi, MobSoigneur):
@@ -315,16 +332,19 @@ class Jeu:
                     self.progression.gagner_xp(self.progression.xp_pour_kill())
                     self._ajouter_effet((ennemi.x, ennemi.y), (255, 145, 90), 22, 0.35)
                     self._ajouter_effet((ennemi.x, ennemi.y), (255, 220, 120), 12, 0.2)
+                    self._jouer_son_effet("explosion")
                     continue
                 if ennemi.avancer(delta_temps, CHEMIN):
                     if isinstance(ennemi, MobKamikaze):
                         self.points_de_vie_mur -= max(1, ennemi.degats_explosion - self.talents_appliques["resistance_mur"])
                         self._ajouter_effet((position_mur, ennemi.y), (255, 120, 80), 28, 0.5)
                         self._ajouter_effet((position_mur, ennemi.y), (255, 220, 180), 16, 0.25)
+                        self._jouer_son_effet("mur")
                     else:
                         self.points_de_vie_mur -= max(1, 1 - self.talents_appliques["resistance_mur"])
                         self._ajouter_effet((position_mur, ennemi.y), (255, 175, 100), 18, 0.35)
                         self._ajouter_effet((position_mur, ennemi.y), (255, 230, 190), 10, 0.2)
+                        self._jouer_son_effet("mur")
                     continue
                 survivants.append(ennemi)
             self.liste_ennemis = survivants
@@ -333,10 +353,13 @@ class Jeu:
                 self.en_attente_lancement_vague = True
                 xp = self.progression.xp_pour_vague(self.vague_locale)
                 self.progression.gagner_xp(xp)
-                self.ecran_fin_vague.ouvrir(self.vague_locale, xp)
+                score_vague = int(self.points_de_vie_mur * 120 + max(0, 2000 - self.temps_vague_actuelle * 80))
+                self.ecran_fin_vague.ouvrir(self.vague_locale, xp, score_vague)
+                self.panneau_achevement.marquer_vague(self.continent, self.niveau, self.vague_locale)
                 if self.vague_locale >= self.vague_max:
                     if self.progression_monde:
                         self.progression_monde.marquer_conquis(self.continent, self.niveau)
+                    self.panneau_achevement.marquer_niveau_conquis(self.continent, self.niveau)
                     self.fenetre_niveau_conquis.ouvrir()
         mult = self.gestionnaire_competences.competences["buff_tours"]["multiplicateur_cadence"] if self.gestionnaire_competences.buff_actif() else 1.0
         for tour in self.liste_tours:
@@ -346,6 +369,7 @@ class Jeu:
             tour.mettre_a_jour(delta_temps, self.liste_ennemis)
             if len(tour.liste_projectiles) > nb_projectiles_avant:
                 self._ajouter_effet((tour.x, tour.y), (255, 230, 120), 10, 0.12)
+                self._jouer_son_effet("tir")
             tour.cadence = c0
         for tour in self.liste_tours:
             if tour.type_tour == "Support":
@@ -386,6 +410,8 @@ class Jeu:
         self.panneau_parametres.dessiner(self.fenetre, self.volume_musique, self.volume_effets)
         self.fenetre_recompenses.dessiner(self.fenetre, self.progression)
         self.fenetre_niveau_conquis.dessiner(self.fenetre)
+        if self.map_jeu_ouverte:
+            self._dessiner_map_jeu()
 
     def _ajouter_effet(self, pos, couleur, rayon, duree):
         self.effets_visuels.append({"x": float(pos[0]), "y": float(pos[1]), "couleur": couleur, "rayon": rayon, "duree": duree, "temps": duree})
@@ -405,23 +431,43 @@ class Jeu:
             pygame.draw.circle(self.fenetre, effet["couleur"], (int(effet["x"]), int(effet["y"])), rayon, max(1, int(3 * ratio)))
 
     def _dessiner_bouton_recompense(self):
-        # Carte récompense visuellement liée au niveau/XP.
-        x = largeur_ecran - 216
-        y = 38
-        self.bouton_recompense = pygame.Rect(x, y, 194, 42)
+        # Intégré à la zone XP sans trou visuel.
+        x = largeur_ecran - 200
+        y = 34
+        self.bouton_recompense = pygame.Rect(x, y, 180, 26)
         survol = self.bouton_recompense.collidepoint(pygame.mouse.get_pos())
-        couleur_fond = (68, 128, 82) if survol else (36, 82, 50)
-        pygame.draw.rect(self.fenetre, (18, 24, 38), self.bouton_recompense.move(2, 2), border_radius=10)
-        pygame.draw.rect(self.fenetre, couleur_fond, self.bouton_recompense, border_radius=8)
-        pygame.draw.rect(self.fenetre, (175, 230, 178), self.bouton_recompense, width=1, border_radius=10)
-        pygame.draw.circle(self.fenetre, (255, 220, 120), (self.bouton_recompense.x + 16, self.bouton_recompense.y + 21), 6)
+        couleur_fond = (68, 128, 82) if survol else (40, 90, 58)
+        pygame.draw.rect(self.fenetre, couleur_fond, self.bouton_recompense, border_radius=6)
+        pygame.draw.rect(self.fenetre, (170, 230, 180), self.bouton_recompense, width=1, border_radius=6)
+        txt = pygame.font.SysFont("consolas", 11, bold=True).render(f"Recompenses • Talents {self.progression.points_talent}", True, (235, 255, 235))
+        self.fenetre.blit(txt, (self.bouton_recompense.centerx - txt.get_width() // 2, self.bouton_recompense.y + 6))
 
-        police_titre = pygame.font.SysFont("consolas", 13, bold=True)
-        police_detail = pygame.font.SysFont("consolas", 11)
-        txt = police_titre.render("Recompenses", True, (235, 255, 235))
-        txt_niveau = police_detail.render(f"Niveau {self.progression.niveau} • Talents {self.progression.points_talent}", True, (210, 240, 210))
-        self.fenetre.blit(txt, (self.bouton_recompense.x + 30, self.bouton_recompense.y + 4))
-        self.fenetre.blit(txt_niveau, (self.bouton_recompense.x + 30, self.bouton_recompense.y + 21))
+    def _dessiner_map_jeu(self):
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile.fill((0, 0, 0, 165))
+        self.fenetre.blit(voile, (0, 0))
+        rect = pygame.Rect(120, 70, largeur_ecran - 240, hauteur_ecran - 140)
+        pygame.draw.rect(self.fenetre, (22, 30, 44), rect, border_radius=12)
+        pygame.draw.rect(self.fenetre, (100, 130, 190), rect, width=2, border_radius=12)
+        titre = pygame.font.SysFont("consolas", 24, bold=True).render("Map generale", True, (220, 230, 255))
+        self.fenetre.blit(titre, (rect.centerx - titre.get_width() // 2, rect.y + 20))
+        info = pygame.font.SysFont("consolas", 15).render("Partie en pause visuelle - retour possible", True, (200, 210, 225))
+        self.fenetre.blit(info, (rect.centerx - info.get_width() // 2, rect.y + 58))
+        pygame.draw.rect(self.fenetre, (50, 88, 130), self.bouton_retour_jeu, border_radius=8)
+        pygame.draw.rect(self.fenetre, (140, 190, 235), self.bouton_retour_jeu, width=1, border_radius=8)
+        txt = pygame.font.SysFont("consolas", 18, bold=True).render("Retour jeu", True, (230, 245, 255))
+        self.fenetre.blit(txt, (self.bouton_retour_jeu.centerx - txt.get_width() // 2, self.bouton_retour_jeu.centery - txt.get_height() // 2))
+
+    def _jouer_son_effet(self, type_effet):
+        sons = {
+            "tir": "musique/effets/tir.wav",
+            "explosion": "musique/effets/explosion.wav",
+            "mur": "musique/effets/mur.wav",
+            "clic": "musique/effets/clic.wav",
+        }
+        chemin = sons.get(type_effet)
+        if chemin:
+            self.musique.jouer_effet(chemin)
 
     def _dessiner_info_tour(self):
         tour = self.tour_actuellement_selectionnee

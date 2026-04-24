@@ -80,7 +80,9 @@ class PanneauTelephone:
         return None
 
     def dessiner(self, fenetre):
-        coque = pygame.Rect(self.x, self.y, self.largeur, self.hauteur)
+        hauteur_coque = self.hauteur if self.ouvert else 70
+        y_coque = self.y if self.ouvert else self.y + self.hauteur - 70
+        coque = pygame.Rect(self.x, y_coque, self.largeur, hauteur_coque)
         pygame.draw.rect(fenetre, (12, 14, 20), coque, border_radius=18)
         pygame.draw.rect(fenetre, (70, 88, 125), coque, width=2, border_radius=18)
         pygame.draw.circle(fenetre, (30, 38, 55), (coque.centerx, coque.y + 10), 4)
@@ -91,7 +93,7 @@ class PanneauTelephone:
                 survol = rect.collidepoint(pygame.mouse.get_pos())
                 pygame.draw.rect(fenetre, (62, 92, 140) if survol else (40, 60, 88), rect, border_radius=13)
                 pygame.draw.rect(fenetre, (120, 160, 220), rect, width=1, border_radius=13)
-                abrev = nom[0].upper() if nom else "?"
+                abreviation = nom[0].upper() if nom else "?"
                 if nom == "New vague":
                     abreviation = "V"
                 if nom == "Parametre":
@@ -105,6 +107,7 @@ class PanneauTelephone:
 
         pygame.draw.rect(fenetre, (42, 84, 110), self.bouton_principal, border_radius=10)
         pygame.draw.rect(fenetre, (120, 180, 225), self.bouton_principal, width=1, border_radius=10)
-        texte_bouton = pygame.font.SysFont("consolas", 12, bold=True).render("APPLIS", True, (220, 245, 255))
+        texte_bouton = "FERMER" if self.ouvert else "OUVRIR"
+        texte_bouton = pygame.font.SysFont("consolas", 12, bold=True).render(texte_bouton, True, (220, 245, 255))
         fenetre.blit(texte_bouton, (self.bouton_principal.centerx - texte_bouton.get_width() // 2, self.bouton_principal.centery - texte_bouton.get_height() // 2))
 

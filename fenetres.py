@@ -52,6 +52,9 @@ class PanneauInfos:
         pos_y += 24
         fenetre.blit(self.police_info.render(f"Cadence : {tour.cadence:.2f} s", True, (200, 200, 200)), (pos_x, pos_y))
         pos_y += 24
+        degats = getattr(tour, "degats_tir", 1)
+        fenetre.blit(self.police_info.render(f"Degats  : {degats}", True, (220, 205, 140)), (pos_x, pos_y))
+        pos_y += 24
         if tour.type_tour == "Ralentissement":
             special = f"Ralenti  : {int((1 - tour.facteur_ralentissement) * 100)}% / {tour.duree_ralentissement:.1f}s"
             fenetre.blit(self.police_info.render(special, True, (100, 200, 255)), (pos_x, pos_y))

@@ -1,6 +1,6 @@
 import pygame
 from setting import *
-from chemin import CHEMIN, draw_decor, draw_path
+from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_continent
 from mob import MobKamikaze, MobSoigneur
 from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
 from ui import (
@@ -27,6 +27,7 @@ class Jeu:
         self.progression_monde = progression_monde
         self.musique = MusiqueManager(self.volume_musique)
         self._lancer_musique_continent()
+        configurer_chemin_continent(self.continent)
         self.reinitialiser()
 
     def _lancer_musique_continent(self):
@@ -97,7 +98,7 @@ class Jeu:
         if not cle:
             return
         data = self.gestionnaire_competences.competences[cle]
-        cout = max(1, data["cout"] - self.talents_appliques["reduction_cout"])
+        cout = self._cout_competence(cle)
         if data["cooldown"] > 0 or self.argent < cout:
             return
         if cle == "tir_puissant" and self.liste_ennemis:
@@ -114,6 +115,10 @@ class Jeu:
                     ennemi.appliquer_ralentissement(0.35, 2.8)
         self.argent -= cout
         self.gestionnaire_competences.activer(cle)
+
+    def _cout_competence(self, cle_competence):
+        data = self.gestionnaire_competences.competences[cle_competence]
+        return max(1, data["cout"] - self.talents_appliques["reduction_cout"])
 
     def gerer_easter_eggs(self, touche):
         if touche == pygame.K_p:
@@ -309,22 +314,34 @@ class Jeu:
         self.panneau_infos.dessiner(self.fenetre)
         self.panneau_achevement.dessiner(self.fenetre)
         self.ecran_fin_vague.dessiner(self.fenetre)
-        self.panneau_competences.dessiner(self.fenetre, self.gestionnaire_competences, self.argent)
+        self.panneau_competences.dessiner(
+            self.fenetre,
+            self.gestionnaire_competences,
+            self.argent,
+            self.talents_appliques["reduction_cout"],
+        )
         self.panneau_objets.dessiner(self.fenetre, self.inventaire_objets)
         self.panneau_parametres.dessiner(self.fenetre, self.volume_musique)
         self.fenetre_recompenses.dessiner(self.fenetre, self.progression)
         self.fenetre_niveau_conquis.dessiner(self.fenetre)
 
     def _dessiner_bouton_recompense(self):
-        # mieux intégré sous la barre XP (même zone en haut à droite)
+        # Bouton aligné avec le système de progression du niveau (XP/talents).
         x = largeur_ecran - 200
-        y = 46
-        self.bouton_recompense = pygame.Rect(x, y, 170, 30)
+        y = 44
+        self.bouton_recompense = pygame.Rect(x, y, 176, 36)
         survol = self.bouton_recompense.collidepoint(pygame.mouse.get_pos())
-        pygame.draw.rect(self.fenetre, (60, 120, 70) if survol else (35, 82, 45), self.bouton_recompense, border_radius=7)
-        pygame.draw.rect(self.fenetre, (150, 220, 150), self.bouton_recompense, width=1, border_radius=7)
-        txt = pygame.font.SysFont("consolas", 14, bold=True).render("Recompense", True, (235, 255, 235))
-        self.fenetre.blit(txt, (self.bouton_recompense.centerx - txt.get_width() // 2, self.bouton_recompense.y + 7))
+        couleur_fond = (62, 118, 72) if survol else (34, 78, 44)
+        pygame.draw.rect(self.fenetre, (18, 24, 38), self.bouton_recompense.move(2, 2), border_radius=8)
+        pygame.draw.rect(self.fenetre, couleur_fond, self.bouton_recompense, border_radius=8)
+        pygame.draw.rect(self.fenetre, (165, 225, 170), self.bouton_recompense, width=1, border_radius=8)
+
+        police_titre = pygame.font.SysFont("consolas", 13, bold=True)
+        police_detail = pygame.font.SysFont("consolas", 11)
+        txt = police_titre.render("Recompenses", True, (235, 255, 235))
+        txt_niveau = police_detail.render(f"Niv {self.progression.niveau}", True, (210, 240, 210))
+        self.fenetre.blit(txt, (self.bouton_recompense.x + 10, self.bouton_recompense.y + 4))
+        self.fenetre.blit(txt_niveau, (self.bouton_recompense.x + 10, self.bouton_recompense.y + 20))
 
     def _dessiner_info_tour(self):
         tour = self.tour_actuellement_selectionnee

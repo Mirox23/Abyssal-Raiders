@@ -115,7 +115,7 @@ class PanneauCompetences:
             return "consomme"
         return None
 
-    def dessiner(self, fenetre, gestionnaire_competences, argent_joueur):
+    def dessiner(self, fenetre, gestionnaire_competences, argent_joueur, reduction_cout):
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
@@ -127,16 +127,33 @@ class PanneauCompetences:
         self.bouton_fermer.dessiner(fenetre)
         self.boutons = []
         y = self.rect.y + 70
-        for cle, donnees in gestionnaire_competences.competences.items(): # pour chaque compétence, on crée un bouton avec le nom de la compétence, son cooldown actuel, son coût en or, et une indication visuelle si le joueur peut se permettre d'améliorer la compétence (en ayant assez d'or) ou si la compétence est en cooldown, et on ajoute le bouton à la liste des boutons de la fenêtre pour pouvoir gérer les clics sur les compétences
+        for cle, donnees in gestionnaire_competences.competences.items():
             rect = pygame.Rect(self.rect.x + 18, y, self.rect.width - 36, 64)
             self.boutons.append((cle, rect))
-            pygame.draw.rect(fenetre, (40, 56, 82), rect, border_radius=8)
+            cout_reel = max(1, donnees["cout"] - reduction_cout)
+            en_cooldown = donnees["cooldown"] > 0
+            assez_argent = argent_joueur >= cout_reel
+            peut_utiliser = (not en_cooldown) and assez_argent
+            couleur_fond = (30, 84, 62) if peut_utiliser else (40, 56, 82)
+
+            pygame.draw.rect(fenetre, couleur_fond, rect, border_radius=8)
             pygame.draw.rect(fenetre, (90, 120, 175), rect, width=1, border_radius=8)
             fenetre.blit(self.police_texte.render(f"[{pygame.key.name(donnees['touche']).upper()}] {donnees['nom']}", True, (235, 235, 250)), (rect.x + 10, rect.y + 9))
             cd = f"Cooldown : {donnees['cooldown']:.1f}s" if donnees["cooldown"] > 0 else "Cooldown : pret"
             fenetre.blit(self.police_texte.render(cd, True, (180, 210, 245)), (rect.x + 10, rect.y + 32))
-            couleur_cout = (255, 215, 120) if argent_joueur >= donnees["cout"] else (190, 125, 125)
-            fenetre.blit(self.police_texte.render(f"Cout : {donnees['cout']} or", True, couleur_cout), (rect.right - 150, rect.y + 32))
+            couleur_cout = (255, 215, 120) if assez_argent else (190, 125, 125)
+            fenetre.blit(self.police_texte.render(f"Cout : {cout_reel} or", True, couleur_cout), (rect.right - 160, rect.y + 12))
+
+            if peut_utiliser:
+                statut = "Statut : utilisable"
+                couleur_statut = (135, 240, 170)
+            elif en_cooldown:
+                statut = "Statut : en cooldown"
+                couleur_statut = (240, 180, 110)
+            else:
+                statut = "Statut : argent insuffisant"
+                couleur_statut = (235, 130, 130)
+            fenetre.blit(self.police_texte.render(statut, True, couleur_statut), (rect.right - 220, rect.y + 34))
             y += 74
 
 
@@ -165,7 +182,7 @@ class PanneauObjets:
             return "consomme"
         return None
 
-    def dessiner(self, fenetre, inventaire_objets): # cette méthode dessine la fenêtre des objets, en affichant pour chaque objet défini dans la liste des définitions d'objets un bouton avec le nom de l'objet, sa description, et le nombre d'objets que le joueur possède dans son inventaire, en utilisant une couleur différente pour le texte du nombre d'objets si le joueur en possède au moins un (indiquant qu'il peut utiliser l'objet) ou s'il n'en possède aucun (indiquant que l'objet est indisponible), et en ajoutant chaque bouton à la liste des boutons de la fenêtre pour pouvoir gérer les clics sur les objets
+    def dessiner(self, fenetre, inventaire_objets):
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
@@ -179,16 +196,22 @@ class PanneauObjets:
             ("potion_mur", "Potion de planches", "Restaure +2 vie mur"),
             ("bourse_or", "Bourse de secours", "Gagne +6 or"),
             ("totem_froid", "Totem de givre", "Ralentit tous les mobs 1.2s"),
-        ] # liste des objets avec leur clé d'identification, leur nom à afficher, et leur description, qui sera utilisée pour dessiner les boutons des objets dans la fenêtre et pour gérer les clics sur les objets
+        ]
         self.boutons = []
         y = self.rect.y + 72
         for cle, nom, desc in definitions:
+            quantite = inventaire_objets.get(cle, 0)
+            utilisable = quantite > 0
             rect = pygame.Rect(self.rect.x + 20, y, self.rect.width - 40, 60)
             self.boutons.append((cle, rect))
-            pygame.draw.rect(fenetre, (62, 47, 27), rect, border_radius=8)
+            pygame.draw.rect(fenetre, (62, 47, 27) if utilisable else (52, 42, 38), rect, border_radius=8)
             pygame.draw.rect(fenetre, (170, 135, 80), rect, width=1, border_radius=8)
-            fenetre.blit(self.police_texte.render(f"{nom} x{inventaire_objets.get(cle, 0)}", True, (255, 240, 200)), (rect.x + 10, rect.y + 10)) # on affiche le nom de l'objet suivi du nombre d'objets que le joueur possède dans son inventaire, en utilisant une couleur plus vive si le joueur en possède au moins un (indiquant que l'objet est utilisable) ou une couleur plus terne s'il n'en possède aucun (indiquant que l'objet est indisponible)
+            couleur_qte = (255, 240, 200) if utilisable else (180, 160, 145)
+            fenetre.blit(self.police_texte.render(f"{nom} x{quantite}", True, couleur_qte), (rect.x + 10, rect.y + 10))
             fenetre.blit(self.police_texte.render(desc, True, (230, 210, 170)), (rect.x + 10, rect.y + 32))
+            statut = "Utilisable" if utilisable else "Stock vide"
+            couleur_statut = (125, 230, 150) if utilisable else (230, 130, 120)
+            fenetre.blit(self.police_texte.render(statut, True, couleur_statut), (rect.right - 120, rect.y + 10))
             y += 70
 
 

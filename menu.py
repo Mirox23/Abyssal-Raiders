@@ -1,5 +1,6 @@
 import math
 import pygame
+import os
 from setting import largeur_ecran, hauteur_ecran
 from musique import MusiqueManager
 from progression_monde import ProgressionMonde
@@ -191,10 +192,22 @@ class Menu:
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 30))
         rect_carte = pygame.Rect(80, 110, largeur_ecran - 160, hauteur_ecran - 200)
         if self.map_entier is None:
-            try:
-                img = pygame.image.load("image/map_entier.png").convert()
-                self.map_entier = pygame.transform.scale(img, (rect_carte.width, rect_carte.height))
-            except Exception:
+            chemins_possibles = [
+                "image/map_entier.png",
+                "image/carte_entier.png",
+                "image/carte_entiere.png",
+            ]
+            image_chargee = None
+            for chemin in chemins_possibles:
+                if os.path.exists(chemin):
+                    try:
+                        image_chargee = pygame.image.load(chemin).convert()
+                        break
+                    except Exception:
+                        image_chargee = None
+            if image_chargee:
+                self.map_entier = pygame.transform.scale(image_chargee, (rect_carte.width, rect_carte.height))
+            else:
                 self.map_entier = False
         if self.map_entier:
             self.ecran.blit(self.map_entier, rect_carte.topleft)

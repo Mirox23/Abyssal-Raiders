@@ -33,7 +33,7 @@ class Mob:
         
         # image spécifique pour le mob de base seulement
         if Mob.image_base is None:
-            Mob.image_base = pygame.image.load("image/Roi_des_pirates.png").convert_alpha()
+            Mob.image_base = pygame.image.load("image/pirates/Roi_des_pirates.png").convert_alpha()
             Mob.image_base = pygame.transform.scale(Mob.image_base, (32, 32))
 
         self.image = Mob.image_base
@@ -128,7 +128,7 @@ class MobRapide(Mob):
         self.xp = self.xp_mort
         
         if MobRapide.image_rapide is None:
-            MobRapide.image_rapide = pygame.image.load("image/marin_spectral.png").convert_alpha()
+            MobRapide.image_rapide = pygame.image.load("image/pirates/Fantome_pirate.png").convert_alpha()
             MobRapide.image_rapide = pygame.transform.scale(MobRapide.image_rapide, (28, 28))
 
         self.image = MobRapide.image_rapide
@@ -158,7 +158,7 @@ class MobTank(Mob):
         self.xp = self.xp_mort
         
         if MobTank.image_tank is None:
-            MobTank.image_tank = pygame.image.load("image/pirate_triton.png").convert_alpha()
+            MobTank.image_tank = pygame.image.load("image/pirates/Triton.png").convert_alpha()
             MobTank.image_tank = pygame.transform.scale(MobTank.image_tank, (36, 36))
 
         self.image = MobTank.image_tank
@@ -191,7 +191,7 @@ class MobKamikaze(Mob):
         self.xp = self.xp_mort
         
         if MobKamikaze.image_kamikaze is None:
-            MobKamikaze.image_kamikaze = pygame.image.load("image/demon_pirate.png").convert_alpha()
+            MobKamikaze.image_kamikaze = pygame.image.load("image/pirates/squelette_pirate.png").convert_alpha()
             MobKamikaze.image_kamikaze = pygame.transform.scale(MobKamikaze.image_kamikaze, (28, 28))
 
         self.image = MobKamikaze.image_kamikaze
@@ -227,7 +227,7 @@ class MobSoigneur(Mob):
         self.minuterie_soin = 0.0
         
         if MobSoigneur.image_soigneur is None:
-            MobSoigneur.image_soigneur = pygame.image.load("image/requin_humanoïde.png").convert_alpha()
+            MobSoigneur.image_soigneur = pygame.image.load("image/pirates/requin.png").convert_alpha()
             MobSoigneur.image_soigneur = pygame.transform.scale(MobSoigneur.image_soigneur, (28, 28))
 
         self.image = MobSoigneur.image_soigneur

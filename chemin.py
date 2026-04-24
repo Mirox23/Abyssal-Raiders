@@ -4,18 +4,58 @@ from setting import (
     couleur_decor_rock, couleur_decor_grass, couleur_wall,
 )
 
-CHEMIN = [
-    (0, 200),
-    (150, 200),
-    (150, 350),
-    (350, 350),
-    (350, 130),
-    (600, 130),
-    (600, 400),
-    (800, 400),
-    (800, 280),
-    (position_mur, 280),
-]
+CHEMINS_CONTINENTS = {
+    "pirate": [
+        (0, 210),
+        (180, 210),
+        (180, 355),
+        (380, 355),
+        (380, 130),
+        (650, 130),
+        (650, 410),
+        (840, 410),
+        (840, 275),
+        (position_mur, 275),
+    ],
+    "samourai": [
+        (0, 120),
+        (160, 120),
+        (160, 275),
+        (330, 275),
+        (330, 465),
+        (570, 465),
+        (570, 225),
+        (760, 225),
+        (760, 350),
+        (position_mur, 350),
+    ],
+    "medieval": [
+        (0, 300),
+        (210, 300),
+        (210, 180),
+        (430, 180),
+        (430, 350),
+        (640, 350),
+        (640, 160),
+        (830, 160),
+        (830, 300),
+        (position_mur, 300),
+    ],
+    "demoniaque": [
+        (0, 250),
+        (140, 250),
+        (140, 120),
+        (320, 120),
+        (320, 410),
+        (500, 410),
+        (500, 220),
+        (700, 220),
+        (700, 455),
+        (position_mur, 455),
+    ],
+}
+
+CHEMIN = list(CHEMINS_CONTINENTS["pirate"])
 
 liste_decors = [
     {"type": "rock",  "x": 80,  "y": 140, "r": 18},
@@ -27,6 +67,15 @@ liste_decors = [
     {"type": "grass", "x": 500, "y": 470, "r": 18},
     {"type": "rock",  "x": 850, "y": 180, "r": 15},
 ]
+
+
+def configurer_chemin_continent(continent):
+    """
+    Met à jour le chemin actif selon le continent choisi.
+    On modifie la liste en place pour garder les références déjà importées.
+    """
+    chemin_continent = CHEMINS_CONTINENTS.get(continent, CHEMINS_CONTINENTS["pirate"])
+    CHEMIN[:] = chemin_continent
 
 
 def draw_decor(fenetre, pygame):

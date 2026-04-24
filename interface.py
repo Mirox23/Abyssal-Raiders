@@ -45,7 +45,7 @@ class AffichageXP:
 
 
 class PanneauTelephone:
-    noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Achèvement", "New vague", "Parametre", "Map"]
+    noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Achèvement", "New vague", "Parametre", "Map", "Scores"]
 
     def __init__(self):
         self.largeur = 210
@@ -100,6 +100,8 @@ class PanneauTelephone:
                     abreviation = "P"
                 if nom == "Map":
                     abreviation = "M"
+                if nom == "Scores":
+                    abreviation = "S"
                 texte_icone = police_icone.render(abreviation, True, (235, 245, 255))
                 fenetre.blit(texte_icone, (rect.centerx - texte_icone.get_width() // 2, rect.centery - texte_icone.get_height() // 2))
                 texte_nom = police_nom.render(nom, True, (210, 225, 250))
@@ -110,4 +112,3 @@ class PanneauTelephone:
         texte_bouton = "FERMER" if self.ouvert else "OUVRIR"
         texte_bouton = pygame.font.SysFont("consolas", 12, bold=True).render(texte_bouton, True, (220, 245, 255))
         fenetre.blit(texte_bouton, (self.bouton_principal.centerx - texte_bouton.get_width() // 2, self.bouton_principal.centery - texte_bouton.get_height() // 2))
-

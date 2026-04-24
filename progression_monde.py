@@ -27,3 +27,22 @@ class ProgressionMonde:
         if 1 <= numero_niveau <= 8:
             return self.niveaux_conquis[continent][numero_niveau - 1]
         return False
+
+    def bonus_fidelite_argent(self, continent, numero_niveau):
+        """
+        NOUVEAU — Bonus de fidélité : +3 or de départ par niveau déjà conquis
+        dans ce continent. Récompense les joueurs qui reviennent sur des niveaux maîtrisés.
+        """
+        if continent not in self.niveaux_conquis:
+            return 0
+        nb_conquis = sum(1 for c in self.niveaux_conquis[continent][:numero_niveau] if c)
+        return nb_conquis * 3
+
+    def bonus_fidelite_vie(self, continent, numero_niveau):
+        """
+        NOUVEAU — +1 PV de mur par tranche de 3 niveaux conquis dans le continent.
+        """
+        if continent not in self.niveaux_conquis:
+            return 0
+        nb_conquis = sum(1 for c in self.niveaux_conquis[continent][:numero_niveau] if c)
+        return nb_conquis // 3

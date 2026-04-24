@@ -1,6 +1,6 @@
 from interface import Bouton, AffichageXP, PanneauTelephone
 from ui_panels import FenetreRecompensesTalents, PanneauCompetences, PanneauObjets, PanneauParametresMusique
-from fenetres import PanneauInfos, PanneauAchevement, EcranFinVague, FenetreNiveauConquis
+from fenetres import PanneauInfos, PanneauAchevement, EcranFinVague, FenetreNiveauConquis, FenetreMarcheVague, FenetreScores
 
 __all__ = [
     "Bouton",
@@ -14,4 +14,6 @@ __all__ = [
     "PanneauAchevement",
     "EcranFinVague",
     "FenetreNiveauConquis",
+    "FenetreMarcheVague",
+    "FenetreScores",
 ]

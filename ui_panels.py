@@ -15,10 +15,24 @@ class FenetreRecompensesTalents:
         self.bouton_fermer = Bouton(self.rect.right - 100, self.rect.y + 14, 84, 30, "Fermer", 14)
         self.niveaux_recuperes = set()
         self.talents = {
-            "degats_competence": {"nom": "Poudre noire +", "niveau": 0, "max": 4},
-            "reduction_cout": {"nom": "Marchandage pirate", "niveau": 0, "max": 3},
-            "prime_or": {"nom": "Prime de chasse", "niveau": 0, "max": 4},
-            "resistance_mur": {"nom": "Mur renforce", "niveau": 0, "max": 3},
+            # Talent offensif : bonus de dégâts sur les compétences actives
+            "degats_competence": {"nom": "Poudre noire +", "niveau": 0, "max": 4,
+                                  "desc": "+2 degats competences/niv"},
+            # Talent économique : réduit le coût des compétences
+            "reduction_cout": {"nom": "Marchandage pirate", "niveau": 0, "max": 3,
+                               "desc": "-1 cout competences/niv"},
+            # NOUVEAU — Chasseur : prime doublée sur les mobs rapides et kamikazes
+            "chasseur": {"nom": "Chasseur de prime", "niveau": 0, "max": 3,
+                         "desc": "+1 or bonus mobs rapides/niv"},
+            # NOUVEAU — Ingénieur : les tours gagnent de la portée au fil des vagues
+            "ingenieur": {"nom": "Ingenieur de guilde", "niveau": 0, "max": 3,
+                          "desc": "+8 portee toutes tours/niv"},
+            # Talent défensif : résistance du mur
+            "resistance_mur": {"nom": "Mur renforce", "niveau": 0, "max": 3,
+                               "desc": "-1 degats recus mur/niv"},
+            # NOUVEAU — Alchimiste : les objets ont un effet augmenté
+            "alchimiste": {"nom": "Alchimiste fou", "niveau": 0, "max": 2,
+                           "desc": "Effets objets x1.5/niv"},
         }
         self._maj_boutons()
 
@@ -26,7 +40,11 @@ class FenetreRecompensesTalents:
         self.boutons_recompenses = [pygame.Rect(self.rect_recompense.x + 18, self.rect_recompense.y + 34 + i * 36, 300, 28) for i in range(8)]
         self.boutons_talents = []
         for i, cle in enumerate(self.talents.keys()):
-            self.boutons_talents.append((cle, pygame.Rect(self.rect_talents.x + 16, self.rect_talents.y + 42 + i * 72, 326, 60)))
+            col = i % 2
+            lig = i // 2
+            bx = self.rect_talents.x + 16 + col * 172
+            by = self.rect_talents.y + 42 + lig * 80
+            self.boutons_talents.append((cle, pygame.Rect(bx, by, 155, 65)))
 
     def ouvrir(self):
         self.visible = True
@@ -82,12 +100,18 @@ class FenetreRecompensesTalents:
         pygame.draw.rect(fenetre, (65, 105, 165), self.rect_talents, width=1, border_radius=10)
         fenetre.blit(self.police_texte.render("Arbre de talents du joueur", True, (185, 220, 255)), (self.rect_talents.x + 10, self.rect_talents.y + 8))
         fenetre.blit(self.police_petite.render("1 point = 1 niveau", True, (205, 215, 235)), (self.rect_talents.x + 12, self.rect_talents.y + 24))
-        for cle, rect in self.boutons_talents: # pour chaque bouton de talent, on affiche le nom du talent, son niveau actuel et son niveau max, et une indication que le joueur peut cliquer pour améliorer le talent s'il a des points de talent disponibles et si le talent n'est pas déjà au niveau max
+        for cle, rect in self.boutons_talents:
             talent = self.talents[cle]
+            peut_ameliorer = progression.points_talent > 0 and talent["niveau"] < talent["max"]
+            couleur_bord = (140, 190, 100) if peut_ameliorer else (95, 130, 182)
             pygame.draw.rect(fenetre, (44, 56, 86), rect, border_radius=7)
-            pygame.draw.rect(fenetre, (95, 130, 182), rect, width=1, border_radius=7)
-            fenetre.blit(self.police_petite.render(f"{talent['nom']} ({talent['niveau']}/{talent['max']})", True, (235, 240, 255)), (rect.x + 10, rect.y + 12))
-            fenetre.blit(self.police_petite.render("Clique pour ameliorer", True, (170, 205, 245)), (rect.x + 10, rect.y + 34))
+            pygame.draw.rect(fenetre, couleur_bord, rect, width=1, border_radius=7)
+            fenetre.blit(self.police_petite.render(f"{talent['nom']}", True, (235, 240, 255)), (rect.x + 6, rect.y + 6))
+            desc = talent.get("desc", "")
+            fenetre.blit(self.police_petite.render(desc, True, (170, 205, 245)), (rect.x + 6, rect.y + 22))
+            niv_txt = f"Niv {talent['niveau']}/{talent['max']}"
+            couleur_niv = (255, 220, 80) if talent["niveau"] > 0 else (160, 160, 180)
+            fenetre.blit(self.police_petite.render(niv_txt, True, couleur_niv), (rect.x + 6, rect.y + 46))
 
 
 class PanneauCompetences:

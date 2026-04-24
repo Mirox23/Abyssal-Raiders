@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 
 
 class Mob:
@@ -30,6 +31,12 @@ class Mob:
         # Ralentissement appliqué par une tour de ralentissement
         self.facteur_ralentissement = 1.0
         self.minuterie_ralentissement = 0.0
+
+        # flash blanc quand touché + shake 
+        self.flash_timer = 0.0      # durée restante du flash blanc (en secondes)
+        self.shake_timer = 0.0      # durée restante du shake (en secondes)
+        self.shake_offset = (0, 0)  # décalage visuel aléatoire du shake
+        self._vie_precedente = self.vie  # pour détecter les dégâts reçus
         
         # image spécifique pour le mob de base seulement
         if Mob.image_base is None:
@@ -44,9 +51,33 @@ class Mob:
             self.facteur_ralentissement = facteur
             self.minuterie_ralentissement = duree
 
+    def recevoir_degats(self, quantite):
+        """Applique des dégâts et déclenche flash + shake."""
+        self.vie -= quantite
+        self.flash_timer = 0.08   # 80ms de flash blanc
+        self.shake_timer = 0.12   # 120ms de shake
+        self.shake_offset = (random.randint(-3, 3), random.randint(-3, 3))
+
     def avancer(self, delta_temps, chemin):
         if self.etape >= len(chemin):
             return True
+
+        # détecter si la vie a baissé depuis la frame précédente pour déclencher le flash et le shake
+        if self.vie < self._vie_precedente:
+            self.flash_timer = 0.08
+            self.shake_timer = 0.12
+            self.shake_offset = (random.randint(-3, 3), random.randint(-3, 3))
+        self._vie_precedente = self.vie
+
+        # Mise à jour flash et shake
+        if self.flash_timer > 0:
+            self.flash_timer = max(0.0, self.flash_timer - delta_temps)
+        if self.shake_timer > 0:
+            self.shake_timer = max(0.0, self.shake_timer - delta_temps)
+            if self.shake_timer > 0:
+                self.shake_offset = (random.randint(-3, 3), random.randint(-3, 3))
+            else:
+                self.shake_offset = (0, 0)
 
         # Mise à jour du ralentissement
         if self.minuterie_ralentissement > 0:
@@ -80,18 +111,25 @@ class Mob:
         largeur = self.image.get_width()
         hauteur = self.image.get_height()
 
-        image_affichee = self.image
+        image_affichee = self.image.copy()
 
         # Effet ralenti (teinte bleue)
         if self.facteur_ralentissement < 1.0:
-            image_affichee = self.image.copy()
             image_affichee.fill((100, 100, 255, 80), special_flags=pygame.BLEND_RGBA_ADD)
+
+        # flash blanc quand touché
+        if self.flash_timer > 0:
+            image_affichee.fill((255, 255, 255, 180), special_flags=pygame.BLEND_RGBA_ADD)
 
         # Petite animation de flottement pour donner de la vie aux mobs
         oscillation = math.sin((pygame.time.get_ticks() * 0.01) + self.x * 0.04) * 2.2
-        fenetre.blit(image_affichee, (int(self.x - largeur // 2), int(self.y - hauteur // 2 + oscillation)))
 
-        # --- Barre de vie ---
+        # shake offset sur les dégâts
+        sx, sy = self.shake_offset if self.shake_timer > 0 else (0, 0)
+
+        fenetre.blit(image_affichee, (int(self.x - largeur // 2) + sx, int(self.y - hauteur // 2 + oscillation) + sy))
+
+        # Barre de vie
         largeur_barre = 30
         hauteur_barre = 4
 
@@ -251,3 +289,52 @@ class MobSoigneur(Mob):
         centre_y = int(self.y)
         pygame.draw.line(fenetre, (255, 255, 255), (centre_x - 5, centre_y), (centre_x + 5, centre_y), 2)
         pygame.draw.line(fenetre, (255, 255, 255), (centre_x, centre_y - 5), (centre_x, centre_y + 5), 2)
+
+
+class MobBoss(Mob):
+    """
+    Boss : apparaît à la fin du niveau (vague 4).
+    Enorme PV, vitesse moyenne, récompense élevée.
+    À sa mort il spawne 3 mobs normaux.
+    Un halo doré l'identifie visuellement.
+    """
+
+    nom = "BOSS"
+    couleur_mob = (200, 30, 200)
+    vie_de_base = 70
+    vitesse_de_base = 55.0
+    taille_mob = 22
+    recompense_mort = 20
+    xp_mort = 15
+    degats_mur = 5
+
+    def __init__(self, position_depart, vitesse=None, couleur=None):
+        super().__init__(position_depart, vitesse, couleur)
+        self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
+        self.couleur = couleur if couleur is not None else self.couleur_mob
+        self.taille = self.taille_mob
+        self.vie_max = self.vie_de_base
+        self.vie = self.vie_max
+        self.recompense = self.recompense_mort
+        self.xp = self.xp_mort
+        self._pulse = 0.0  # animation halo
+
+    def avancer(self, delta_temps, chemin):
+        self._pulse += delta_temps * 3.0
+        return super().avancer(delta_temps, chemin)
+
+    def dessiner(self, fenetre):
+        # Halo doré autour du boss
+        rayon_halo = int(self.taille + 10 + math.sin(self._pulse) * 5)
+        alpha = int(120 + math.sin(self._pulse) * 60)
+        surf_halo = pygame.Surface((rayon_halo * 2 + 4, rayon_halo * 2 + 4), pygame.SRCALPHA)
+        pygame.draw.circle(surf_halo, (255, 200, 0, alpha), (rayon_halo + 2, rayon_halo + 2), rayon_halo, 3)
+        fenetre.blit(surf_halo, (int(self.x) - rayon_halo - 2, int(self.y) - rayon_halo - 2))
+
+        # Sprite du boss (cercle violet foncé avec taille imposante)
+        super().dessiner(fenetre)
+
+        # Label BOSS au-dessus
+        police = pygame.font.SysFont("consolas", 11, bold=True)
+        surf_label = police.render("⚔ BOSS ⚔", True, (255, 220, 50))
+        fenetre.blit(surf_label, (int(self.x) - surf_label.get_width() // 2, int(self.y) - self.taille - 28))

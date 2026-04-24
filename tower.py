@@ -14,6 +14,7 @@ class Tour:
         self.couleur = couleur_tour
         self.type_tour = "Base"
         self.niveau = 1
+        self.degats_tir = 1
 
     def ameliorer(self, argent_joueur):
         if self.niveau >= niveau_max:
@@ -24,6 +25,14 @@ class Tour:
         self.portee += bonus_portee
         self.cadence = max(0.15, self.cadence - bonus_cadence)
         return argent_joueur - cout_amelioration
+
+    def valeur_revente(self):
+        """
+        Revente simple: base + une partie des améliorations.
+        """
+        valeur_base = 6
+        bonus_niveaux = max(0, self.niveau - 1) * 3
+        return valeur_base + bonus_niveaux
 
     def mettre_a_jour(self, delta_temps, liste_ennemis):
         self.temps_depuis_dernier_tir += delta_temps
@@ -70,6 +79,7 @@ class TourSniper(Tour):
         self.cadence = 1.5
         self.portee = 250
         self.type_tour = "Sniper"
+        self.degats_tir = 3
 
     def mettre_a_jour(self, delta_temps, liste_ennemis):
         self.temps_depuis_dernier_tir += delta_temps
@@ -104,6 +114,7 @@ class TourCanonnier(Tour):
         self.cadence = 0.5
         self.portee = 100
         self.type_tour = "Canonnier"
+        self.degats_tir = 1
 
 
 class TourRalentissement(Tour):
@@ -120,6 +131,7 @@ class TourRalentissement(Tour):
         self.type_tour = "Ralentissement"
         self.facteur_ralentissement = 0.5
         self.duree_ralentissement = 2.0
+        self.degats_tir = 1
 
     def ameliorer(self, argent_joueur):
         resultat = super().ameliorer(argent_joueur)
@@ -175,6 +187,7 @@ class TourSupport(Tour):
         self.rayon_buff = 120
         self.bonus_cadence_buff = 0.25
         self.tours_bufferisees = []
+        self.degats_tir = 0
 
     def ameliorer(self, argent_joueur):
         resultat = super().ameliorer(argent_joueur)

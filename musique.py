@@ -4,6 +4,7 @@ import pygame
 class MusiqueManager:
     def __init__(self, volume=0.5):
         self.volume = volume
+        self.volume_effets = 0.6
         self.piste_active = None
         try:
             if not pygame.mixer.get_init():
@@ -26,6 +27,20 @@ class MusiqueManager:
         self.volume = max(0.0, min(1.0, volume))
         try:
             pygame.mixer.music.set_volume(self.volume)
+        except Exception:
+            pass
+
+    def regler_volume_effets(self, volume):
+        self.volume_effets = max(0.0, min(1.0, volume))
+
+    def jouer_effet(self, chemin_fichier):
+        """
+        Joue un effet sonore court sans interrompre la musique.
+        """
+        try:
+            son = pygame.mixer.Sound(chemin_fichier)
+            son.set_volume(self.volume_effets)
+            son.play()
         except Exception:
             pass
 

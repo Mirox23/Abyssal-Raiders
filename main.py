@@ -37,6 +37,8 @@ def main():
             jeu = Jeu(menu.monde_selectionne, menu.volume_son, menu.niveau_selectionne, progression_monde)
             resultat = jeu.lancer()
             menu.appliquer_progression(progression_monde)
+            if resultat.get("ouvrir_map"):
+                menu.etat = "map"
             etat_application = "menu"
 
     pygame.quit()

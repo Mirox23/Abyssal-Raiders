@@ -12,8 +12,9 @@ class PanneauInfos:
         self.rect = pygame.Rect(largeur_ecran // 2 - 150, hauteur_ecran // 2 - 105, 300, 210)
         base_x = self.rect.x + 20
         base_y = self.rect.y + self.rect.height - 55
-        self.bouton_ameliorer = Bouton(base_x, base_y, 120, 38, "Améliorer")
-        self.bouton_fermer = Bouton(base_x + 140, base_y, 120, 38, "Fermer")
+        self.bouton_ameliorer = Bouton(base_x, base_y, 82, 38, "Ameliorer", 14)
+        self.bouton_revendre = Bouton(base_x + 92, base_y, 82, 38, "Revendre", 14)
+        self.bouton_fermer = Bouton(base_x + 184, base_y, 82, 38, "Fermer", 14)
 
     def ouvrir(self, tour):
         self.tour_selectionnee = tour
@@ -31,6 +32,9 @@ class PanneauInfos:
             if nouvel_argent >= 0:
                 return "ameliore", nouvel_argent
             return None, argent_joueur
+        if self.bouton_revendre.rect.collidepoint(position_clic):
+            prix_revente = self.tour_selectionnee.valeur_revente() if hasattr(self.tour_selectionnee, "valeur_revente") else 5
+            return "revendre", argent_joueur + prix_revente
         if self.bouton_fermer.rect.collidepoint(position_clic):
             self.fermer()
             return "ferme", argent_joueur
@@ -66,6 +70,7 @@ class PanneauInfos:
             surface_cout = self.police_info.render(f"Coût amélioration : {cout_amelioration} ¤", True, (130, 210, 130))
         fenetre.blit(surface_cout, (pos_x, pos_y))
         self.bouton_ameliorer.dessiner(fenetre)
+        self.bouton_revendre.dessiner(fenetre)
         self.bouton_fermer.dessiner(fenetre)
 
 
@@ -79,8 +84,8 @@ class PanneauAchevement:
         self.police_titre = pygame.font.SysFont("consolas", 20, bold=True)
         self.police_onglet = pygame.font.SysFont("consolas", 15, bold=True)
         self.police_label = pygame.font.SysFont("consolas", 13)
-        # 8 niveaux × 3 vagues
-        self.progression = {cle: [[False] * 3 for _ in range(8)] for cle in self.cles_mondes}
+        # 8 niveaux × 4 vagues
+        self.progression = {cle: [[False] * 4 for _ in range(8)] for cle in self.cles_mondes}
         self.onglet_actif = 0
         self.bouton_fermer = Bouton(self.rect.right - 90, self.rect.y + 8, 80, 30, "Fermer", 14)
         largeur_onglet = self.rect.width // 4
@@ -91,6 +96,21 @@ class PanneauAchevement:
 
     def fermer(self):
         self.visible = False
+
+    def marquer_vague(self, continent, numero_niveau, numero_vague):
+        if continent not in self.progression:
+            return
+        if not (1 <= numero_niveau <= 8 and 1 <= numero_vague <= 4):
+            return
+        self.progression[continent][numero_niveau - 1][numero_vague - 1] = True
+
+    def marquer_niveau_conquis(self, continent, numero_niveau):
+        if continent not in self.progression:
+            return
+        if not (1 <= numero_niveau <= 8):
+            return
+        for i in range(4):
+            self.progression[continent][numero_niveau - 1][i] = True
 
     def gerer_clic(self, position_clic):
         if not self.visible:
@@ -130,14 +150,14 @@ class PanneauAchevement:
         espacement_vague = 6
         espacement_niveau = 10
 
-        for v in range(3):
+        for v in range(4):
             x_entete = marge_gauche + 80 + v * (taille_rect_vague + espacement_vague)
             fenetre.blit(self.police_label.render(f"V{v+1}", True, (160, 160, 200)), (x_entete, zone_y_depart))
 
         for niv in range(8):
             y_ligne = zone_y_depart + 20 + niv * (taille_rect_vague + espacement_niveau)
             fenetre.blit(self.police_label.render(f"Niveau {niv + 1}", True, (200, 200, 200)), (marge_gauche, y_ligne + 3))
-            for vague in range(3):
+            for vague in range(4):
                 x_rect = marge_gauche + 80 + vague * (taille_rect_vague + espacement_vague)
                 couleur_rect = (0, 130, 0) if progression_monde[niv][vague] else (100, 100, 110)
                 pygame.draw.rect(fenetre, couleur_rect, (x_rect, y_ligne, taille_rect_vague, taille_rect_vague), border_radius=3)
@@ -156,6 +176,7 @@ class EcranFinVague:
         self.visible = False
         self.numero_vague = 0
         self.xp_gagnee = 0
+        self.score_vague = 0
         self.police_titre = pygame.font.SysFont("consolas", 30, bold=True)
         self.police_message = pygame.font.SysFont("consolas", 19)
         self.police_xp = pygame.font.SysFont("consolas", 16)
@@ -165,9 +186,10 @@ class EcranFinVague:
         self.bouton_nouvelle_vague = Bouton(centre_x - 230, centre_y + 60, 210, 44, "Nouvelle vague", 18)
         self.bouton_modification = Bouton(centre_x + 20, centre_y + 60, 210, 44, "Modification", 18)
 
-    def ouvrir(self, numero, xp_gagnee):
+    def ouvrir(self, numero, xp_gagnee, score_vague):
         self.numero_vague = numero
         self.xp_gagnee = xp_gagnee
+        self.score_vague = score_vague
         self.visible = True
 
     def fermer(self):
@@ -197,6 +219,8 @@ class EcranFinVague:
         fenetre.blit(surface_message, (centre_x - surface_message.get_width() // 2, self.rect.y + 62))
         surface_xp = self.police_xp.render(f"+ {self.xp_gagnee} XP gagnés pour cette vague", True, (100, 210, 255))
         fenetre.blit(surface_xp, (centre_x - surface_xp.get_width() // 2, self.rect.y + 90))
+        surface_score = self.police_xp.render(f"Score de vague : {self.score_vague}", True, (255, 220, 120))
+        fenetre.blit(surface_score, (centre_x - surface_score.get_width() // 2, self.rect.y + 112))
         self.bouton_nouvelle_vague.dessiner(fenetre)
         self.bouton_modification.dessiner(fenetre)
 
@@ -207,18 +231,24 @@ class FenetreNiveauConquis:
         self.police_titre = pygame.font.SysFont("consolas", 28, bold=True)
         self.police_texte = pygame.font.SysFont("consolas", 15)
         self.rect = pygame.Rect(largeur_ecran // 2 - 320, hauteur_ecran // 2 - 120, 640, 240)
-        self.bouton_retour = Bouton(self.rect.centerx - 120, self.rect.bottom - 60, 240, 44, "Retour a la map", 18)
+        self.bouton_niveau_suivant = Bouton(self.rect.x + 40, self.rect.bottom - 60, 260, 44, "Niveau suivant", 18)
+        self.bouton_retour = Bouton(self.rect.right - 300, self.rect.bottom - 60, 260, 44, "Retour a la map", 18)
 
     def ouvrir(self):
         self.visible = True
 
     def gerer_clic(self, position_clic):
         if not self.visible:
-            return False
+            return None
+        if self.bouton_niveau_suivant.rect.collidepoint(position_clic):
+            self.visible = False
+            return "niveau_suivant"
         if self.bouton_retour.rect.collidepoint(position_clic):
             self.visible = False
-            return True
-        return self.rect.collidepoint(position_clic)
+            return "retour_map"
+        if self.rect.collidepoint(position_clic):
+            return "consomme"
+        return None
 
     def dessiner(self, fenetre):
         if not self.visible:
@@ -230,8 +260,9 @@ class FenetreNiveauConquis:
         pygame.draw.rect(fenetre, (100, 120, 200), self.rect, width=2, border_radius=12)
         titre = self.police_titre.render("Bravo ! Niveau conquis !", True, (210, 200, 80))
         fenetre.blit(titre, (self.rect.centerx - titre.get_width() // 2, self.rect.y + 26))
-        ligne = "Vous avez maintenant les compétences pour vous attaquer au niveausuivant."
+        ligne = "Vous avez maintenant les compétences pour vous attaquer au niveau suivant."
         txt = self.police_texte.render(ligne, True, (210, 210, 220))
         fenetre.blit(txt, (self.rect.centerx - txt.get_width() // 2, self.rect.y + 80))
+        self.bouton_niveau_suivant.dessiner(fenetre)
         self.bouton_retour.dessiner(fenetre)
 

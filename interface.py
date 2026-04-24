@@ -45,47 +45,69 @@ class AffichageXP:
 
 
 class PanneauTelephone:
-    noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Achèvement", "New vague", "Parametre"]
+    noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Achèvement", "New vague", "Parametre", "Map"]
 
     def __init__(self):
-        self.largeur = 190
-        self.hauteur_bouton = 40
-        self.marge = 7
-        self.hauteur_ferme = 46
-        self.x = largeur_ecran - 210
-        self.y = hauteur_ecran - 58
+        self.largeur = 210
+        self.hauteur = 250
+        self.taille_icone = 52
+        self.marge = 12
+        self.x = largeur_ecran - self.largeur - 14
+        self.y = hauteur_ecran - self.hauteur - 14
         self.ouvert = False
-        self.bouton_principal = Bouton(self.x, self.y, self.largeur, self.hauteur_ferme, "Telephone")
+        self.bouton_principal = pygame.Rect(self.x + 70, self.y + self.hauteur - 44, 70, 32)
         self.liste_boutons = []
-        nombre_boutons = len(self.noms_boutons)
-        for indice, nom in enumerate(self.noms_boutons):
-            position_depuis_bas = nombre_boutons - indice
-            decalage = position_depuis_bas * (self.hauteur_bouton + self.marge)
-            self.liste_boutons.append(Bouton(self.x, self.y - decalage, self.largeur, self.hauteur_bouton, nom))
+        self._creer_grille_boutons()
+
+    def _creer_grille_boutons(self):
+        self.liste_boutons = []
+        colonnes = 3
+        for i, nom in enumerate(self.noms_boutons):
+            col = i % colonnes 
+            lig = i // colonnes
+            bx = self.x + 16 + col * (self.taille_icone + self.marge)
+            by = self.y + 20 + lig * (self.taille_icone + 28)
+            self.liste_boutons.append((nom, pygame.Rect(bx, by, self.taille_icone, self.taille_icone)))
 
     def gerer_clic(self, position_clic):
-        if self.bouton_principal.rect.collidepoint(position_clic):
+        if self.bouton_principal.collidepoint(position_clic):
             self.ouvert = not self.ouvert
             return None
         if self.ouvert:
-            for bouton in self.liste_boutons:
-                if bouton.rect.collidepoint(position_clic):
-                    return bouton.texte
+            for nom, rect in self.liste_boutons:
+                if rect.collidepoint(position_clic):
+                    return nom
         return None
 
     def dessiner(self, fenetre):
-        hauteur_coque = self.hauteur_ferme + 14
-        if self.ouvert:
-            hauteur_coque = len(self.noms_boutons) * (self.hauteur_bouton + self.marge) + self.hauteur_ferme + 20
-        coque = pygame.Rect(self.x - 10, self.y + self.hauteur_ferme - hauteur_coque + 8, self.largeur + 20, hauteur_coque)
+        hauteur_coque = self.hauteur if self.ouvert else 70
+        y_coque = self.y if self.ouvert else self.y + self.hauteur - 70
+        coque = pygame.Rect(self.x, y_coque, self.largeur, hauteur_coque)
         pygame.draw.rect(fenetre, (12, 14, 20), coque, border_radius=18)
         pygame.draw.rect(fenetre, (70, 88, 125), coque, width=2, border_radius=18)
+        pygame.draw.circle(fenetre, (30, 38, 55), (coque.centerx, coque.y + 10), 4)
         if self.ouvert:
-            hauteur_panneau = len(self.noms_boutons) * (self.hauteur_bouton + self.marge) + self.marge
-            rect_fond = pygame.Rect(self.x - 4, self.y - hauteur_panneau, self.largeur + 8, hauteur_panneau)
-            pygame.draw.rect(fenetre, (28, 35, 48), rect_fond, border_radius=10)
-            pygame.draw.rect(fenetre, (90, 120, 170), rect_fond, width=2, border_radius=10)
-            for bouton in self.liste_boutons:
-                bouton.dessiner(fenetre, couleur_fond=(40, 60, 88), couleur_texte=(225, 235, 255))
-        self.bouton_principal.dessiner(fenetre, couleur_fond=(42, 84, 110), couleur_texte=(220, 245, 255))
+            police_icone = pygame.font.SysFont("consolas", 17, bold=True)
+            police_nom = pygame.font.SysFont("consolas", 11)
+            for nom, rect in self.liste_boutons:
+                survol = rect.collidepoint(pygame.mouse.get_pos())
+                pygame.draw.rect(fenetre, (62, 92, 140) if survol else (40, 60, 88), rect, border_radius=13)
+                pygame.draw.rect(fenetre, (120, 160, 220), rect, width=1, border_radius=13)
+                abreviation = nom[0].upper() if nom else "?"
+                if nom == "New vague":
+                    abreviation = "V"
+                if nom == "Parametre":
+                    abreviation = "P"
+                if nom == "Map":
+                    abreviation = "M"
+                texte_icone = police_icone.render(abreviation, True, (235, 245, 255))
+                fenetre.blit(texte_icone, (rect.centerx - texte_icone.get_width() // 2, rect.centery - texte_icone.get_height() // 2))
+                texte_nom = police_nom.render(nom, True, (210, 225, 250))
+                fenetre.blit(texte_nom, (rect.centerx - texte_nom.get_width() // 2, rect.bottom + 4))
+
+        pygame.draw.rect(fenetre, (42, 84, 110), self.bouton_principal, border_radius=10)
+        pygame.draw.rect(fenetre, (120, 180, 225), self.bouton_principal, width=1, border_radius=10)
+        texte_bouton = "FERMER" if self.ouvert else "OUVRIR"
+        texte_bouton = pygame.font.SysFont("consolas", 12, bold=True).render(texte_bouton, True, (220, 245, 255))
+        fenetre.blit(texte_bouton, (self.bouton_principal.centerx - texte_bouton.get_width() // 2, self.bouton_principal.centery - texte_bouton.get_height() // 2))
 

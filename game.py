@@ -1,6 +1,6 @@
 import pygame
 from setting import *
-from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_continent
+from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_niveau_vague
 from mob import MobKamikaze, MobSoigneur
 from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
 from ui import (
@@ -27,13 +27,12 @@ class Jeu:
         self.progression_monde = progression_monde
         self.musique = MusiqueManager(self.volume_musique)
         self._lancer_musique_continent()
-        configurer_chemin_continent(self.continent)
         self.reinitialiser()
 
     def _lancer_musique_continent(self):
         pistes = {
             "pirate": "musique/continent_pirate.wav",
-            "japonais": "musique/continent_japonais.wav",
+            "samourai": "musique/continent_japonais.wav",
             "medieval": "musique/continent_medieval.wav",
             "demoniaque": "musique/continent_demoniaque.wav",
         }
@@ -55,12 +54,13 @@ class Jeu:
         self.mode_placement_actif, self.type_tour_a_placer = False, None
         self.tour_actuellement_selectionnee = None
         self.gestionnaire_vague = GestionnaireVague()
-        # 1 niveau = 4 vagues, on décale le compteur pour commencer au bon endroit
-        # 1 niveau = 3 vagues
-        self.gestionnaire_vague.numero_vague = max(0, (self.niveau - 1) * 3)
-        self.vague_max = self.gestionnaire_vague.numero_vague + 3
+        # 1 niveau = 4 vagues.
+        self.vague_locale = 0
+        self.vague_max = 4
         self.en_attente_lancement_vague = True
         self.demande_retour_map = False
+        self.volume_effets = 0.6
+        self.musique.regler_volume_effets(self.volume_effets)
         self.progression = Progression()
         self.gestionnaire_competences = GestionnaireCompetences()
         self.mode_fete, self.sequence_easter_egg = False, []
@@ -68,6 +68,8 @@ class Jeu:
         self.inventaire_objets = {"potion_mur": 2, "bourse_or": 2, "totem_froid": 1}
         self.bouton_recompense = pygame.Rect(largeur_ecran - 200, 46, 170, 30)
         self.couts_tours = {TourSniper: 14, TourCanonnier: 10, TourRalentissement: 12, TourSupport: 11}
+        self.effets_visuels = []
+        configurer_chemin_niveau_vague(self.continent, self.niveau, 1)
 
     def lancer(self):
         jeu_en_cours = True
@@ -91,6 +93,7 @@ class Jeu:
             "continent": self.continent,
             "niveau": self.niveau,
             "niveau_conquis": self.progression_monde.est_conquis(self.continent, self.niveau) if self.progression_monde else False,
+            "ouvrir_map": self.demande_retour_map,
         }
 
     def gerer_competence(self, touche):
@@ -105,6 +108,7 @@ class Jeu:
             max(self.liste_ennemis, key=lambda e: e.etape).vie -= 8 + self.talents_appliques["degats_competence"]
         elif cle == "pluie_bombes" and self.liste_ennemis:
             pos = pygame.mouse.get_pos()
+            self._ajouter_effet(pos, (255, 90, 80), 90, 0.3)
             for ennemi in self.liste_ennemis:
                 if ((ennemi.x - pos[0]) ** 2 + (ennemi.y - pos[1]) ** 2) ** 0.5 <= 95:
                     ennemi.vie -= 4 + self.talents_appliques["degats_competence"]
@@ -129,6 +133,7 @@ class Jeu:
             self.mode_fete = not self.mode_fete
 
     def gerer_clic(self, clic):
+        self._ajouter_effet(clic, (130, 210, 255), 16, 0.2)
         if self.fenetre_niveau_conquis.gerer_clic(clic):
             self.demande_retour_map = True
             return
@@ -150,6 +155,12 @@ class Jeu:
             elif action_param == "plus":
                 self.volume_musique = min(1.0, self.volume_musique + 0.1)
                 self.musique.regler_volume(self.volume_musique)
+            elif action_param == "moins_effets":
+                self.volume_effets = max(0.0, self.volume_effets - 0.1)
+                self.musique.regler_volume_effets(self.volume_effets)
+            elif action_param == "plus_effets":
+                self.volume_effets = min(1.0, self.volume_effets + 0.1)
+                self.musique.regler_volume_effets(self.volume_effets)
             return
         action_comp = self.panneau_competences.gerer_clic(clic)
         if action_comp:
@@ -197,6 +208,9 @@ class Jeu:
         if action_tel == "Parametre":
             self.panneau_parametres.ouvrir()
             return
+        if action_tel == "Map":
+            self.demande_retour_map = True
+            return
 
         if not self.mode_placement_actif:
             self.tour_actuellement_selectionnee = None
@@ -242,8 +256,11 @@ class Jeu:
         return False
 
     def lancer_nouvelle_vague(self):
-        if self.gestionnaire_vague.numero_vague >= self.vague_max:
+        if self.vague_locale >= self.vague_max:
             return
+        self.vague_locale += 1
+        # Le dossier niveau_chemin fournit un chemin différent pour chaque vague.
+        configurer_chemin_niveau_vague(self.continent, self.niveau, self.vague_locale)
         self.argent += argent_par_vague
         self.gestionnaire_vague.demarrer_vague(CHEMIN[0])
         self.en_attente_lancement_vague = False
@@ -262,22 +279,25 @@ class Jeu:
                 if ennemi.vie <= 0:
                     self.argent += ennemi.recompense + self.talents_appliques["prime_or"]
                     self.progression.gagner_xp(self.progression.xp_pour_kill())
+                    self._ajouter_effet((ennemi.x, ennemi.y), (255, 145, 90), 22, 0.35)
                     continue
                 if ennemi.avancer(delta_temps, CHEMIN):
                     if isinstance(ennemi, MobKamikaze):
                         self.points_de_vie_mur -= max(1, ennemi.degats_explosion - self.talents_appliques["resistance_mur"])
+                        self._ajouter_effet((position_mur, ennemi.y), (255, 120, 80), 28, 0.5)
                     else:
                         self.points_de_vie_mur -= max(1, 1 - self.talents_appliques["resistance_mur"])
+                        self._ajouter_effet((position_mur, ennemi.y), (255, 175, 100), 18, 0.35)
                     continue
                 survivants.append(ennemi)
             self.liste_ennemis = survivants
             if self.gestionnaire_vague.vague_terminee:
                 self.gestionnaire_vague.vague_terminee = False
                 self.en_attente_lancement_vague = True
-                xp = self.progression.xp_pour_vague(self.gestionnaire_vague.numero_vague)
+                xp = self.progression.xp_pour_vague(self.vague_locale)
                 self.progression.gagner_xp(xp)
-                self.ecran_fin_vague.ouvrir(self.gestionnaire_vague.numero_vague, xp)
-                if self.gestionnaire_vague.numero_vague >= self.vague_max:
+                self.ecran_fin_vague.ouvrir(self.vague_locale, xp)
+                if self.vague_locale >= self.vague_max:
                     if self.progression_monde:
                         self.progression_monde.marquer_conquis(self.continent, self.niveau)
                     self.fenetre_niveau_conquis.ouvrir()
@@ -285,11 +305,15 @@ class Jeu:
         for tour in self.liste_tours:
             c0 = tour.cadence
             tour.cadence = max(0.08, c0 * mult)
+            nb_projectiles_avant = len(tour.liste_projectiles)
             tour.mettre_a_jour(delta_temps, self.liste_ennemis)
+            if len(tour.liste_projectiles) > nb_projectiles_avant:
+                self._ajouter_effet((tour.x, tour.y), (255, 230, 120), 10, 0.12)
             tour.cadence = c0
         for tour in self.liste_tours:
             if tour.type_tour == "Support":
                 tour.appliquer_buff(self.liste_tours)
+        self._mettre_a_jour_effets(delta_temps)
 
     def dessiner(self):
         self.fenetre.fill((32, 35, 55) if self.mode_fete else couleur_fond)
@@ -301,9 +325,10 @@ class Jeu:
             ennemi.dessiner(self.fenetre)
         self.fenetre.blit(self.police_hud.render(f"Vie : {self.points_de_vie_mur}", True, couleur_texte), (20, 20))
         self.fenetre.blit(self.police_hud.render(f"Argent : {self.argent} ¤", True, couleur_texte), (20, 48))
-        texte_vague = f"— Vague {self.gestionnaire_vague.numero_vague} —" if self.gestionnaire_vague.numero_vague > 0 else "— Prêt —"
+        texte_vague = f"— Vague {self.vague_locale}/{self.vague_max} —" if self.vague_locale > 0 else "— Pret —"
         surf_vague = self.police_vague.render(texte_vague, True, (200, 180, 80))
         self.fenetre.blit(surf_vague, (largeur_ecran // 2 - surf_vague.get_width() // 2, 14))
+        self._dessiner_effets()
         self.affichage_xp.dessiner(self.fenetre, self.progression)
         self._dessiner_bouton_recompense()
         if self.tour_actuellement_selectionnee:
@@ -321,9 +346,26 @@ class Jeu:
             self.talents_appliques["reduction_cout"],
         )
         self.panneau_objets.dessiner(self.fenetre, self.inventaire_objets)
-        self.panneau_parametres.dessiner(self.fenetre, self.volume_musique)
+        self.panneau_parametres.dessiner(self.fenetre, self.volume_musique, self.volume_effets)
         self.fenetre_recompenses.dessiner(self.fenetre, self.progression)
         self.fenetre_niveau_conquis.dessiner(self.fenetre)
+
+    def _ajouter_effet(self, pos, couleur, rayon, duree):
+        self.effets_visuels.append({"x": float(pos[0]), "y": float(pos[1]), "couleur": couleur, "rayon": rayon, "duree": duree, "temps": duree})
+
+    def _mettre_a_jour_effets(self, delta_temps):
+        restants = []
+        for effet in self.effets_visuels:
+            effet["temps"] -= delta_temps
+            if effet["temps"] > 0:
+                restants.append(effet)
+        self.effets_visuels = restants
+
+    def _dessiner_effets(self):
+        for effet in self.effets_visuels:
+            ratio = effet["temps"] / effet["duree"]
+            rayon = max(2, int(effet["rayon"] * (1 - ratio * 0.5)))
+            pygame.draw.circle(self.fenetre, effet["couleur"], (int(effet["x"]), int(effet["y"])), rayon, max(1, int(3 * ratio)))
 
     def _dessiner_bouton_recompense(self):
         # Bouton aligné avec le système de progression du niveau (XP/talents).

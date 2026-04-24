@@ -218,17 +218,19 @@ class PanneauObjets:
 class PanneauParametresMusique:
     def __init__(self):
         self.visible = False
-        self.rect = pygame.Rect(285, 170, 430, 210)
+        self.rect = pygame.Rect(260, 145, 480, 260)
         self.police_titre = pygame.font.SysFont("consolas", 22, bold=True)
         self.police_texte = pygame.font.SysFont("consolas", 14)
         self.bouton_fermer = Bouton(self.rect.right - 94, self.rect.y + 12, 78, 28, "Fermer", 14)
         self.bouton_moins = pygame.Rect(self.rect.x + 70, self.rect.y + 98, 48, 42)
         self.bouton_plus = pygame.Rect(self.rect.x + 312, self.rect.y + 98, 48, 42)
+        self.bouton_moins_effets = pygame.Rect(self.rect.x + 70, self.rect.y + 165, 48, 42)
+        self.bouton_plus_effets = pygame.Rect(self.rect.x + 312, self.rect.y + 165, 48, 42)
 
     def ouvrir(self):
         self.visible = True
 
-    def gerer_clic(self, position_clic): # cette méthode gère les clics sur la fenêtre des paramètres de musique, en vérifiant d'abord si la fenêtre est visible, puis si le clic est sur le bouton fermer (dans ce cas on ferme la fenêtre et on retourne None pour indiquer que le clic n'est pas consommé), ensuite on vérifie si le clic est sur le bouton moins (dans ce cas on retourne "moins" pour indiquer que le joueur veut baisser le volume de la musique) ou sur le bouton plus (dans ce cas on retourne "plus" pour indiquer que le joueur veut augmenter le volume de la musique), et enfin si le clic est sur la fenêtre mais pas sur un bouton, on considère que le joueur veut juste fermer la fenêtre sans consommer le clic (en retournant "consomme" pour indiquer que le clic est consommé mais sans action spécifique à faire)
+    def gerer_clic(self, position_clic):
         if not self.visible:
             return None
         if self.bouton_fermer.rect.collidepoint(position_clic):
@@ -238,11 +240,15 @@ class PanneauParametresMusique:
             return "moins"
         if self.bouton_plus.collidepoint(position_clic):
             return "plus"
+        if self.bouton_moins_effets.collidepoint(position_clic):
+            return "moins_effets"
+        if self.bouton_plus_effets.collidepoint(position_clic):
+            return "plus_effets"
         if self.rect.collidepoint(position_clic):
             return "consomme"
         return None
 
-    def dessiner(self, fenetre, volume):
+    def dessiner(self, fenetre, volume, volume_effets):
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
@@ -254,10 +260,19 @@ class PanneauParametresMusique:
         self.bouton_fermer.dessiner(fenetre)
         pygame.draw.rect(fenetre, (95, 65, 50), self.bouton_moins, border_radius=7)
         pygame.draw.rect(fenetre, (95, 65, 50), self.bouton_plus, border_radius=7)
-        fenetre.blit(self.police_titre.render("-", True, (255, 220, 180)), (self.bouton_moins.x + 15, self.bouton_moins.y + 2)) # on affiche un "-" sur le bouton moins et un "+" sur le bouton plus, en utilisant une couleur claire pour faire ressortir les symboles sur les boutons de couleur sombre
+        fenetre.blit(self.police_titre.render("-", True, (255, 220, 180)), (self.bouton_moins.x + 15, self.bouton_moins.y + 2))
         fenetre.blit(self.police_titre.render("+", True, (255, 220, 180)), (self.bouton_plus.x + 13, self.bouton_plus.y + 2))
-        fenetre.blit(self.police_texte.render(f"Volume musique : {int(volume * 100)}%", True, (205, 225, 255)), (self.rect.x + 145, self.rect.y + 78)) # on affiche le texte indiquant le volume actuel de la musique en pourcentage, en utilisant une couleur claire pour le faire ressortir sur le fond sombre de la fenêtre
+        fenetre.blit(self.police_texte.render(f"Volume musique : {int(volume * 100)}%", True, (205, 225, 255)), (self.rect.x + 145, self.rect.y + 78))
         barre = pygame.Rect(self.rect.x + 140, self.rect.y + 114, 150, 14)
         pygame.draw.rect(fenetre, (42, 48, 65), barre, border_radius=6)
-        rempli = int(barre.width * volume) # on calcule la largeur de la partie remplie de la barre en fonction du volume actuel (qui est un nombre entre 0 et 1), et on dessine un rectangle rempli par-dessus la barre pour représenter visuellement le volume actuel, avec une couleur plus vive que celle de la barre pour le faire ressortir
+        rempli = int(barre.width * volume)
         pygame.draw.rect(fenetre, (100, 200, 130), (barre.x, barre.y, rempli, barre.height), border_radius=6)
+        pygame.draw.rect(fenetre, (95, 65, 50), self.bouton_moins_effets, border_radius=7)
+        pygame.draw.rect(fenetre, (95, 65, 50), self.bouton_plus_effets, border_radius=7)
+        fenetre.blit(self.police_titre.render("-", True, (255, 220, 180)), (self.bouton_moins_effets.x + 15, self.bouton_moins_effets.y + 2))
+        fenetre.blit(self.police_titre.render("+", True, (255, 220, 180)), (self.bouton_plus_effets.x + 13, self.bouton_plus_effets.y + 2))
+        fenetre.blit(self.police_texte.render(f"Volume effets : {int(volume_effets * 100)}%", True, (255, 225, 190)), (self.rect.x + 145, self.rect.y + 145))
+        barre_effets = pygame.Rect(self.rect.x + 140, self.rect.y + 181, 150, 14)
+        pygame.draw.rect(fenetre, (42, 48, 65), barre_effets, border_radius=6)
+        rempli_effets = int(barre_effets.width * volume_effets)
+        pygame.draw.rect(fenetre, (220, 170, 90), (barre_effets.x, barre_effets.y, rempli_effets, barre_effets.height), border_radius=6)

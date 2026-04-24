@@ -27,22 +27,21 @@ class Menu:
         cx = largeur_ecran // 2
         self.boutons_menu_principal = [
             {"texte": "Jouer", "rect": pygame.Rect(cx - 120, 210, 240, 50), "action": "ouvrir_mondes"},
-            {"texte": "Map", "rect": pygame.Rect(cx - 120, 272, 240, 50), "action": "ouvrir_map"},
-            {"texte": "Options", "rect": pygame.Rect(cx - 120, 334, 240, 50), "action": "options"},
-            {"texte": "Sauvegarde", "rect": pygame.Rect(cx - 120, 396, 240, 50), "action": "sauvegarde"},
+            {"texte": "Options", "rect": pygame.Rect(cx - 120, 272, 240, 50), "action": "options"},
+            {"texte": "Sauvegarde", "rect": pygame.Rect(cx - 120, 334, 240, 50), "action": "sauvegarde"},
             {"texte": "Quitter", "rect": pygame.Rect(cx - 120, 458, 240, 50), "action": "quitter"},
         ]
         self.donnees_mondes = [
             {"nom": "Monde Pirate", "cle": "pirate", "couleur": (45, 85, 145), "survol": (65, 110, 180), "debloque": True, "rect": pygame.Rect(80, 200, 170, 160)},
-            {"nom": "Monde Japonais", "cle": "japonais", "couleur": (145, 45, 45), "survol": (180, 65, 65), "debloque": True, "rect": pygame.Rect(290, 200, 170, 160)},
+            {"nom": "Monde Samourai", "cle": "samourai", "couleur": (145, 45, 45), "survol": (180, 65, 65), "debloque": True, "rect": pygame.Rect(290, 200, 170, 160)},
             {"nom": "Monde Médiéval", "cle": "medieval", "couleur": (45, 110, 55), "survol": (60, 140, 70), "debloque": True, "rect": pygame.Rect(500, 200, 170, 160)},
             {"nom": "Monde Démoniaque", "cle": "demoniaque", "couleur": (55, 55, 55), "survol": (70, 70, 70), "debloque": False, "rect": pygame.Rect(710, 200, 170, 160)},
         ]
         self.points_map_globale = [
-            {"nom": "Samourai", "pos": (180, 430), "debloque": True, "cle": "samourai"},
-            {"nom": "Medieval", "pos": (220, 320), "debloque": True, "cle": "medieval"},
-            {"nom": "Pirate", "pos": (560, 300), "debloque": True, "cle": "pirate"},
-            {"nom": "Demoniaque", "pos": (820, 290), "debloque": False, "cle": "demoniaque"},
+            {"nom": "Samourai", "pos": (180, 390), "debloque": True, "cle": "samourai"},
+            {"nom": "Medieval", "pos": (220, 280), "debloque": True, "cle": "medieval"},
+            {"nom": "Pirate", "pos": (560, 260), "debloque": True, "cle": "pirate"},
+            {"nom": "Demoniaque", "pos": (820, 250), "debloque": False, "cle": "demoniaque"},
         ]
         self.monde_map_detail = None
         self.afficher_carte_continent = False
@@ -67,8 +66,6 @@ class Menu:
                     if action == "quitter":
                         return "quitter"
                     if action == "ouvrir_mondes":
-                        self.etat = "mondes"
-                    elif action == "ouvrir_map":
                         self.etat = "map"
                         self.monde_map_detail = None
                     elif action == "options":
@@ -312,15 +309,17 @@ class Menu:
         pygame.draw.rect(self.ecran, (45, 45, 58), barre, border_radius=6)
         pygame.draw.rect(self.ecran, (100, 200, 130), (barre.x, barre.y, int(barre.width * self.volume_son), barre.height), border_radius=6)
         info = [
-            "Objectif : protège le mur, pose des tours, lance les vagues et survie.",
-            "Compétences : touche A = tir puissant, touche Z = pluie de bombes, touche E = boost tours, touche R = gèle une zone.",
-            "Easter eggs : touche P = petite pluie d'or ; flèche du : haut, haut, bas, bas, gauche, droite = ouvre un mode fête.",
+            "Objectif : protege le mur, pose des tours,",
+            "lance les vagues et survie le plus longtemps possible.",
+            "Competences : A tir puissant, Z pluie bombes,",
+            "E boost tours, R ralentissement de zone.",
+            "Easter egg : P = petite pluie d'or.",
         ]
         rect_aide = pygame.Rect(120, 325, 760, 170)
         pygame.draw.rect(self.ecran, (20, 28, 28), rect_aide, border_radius=10)
         pygame.draw.rect(self.ecran, (75, 120, 90), rect_aide, width=2, border_radius=10)
         for i, ligne in enumerate(info):
-            self.ecran.blit(self.police_avertissement.render(ligne, True, (200, 220, 205)), (rect_aide.x + 16, rect_aide.y + 18 + i * 28))
+            self.ecran.blit(self.police_avertissement.render(ligne, True, (200, 220, 205)), (rect_aide.x + 16, rect_aide.y + 16 + i * 24))
         blague = "Silence total : les démons n'entendent plus tes plans." if self.volume_son <= 0.01 else "Volume max : même le Roi Démon se bouche les oreilles."
         self.ecran.blit(self.police_avertissement.render(blague, True, (255, 190, 120)), (rect_aide.x + 16, rect_aide.bottom - 28))
         self._dessiner_retour()

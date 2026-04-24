@@ -1,46 +1,9 @@
+from setting import position_mur
 
-from setting import (
-largeur_ecran, hauteur_ecran,
-position_mur,
-couleur_decor_rock, couleur_decor_grass, couleur_wall,
-)
-
-CHEMIN = [
-(0, 200),
-(200, 200),
-(200, 320),
-(400, 320),
-(400, 200),
-(550, 200),
-(550, 150),
-(700, 150),
-(700, 200),
-(position_mur, 200),
+# Niveau 3 : chemins en "S"
+CHEMINS_VAGUES = [
+    [(0, 120), (260, 120), (260, 300), (540, 300), (540, 170), (760, 170), (760, 320), (position_mur, 320)],
+    [(0, 330), (200, 330), (200, 140), (430, 140), (430, 390), (720, 390), (720, 240), (position_mur, 240)],
+    [(0, 220), (300, 220), (300, 430), (580, 430), (580, 120), (820, 120), (820, 280), (position_mur, 280)],
+    [(0, 160), (150, 160), (150, 360), (420, 360), (420, 180), (700, 180), (700, 430), (position_mur, 430)],
 ]
-
-liste_decors = [
-{"type": "rock", "x": 80, "y": 140, "r": 18},
-{"type": "rock", "x": 220, "y": 420, "r": 14},
-{"type": "grass", "x": 450, "y": 220, "r": 22},
-{"type": "rock", "x": 680, "y": 310, "r": 16},
-{"type": "grass", "x": 720, "y": 460, "r": 20},
-{"type": "rock", "x": 300, "y": 80, "r": 12},
-{"type": "grass", "x": 500, "y": 470, "r": 18},
-{"type": "rock", "x": 850, "y": 180, "r": 15},
-]
-
-def draw_decor(fenetre, pygame):
-for decor in liste_decors:
-if decor["type"] == "rock":
-couleur = couleur_decor_rock
-else:
-couleur = couleur_decor_grass
-pygame.draw.circle(fenetre, couleur, (decor["x"], decor["y"]), decor["r"])
-
-def draw_path(fenetre, pygame):
-if len(CHEMIN) >= 2:
-pygame.draw.lines(fenetre, (60, 80, 60), False, CHEMIN, 28)
-pygame.draw.lines(fenetre, (75, 95, 75), False, CHEMIN, 4)
-
-rect_mur = pygame.Rect(position_mur, 0, largeur_ecran - position_mur, hauteur_ecran)
-fenetre.fill(couleur_wall, rect_mur)

@@ -26,6 +26,14 @@ class Tour:
         self.cadence = max(0.15, self.cadence - bonus_cadence)
         return argent_joueur - cout_amelioration
 
+    def valeur_revente(self):
+        """
+        Revente simple: base + une partie des améliorations.
+        """
+        valeur_base = 6
+        bonus_niveaux = max(0, self.niveau - 1) * 3
+        return valeur_base + bonus_niveaux
+
     def mettre_a_jour(self, delta_temps, liste_ennemis):
         self.temps_depuis_dernier_tir += delta_temps
 

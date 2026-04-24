@@ -38,10 +38,10 @@ class Menu:
             {"nom": "Monde Démoniaque", "cle": "demoniaque", "couleur": (55, 55, 55), "survol": (70, 70, 70), "debloque": False, "rect": pygame.Rect(710, 200, 170, 160)},
         ]
         self.points_map_globale = [
-            {"nom": "Samourai", "pos": (180, 390), "debloque": True, "cle": "samourai"},
-            {"nom": "Medieval", "pos": (220, 280), "debloque": True, "cle": "medieval"},
-            {"nom": "Pirate", "pos": (560, 260), "debloque": True, "cle": "pirate"},
-            {"nom": "Demoniaque", "pos": (820, 250), "debloque": False, "cle": "demoniaque"},
+            {"nom": "Samourai", "pos": (210, 390), "debloque": True, "cle": "samourai"},
+            {"nom": "Medieval", "pos": (245, 260), "debloque": True, "cle": "medieval"},
+            {"nom": "Pirate", "pos": (560, 290), "debloque": True, "cle": "pirate"},
+            {"nom": "Demoniaque", "pos": (820, 230), "debloque": False, "cle": "demoniaque"},
         ]
         self.monde_map_detail = None
         self.afficher_carte_continent = False

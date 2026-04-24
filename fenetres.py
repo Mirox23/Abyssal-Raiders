@@ -52,9 +52,6 @@ class PanneauInfos:
         pos_y += 24
         fenetre.blit(self.police_info.render(f"Cadence : {tour.cadence:.2f} s", True, (200, 200, 200)), (pos_x, pos_y))
         pos_y += 24
-        degats = getattr(tour, "degats_tir", 1)
-        fenetre.blit(self.police_info.render(f"Degats  : {degats}", True, (220, 205, 140)), (pos_x, pos_y))
-        pos_y += 24
         if tour.type_tour == "Ralentissement":
             special = f"Ralenti  : {int((1 - tour.facteur_ralentissement) * 100)}% / {tour.duree_ralentissement:.1f}s"
             fenetre.blit(self.police_info.render(special, True, (100, 200, 255)), (pos_x, pos_y))
@@ -233,7 +230,7 @@ class FenetreNiveauConquis:
         pygame.draw.rect(fenetre, (100, 120, 200), self.rect, width=2, border_radius=12)
         titre = self.police_titre.render("Bravo ! Niveau conquis !", True, (210, 200, 80))
         fenetre.blit(titre, (self.rect.centerx - titre.get_width() // 2, self.rect.y + 26))
-        ligne = "Vous avez maintenant les compétences pour vous attaquer au niveausuivant."
+        ligne = "Vous avez maintenant les compétences pour vous attaquer au niveau suivant."
         txt = self.police_texte.render(ligne, True, (210, 210, 220))
         fenetre.blit(txt, (self.rect.centerx - txt.get_width() // 2, self.rect.y + 80))
         self.bouton_retour.dessiner(fenetre)

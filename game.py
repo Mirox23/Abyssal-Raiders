@@ -88,7 +88,6 @@ class Jeu:
             pygame.display.flip()
             if self.demande_retour_map:
                 jeu_en_cours = False
-        pygame.quit()
         return {
             "continent": self.continent,
             "niveau": self.niveau,
@@ -183,7 +182,13 @@ class Jeu:
         if self.panneau_achevement.gerer_clic(clic):
             return
         if self.panneau_infos.visible:
-            _, self.argent = self.panneau_infos.gerer_clic(clic, self.argent)
+            action_info, self.argent = self.panneau_infos.gerer_clic(clic, self.argent)
+            if action_info == "revendre" and self.panneau_infos.tour_selectionnee:
+                tour = self.panneau_infos.tour_selectionnee
+                if tour in self.liste_tours:
+                    self.liste_tours.remove(tour)
+                    self._ajouter_effet((tour.x, tour.y), (255, 210, 120), 26, 0.25)
+                self.panneau_infos.fermer()
             return
 
         action_tel = self.telephone.gerer_clic(clic)
@@ -238,7 +243,19 @@ class Jeu:
 
     def _placer_tour(self, clic):
         cout = self.couts_tours.get(self.type_tour_a_placer, prix_tour)
-        peut = len(self.liste_tours) < nb_tours_max and clic[0] < pos_mur - 10 and clic[1] > 80 and self.argent >= cout and not self.est_sur_chemin(clic)
+        emplacement_libre = True
+        for tour in self.liste_tours:
+            if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 < (tour.taille + 24):
+                emplacement_libre = False
+                break
+        peut = (
+            len(self.liste_tours) < nb_tours_max
+            and clic[0] < pos_mur - 10
+            and clic[1] > 80
+            and self.argent >= cout
+            and emplacement_libre
+            and not self.est_sur_chemin(clic)
+        )
         if peut:
             self.liste_tours.append(self.type_tour_a_placer(clic))
             self.argent -= cout
@@ -249,11 +266,28 @@ class Jeu:
         self.type_tour_a_placer = None
 
     def est_sur_chemin(self, pos):
+        # Test géométrique précis pour éviter les faux positifs de placement.
+        largeur_interdite = 18
         for i in range(len(CHEMIN) - 1):
-            zone = pygame.Rect(min(CHEMIN[i][0], CHEMIN[i + 1][0]) - 30, min(CHEMIN[i][1], CHEMIN[i + 1][1]) - 30, abs(CHEMIN[i][0] - CHEMIN[i + 1][0]) + 60, abs(CHEMIN[i][1] - CHEMIN[i + 1][1]) + 60)
-            if zone.collidepoint(pos):
+            x1, y1 = CHEMIN[i]
+            x2, y2 = CHEMIN[i + 1]
+            dist = self._distance_point_segment(pos[0], pos[1], x1, y1, x2, y2)
+            if dist <= largeur_interdite:
                 return True
         return False
+
+    def _distance_point_segment(self, px, py, x1, y1, x2, y2):
+        vx = x2 - x1
+        vy = y2 - y1
+        wx = px - x1
+        wy = py - y1
+        long2 = vx * vx + vy * vy
+        if long2 == 0:
+            return ((px - x1) ** 2 + (py - y1) ** 2) ** 0.5
+        t = max(0.0, min(1.0, (wx * vx + wy * vy) / long2))
+        proj_x = x1 + t * vx
+        proj_y = y1 + t * vy
+        return ((px - proj_x) ** 2 + (py - proj_y) ** 2) ** 0.5
 
     def lancer_nouvelle_vague(self):
         if self.vague_locale >= self.vague_max:
@@ -280,14 +314,17 @@ class Jeu:
                     self.argent += ennemi.recompense + self.talents_appliques["prime_or"]
                     self.progression.gagner_xp(self.progression.xp_pour_kill())
                     self._ajouter_effet((ennemi.x, ennemi.y), (255, 145, 90), 22, 0.35)
+                    self._ajouter_effet((ennemi.x, ennemi.y), (255, 220, 120), 12, 0.2)
                     continue
                 if ennemi.avancer(delta_temps, CHEMIN):
                     if isinstance(ennemi, MobKamikaze):
                         self.points_de_vie_mur -= max(1, ennemi.degats_explosion - self.talents_appliques["resistance_mur"])
                         self._ajouter_effet((position_mur, ennemi.y), (255, 120, 80), 28, 0.5)
+                        self._ajouter_effet((position_mur, ennemi.y), (255, 220, 180), 16, 0.25)
                     else:
                         self.points_de_vie_mur -= max(1, 1 - self.talents_appliques["resistance_mur"])
                         self._ajouter_effet((position_mur, ennemi.y), (255, 175, 100), 18, 0.35)
+                        self._ajouter_effet((position_mur, ennemi.y), (255, 230, 190), 10, 0.2)
                     continue
                 survivants.append(ennemi)
             self.liste_ennemis = survivants
@@ -368,22 +405,23 @@ class Jeu:
             pygame.draw.circle(self.fenetre, effet["couleur"], (int(effet["x"]), int(effet["y"])), rayon, max(1, int(3 * ratio)))
 
     def _dessiner_bouton_recompense(self):
-        # Bouton aligné avec le système de progression du niveau (XP/talents).
-        x = largeur_ecran - 200
-        y = 44
-        self.bouton_recompense = pygame.Rect(x, y, 176, 36)
+        # Carte récompense visuellement liée au niveau/XP.
+        x = largeur_ecran - 216
+        y = 38
+        self.bouton_recompense = pygame.Rect(x, y, 194, 42)
         survol = self.bouton_recompense.collidepoint(pygame.mouse.get_pos())
-        couleur_fond = (62, 118, 72) if survol else (34, 78, 44)
-        pygame.draw.rect(self.fenetre, (18, 24, 38), self.bouton_recompense.move(2, 2), border_radius=8)
+        couleur_fond = (68, 128, 82) if survol else (36, 82, 50)
+        pygame.draw.rect(self.fenetre, (18, 24, 38), self.bouton_recompense.move(2, 2), border_radius=10)
         pygame.draw.rect(self.fenetre, couleur_fond, self.bouton_recompense, border_radius=8)
-        pygame.draw.rect(self.fenetre, (165, 225, 170), self.bouton_recompense, width=1, border_radius=8)
+        pygame.draw.rect(self.fenetre, (175, 230, 178), self.bouton_recompense, width=1, border_radius=10)
+        pygame.draw.circle(self.fenetre, (255, 220, 120), (self.bouton_recompense.x + 16, self.bouton_recompense.y + 21), 6)
 
         police_titre = pygame.font.SysFont("consolas", 13, bold=True)
         police_detail = pygame.font.SysFont("consolas", 11)
         txt = police_titre.render("Recompenses", True, (235, 255, 235))
-        txt_niveau = police_detail.render(f"Niv {self.progression.niveau}", True, (210, 240, 210))
-        self.fenetre.blit(txt, (self.bouton_recompense.x + 10, self.bouton_recompense.y + 4))
-        self.fenetre.blit(txt_niveau, (self.bouton_recompense.x + 10, self.bouton_recompense.y + 20))
+        txt_niveau = police_detail.render(f"Niveau {self.progression.niveau} • Talents {self.progression.points_talent}", True, (210, 240, 210))
+        self.fenetre.blit(txt, (self.bouton_recompense.x + 30, self.bouton_recompense.y + 4))
+        self.fenetre.blit(txt_niveau, (self.bouton_recompense.x + 30, self.bouton_recompense.y + 21))
 
     def _dessiner_info_tour(self):
         tour = self.tour_actuellement_selectionnee

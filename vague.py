@@ -1,5 +1,5 @@
 import random
-from mob import Mob, MobRapide, MobTank, MobKamikaze, MobSoigneur
+from mob import Mob, MobRapide, MobTank, MobKamikaze, MobSoigneur, MobBoss
 
 
 def generer_vague(numero_vague):
@@ -38,6 +38,28 @@ def generer_vague(numero_vague):
     return liste_mobs
 
 
+def _generer_vague_boss(numero_vague):
+    """
+    Vague boss : le boss arrive précédé de plusieurs gardes.
+    Gardes d'abord, puis le boss après 4 secondes.
+    """
+    liste_mobs = []
+    # Gardes
+    nb_gardes = 4 + numero_vague // 2
+    for i in range(nb_gardes):
+        tirage = random.random()
+        if tirage < 0.4:
+            liste_mobs.append((MobRapide, i * 0.6))
+        elif tirage < 0.65:
+            liste_mobs.append((MobKamikaze, i * 0.6))
+        else:
+            liste_mobs.append((Mob, i * 0.6))
+    # Le boss arrive après les gardes
+    temps_boss = nb_gardes * 0.6 + 2.5
+    liste_mobs.append((MobBoss, temps_boss))
+    return liste_mobs
+
+
 class GestionnaireVague:
     def __init__(self):
         self.numero_vague = 0
@@ -45,10 +67,15 @@ class GestionnaireVague:
         self.minuterie = 0.0
         self.vague_en_cours = False
         self.vague_terminee = False
+        self.est_vague_boss = False  # indique si c'est une vague boss
 
-    def demarrer_vague(self, point_depart_chemin):
+    def demarrer_vague(self, point_depart_chemin, est_boss=False):
         self.numero_vague += 1
-        self.mobs_a_spawner = generer_vague(self.numero_vague)
+        self.est_vague_boss = est_boss
+        if est_boss:
+            self.mobs_a_spawner = _generer_vague_boss(self.numero_vague)
+        else:
+            self.mobs_a_spawner = generer_vague(self.numero_vague)
         self.minuterie = 0.0
         self.vague_en_cours = True
         self.vague_terminee = False

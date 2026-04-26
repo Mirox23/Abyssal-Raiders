@@ -1,16 +1,18 @@
 import pygame
 from setting import *
 from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_niveau_vague
-from mob import MobKamikaze, MobSoigneur
+from mob import MobKamikaze, MobSoigneur, MobBoss, MobRapide
 from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
 from ui import (
     PanneauTelephone, PanneauInfos, PanneauAchevement, EcranFinVague, AffichageXP,
-    FenetreRecompensesTalents, PanneauCompetences, PanneauObjets, PanneauParametresMusique, FenetreNiveauConquis
+    FenetreRecompensesTalents, PanneauCompetences, PanneauObjets, PanneauParametresMusique,
+    FenetreNiveauConquis, FenetreMarcheVague, FenetreScores
 )
 from vague import GestionnaireVague
 from progression import Progression
 from competence import GestionnaireCompetences
 from musique import MusiqueManager
+from scores import enregistrer_score,obtenir_meilleur_score
 
 
 class Jeu:
@@ -40,7 +42,17 @@ class Jeu:
 
     def reinitialiser(self):
         self.liste_ennemis, self.liste_tours = [], []
-        self.points_de_vie_mur, self.argent = vie_mur_depart, argent_depart
+        self.points_de_vie_mur = vie_mur_depart
+        self.argent = argent_depart
+        # === NOUVEAU : Bonus de fidélité inter-sessions ===
+        if self.progression_monde:
+            self.argent += self.progression_monde.bonus_fidelite_argent(self.continent, self.niveau)
+            self.points_de_vie_mur += self.progression_monde.bonus_fidelite_vie(self.continent, self.niveau)
+            self._bonus_fidelite_argent = self.progression_monde.bonus_fidelite_argent(self.continent, self.niveau)
+            self._bonus_fidelite_vie = self.progression_monde.bonus_fidelite_vie(self.continent, self.niveau)
+        else:
+            self._bonus_fidelite_argent = 0
+            self._bonus_fidelite_vie = 0
         self.telephone = PanneauTelephone()
         self.panneau_infos = PanneauInfos()
         self.panneau_achevement = PanneauAchevement()
@@ -51,10 +63,16 @@ class Jeu:
         self.panneau_objets = PanneauObjets()
         self.panneau_parametres = PanneauParametresMusique()
         self.fenetre_niveau_conquis = FenetreNiveauConquis()
+        # Marché et Scores
+        self.fenetre_marche = FenetreMarcheVague()
+        self.fenetre_scores = FenetreScores()
+        self._primes_doubles_vague = False   # effet de carte "argent_double"
+        self._bonus_portee_cartes = 0        # effet de carte "portee_bonus"
+        self._bonus_cadence_cartes = 0.0     # effet de carte "cadence_bonus" (%)
         self.mode_placement_actif, self.type_tour_a_placer = False, None
         self.tour_actuellement_selectionnee = None
         self.gestionnaire_vague = GestionnaireVague()
-        # 1 niveau = 4 vagues.
+        # 1 niveau = 4 vagues + 1 vague boss finale (vague 4 = boss)
         self.vague_locale = 0
         self.vague_max = 4
         self.en_attente_lancement_vague = True
@@ -64,7 +82,12 @@ class Jeu:
         self.progression = Progression()
         self.gestionnaire_competences = GestionnaireCompetences()
         self.mode_fete, self.sequence_easter_egg = False, []
-        self.talents_appliques = {"degats_competence": 0, "reduction_cout": 0, "prime_or": 0, "resistance_mur": 0}
+        self.talents_appliques = {
+            "degats_competence": 0, "reduction_cout": 0,
+            "prime_or": 0, "resistance_mur": 0,
+            # NOUVEAUX TALENTS
+            "chasseur": 0, "ingenieur": 0, "alchimiste": 0,
+        }
         self.inventaire_objets = {"potion_mur": 2, "bourse_or": 2, "totem_froid": 1}
         self.bouton_recompense = pygame.Rect(largeur_ecran - 200, 46, 170, 30)
         self.couts_tours = {TourSniper: 14, TourCanonnier: 10, TourRalentissement: 12, TourSupport: 11}
@@ -72,7 +95,25 @@ class Jeu:
         self.map_jeu_ouverte = False
         self.bouton_retour_jeu = pygame.Rect(largeur_ecran // 2 - 120, hauteur_ecran - 92, 240, 44)
         self.temps_vague_actuelle = 0.0
+        self.score_total_partie = 0
+        # Screen shake
+        self._shake_timer = 0.0
+        self._shake_amplitude = 0
+        self._shake_offset = (0, 0)
+        # Alarme visuelle mobs proches du mur
+        self._alarme_clignotement = 0.0
         configurer_chemin_niveau_vague(self.continent, self.niveau, 1)
+        # Afficher le bonus de fidélité si présent
+        self._message_fidelite = ""
+        self._timer_message_fidelite = 0.0
+        if self._bonus_fidelite_argent > 0 or self._bonus_fidelite_vie > 0:
+            parties = []
+            if self._bonus_fidelite_argent > 0:
+                parties.append(f"+{self._bonus_fidelite_argent} or")
+            if self._bonus_fidelite_vie > 0:
+                parties.append(f"+{self._bonus_fidelite_vie} PV mur")
+            self._message_fidelite = "Bonus fidélité : " + " & ".join(parties)
+            self._timer_message_fidelite = 4.0
 
     def lancer(self):
         jeu_en_cours = True
@@ -159,7 +200,28 @@ class Jeu:
             if action[0] == "recompense":
                 self.argent += action[1]
             elif action[0] == "talent":
-                self.talents_appliques[action[1]] = self.fenetre_recompenses.talents[action[1]]["niveau"]
+                cle_t = action[1]
+                niv_t = self.fenetre_recompenses.talents[cle_t]["niveau"]
+                # Tous les talents connus (anciens + nouveaux)
+                if cle_t in self.talents_appliques:
+                    self.talents_appliques[cle_t] = niv_t
+                # Talent ingénieur : augmenter portée de toutes les tours existantes
+                if cle_t == "ingenieur":
+                    for tour in self.liste_tours:
+                        tour.portee += 8
+            return
+
+        # Marché entre vagues
+        id_carte = self.fenetre_marche.gerer_clic(clic)
+        if id_carte is not None:
+            self._appliquer_carte_marche(id_carte)
+            self.lancer_nouvelle_vague()
+            return
+        if self.fenetre_marche.visible and self.fenetre_marche.rect.collidepoint(clic):
+            return
+
+        # Scores
+        if self.fenetre_scores.gerer_clic(clic):
             return
         action_param = self.panneau_parametres.gerer_clic(clic)
         if action_param:
@@ -188,7 +250,12 @@ class Jeu:
             return
         fin = self.ecran_fin_vague.gerer_clic(clic)
         if fin == "nouvelle_vague":
-            self.lancer_nouvelle_vague()
+            # ouvrir le marché avant la prochaine vague
+            self.ecran_fin_vague.fermer()
+            if self.vague_locale < self.vague_max:
+                self.fenetre_marche.ouvrir()
+            else:
+                self.lancer_nouvelle_vague()
             return
         if fin == "modification":
             self.ecran_fin_vague.fermer()
@@ -230,6 +297,9 @@ class Jeu:
             return
         if action_tel == "Map":
             self.map_jeu_ouverte = True
+            return
+        if action_tel == "Scores":
+            self.fenetre_scores.ouvrir(self.continent)
             return
 
         if not self.mode_placement_actif:
@@ -299,7 +369,7 @@ class Jeu:
         long2 = vx * vx + vy * vy
         if long2 == 0:
             return ((px - x1) ** 2 + (py - y1) ** 2) ** 0.5
-        t = max(0.0, min(1.0, (wx * vx + wy * vy) / long2))
+        t = max(0.0, min(1.0, (wx * vx + wy * vy) / long2)) # projection du point sur le segment, limitée à [0,1]
         proj_x = x1 + t * vx
         proj_y = y1 + t * vy
         return ((px - proj_x) ** 2 + (py - proj_y) ** 2) ** 0.5
@@ -311,56 +381,112 @@ class Jeu:
         # Le dossier niveau_chemin fournit un chemin différent pour chaque vague.
         configurer_chemin_niveau_vague(self.continent, self.niveau, self.vague_locale)
         self.argent += argent_par_vague
-        self.gestionnaire_vague.demarrer_vague(CHEMIN[0])
+        # la dernière vague est une vague boss 
+        est_boss = (self.vague_locale == self.vague_max)
+        self.gestionnaire_vague.demarrer_vague(CHEMIN[0], est_boss=est_boss)
         self.en_attente_lancement_vague = False
         self.ecran_fin_vague.fermer()
+        self.fenetre_marche.fermer()
         self.temps_vague_actuelle = 0.0
+        # Appliquer bonus de portée issu des cartes marché
+        if self._bonus_portee_cartes > 0:
+            for tour in self.liste_tours:
+                tour.portee += self._bonus_portee_cartes
+            self._bonus_portee_cartes = 0
 
     def mettre_a_jour(self, delta_temps):
+        import math as _math
         self.progression.mettre_a_jour(delta_temps)
         self.gestionnaire_competences.mettre_a_jour(delta_temps)
-        if not self.en_attente_lancement_vague and not self.ecran_fin_vague.visible:
+
+        # Timers divers
+        self._alarme_clignotement += delta_temps
+        if self._timer_message_fidelite > 0:
+            self._timer_message_fidelite = max(0.0, self._timer_message_fidelite - delta_temps)
+
+        # Screen shake : décrémente et recalcule l'offset à appliquer au dessin
+        if self._shake_timer > 0:
+            self._shake_timer = max(0.0, self._shake_timer - delta_temps)
+            amp = self._shake_amplitude
+            import random as _rand
+            self._shake_offset = (_rand.randint(-amp, amp), _rand.randint(-amp, amp))
+        else:
+            self._shake_offset = (0, 0)
+
+        if not self.en_attente_lancement_vague and not self.ecran_fin_vague.visible and not self.fenetre_marche.visible:
             self.temps_vague_actuelle += delta_temps
             self.gestionnaire_vague.mettre_a_jour(delta_temps, self.liste_ennemis, CHEMIN)
             for ennemi in self.liste_ennemis:
                 if isinstance(ennemi, MobSoigneur):
                     ennemi.soigner_alentours(delta_temps, self.liste_ennemis)
+
+            mobs_a_spawner_apres = []   # mobs issus de la mort du boss
             survivants = []
             for ennemi in self.liste_ennemis:
                 if ennemi.vie <= 0:
-                    self.argent += ennemi.recompense + self.talents_appliques["prime_or"]
-                    self.progression.gagner_xp(self.progression.xp_pour_kill())
-                    self._ajouter_effet((ennemi.x, ennemi.y), (255, 145, 90), 22, 0.35)
-                    self._ajouter_effet((ennemi.x, ennemi.y), (255, 220, 120), 12, 0.2)
-                    self._jouer_son_effet("explosion")
-                    continue
-                if ennemi.avancer(delta_temps, CHEMIN):
-                    if isinstance(ennemi, MobKamikaze):
-                        self.points_de_vie_mur -= max(1, ennemi.degats_explosion - self.talents_appliques["resistance_mur"])
-                        self._ajouter_effet((position_mur, ennemi.y), (255, 120, 80), 28, 0.5)
-                        self._ajouter_effet((position_mur, ennemi.y), (255, 220, 180), 16, 0.25)
-                        self._jouer_son_effet("mur")
+                    # Bonus chasseur : prime doublée sur rapides/kamikazes
+                    bonus_chasseur = self.talents_appliques.get("chasseur", 0)
+                    if isinstance(ennemi, (MobRapide, MobKamikaze)):
+                        self.argent += ennemi.recompense + bonus_chasseur
                     else:
-                        self.points_de_vie_mur -= max(1, 1 - self.talents_appliques["resistance_mur"])
-                        self._ajouter_effet((position_mur, ennemi.y), (255, 175, 100), 18, 0.35)
-                        self._ajouter_effet((position_mur, ennemi.y), (255, 230, 190), 10, 0.2)
-                        self._jouer_son_effet("mur")
+                        self.argent += ennemi.recompense
+                    # Primes doubles si carte marché "argent_double" active
+                    if self._primes_doubles_vague:
+                        self.argent += ennemi.recompense
+                    self.progression.gagner_xp(self.progression.xp_pour_kill() + ennemi.xp)
+                    # Particules de mort enrichies (5 éclats colorés) 
+                    self._ajouter_particules_mort(ennemi.x, ennemi.y, ennemi.couleur)
+                    self._jouer_son_effet("explosion")
+                    # Boss : spawner 3 mobs normaux à sa mort 
+                    if isinstance(ennemi, MobBoss):
+                        for _ in range(3):
+                            mobs_a_spawner_apres.append(type("_SpawnMob", (), {"classe": __import__("mob").Mob, "pos": CHEMIN[0]})())
                     continue
+
+                if ennemi.avancer(delta_temps, CHEMIN):
+                    # Ennemi a atteint le mur
+                    if isinstance(ennemi, MobKamikaze):
+                        degats = max(1, ennemi.degats_explosion - self.talents_appliques["resistance_mur"])
+                    elif isinstance(ennemi, MobBoss):
+                        degats = max(1, ennemi.degats_mur - self.talents_appliques["resistance_mur"])
+                    else:
+                        degats = max(1, 1 - self.talents_appliques["resistance_mur"])
+                    self.points_de_vie_mur -= degats
+                    self._ajouter_effet((position_mur, ennemi.y), (255, 120, 80), 28 + degats * 4, 0.5)
+                    self._ajouter_effet((position_mur, ennemi.y), (255, 220, 180), 16, 0.25)
+                    self._jouer_son_effet("mur")
+                    # Screen shake quand le mur est touché : plus fort si les dégâts sont importants
+                    self._shake_timer = 0.25 + degats * 0.05
+                    self._shake_amplitude = 4 + degats
+                    continue
+
                 survivants.append(ennemi)
+
+            # Spawn des mobs issus de la mort du boss
+            import mob as _mob_module
+            for spawn in mobs_a_spawner_apres:
+                survivants.append(_mob_module.Mob(CHEMIN[0]))
+
             self.liste_ennemis = survivants
+
             if self.gestionnaire_vague.vague_terminee:
                 self.gestionnaire_vague.vague_terminee = False
+                self._primes_doubles_vague = False   # reset effet carte
                 self.en_attente_lancement_vague = True
                 xp = self.progression.xp_pour_vague(self.vague_locale)
                 self.progression.gagner_xp(xp)
                 score_vague = int(self.points_de_vie_mur * 120 + max(0, 2000 - self.temps_vague_actuelle * 80))
+                self.score_total_partie += score_vague
                 self.ecran_fin_vague.ouvrir(self.vague_locale, xp, score_vague)
                 self.panneau_achevement.marquer_vague(self.continent, self.niveau, self.vague_locale)
                 if self.vague_locale >= self.vague_max:
                     if self.progression_monde:
                         self.progression_monde.marquer_conquis(self.continent, self.niveau)
                     self.panneau_achevement.marquer_niveau_conquis(self.continent, self.niveau)
+                    # Enregistrer le score total dans le leaderboard local 
+                    enregistrer_score(self.continent, self.niveau, self.score_total_partie, self.progression.niveau)
                     self.fenetre_niveau_conquis.ouvrir()
+
         mult = self.gestionnaire_competences.competences["buff_tours"]["multiplicateur_cadence"] if self.gestionnaire_competences.buff_actif() else 1.0
         for tour in self.liste_tours:
             c0 = tour.cadence
@@ -377,21 +503,60 @@ class Jeu:
         self._mettre_a_jour_effets(delta_temps)
 
     def dessiner(self):
+        import math as _math
+
+        # Screen shake : décaler toute la surface de rendu 
+        ox, oy = self._shake_offset
+
         self.fenetre.fill((32, 35, 55) if self.mode_fete else couleur_fond)
         draw_decor(self.fenetre, pygame)
         draw_path(self.fenetre, pygame)
+
+        # Alarme visuelle : flash rouge sur le bord droit quand ennemi proche du mur 
+        mobs_danger = [e for e in self.liste_ennemis if e.x >= position_mur - 200]
+        if mobs_danger:
+            alpha = int(55 + 45 * _math.sin(self._alarme_clignotement * 7))
+            alpha = max(0, min(140, alpha))
+            surf_alarme = pygame.Surface((220, hauteur_ecran), pygame.SRCALPHA)
+            surf_alarme.fill((255, 40, 40, alpha))
+            self.fenetre.blit(surf_alarme, (position_mur - 200 + ox, oy))
+
         for tour in self.liste_tours:
             tour.dessiner(self.fenetre)
         for ennemi in self.liste_ennemis:
             ennemi.dessiner(self.fenetre)
-        self.fenetre.blit(self.police_hud.render(f"Vie : {self.points_de_vie_mur}", True, couleur_texte), (20, 20))
-        self.fenetre.blit(self.police_hud.render(f"Argent : {self.argent} ¤", True, couleur_texte), (20, 48))
-        texte_vague = f"— Vague {self.vague_locale}/{self.vague_max} —" if self.vague_locale > 0 else "— Pret —"
-        surf_vague = self.police_vague.render(texte_vague, True, (200, 180, 80))
-        self.fenetre.blit(surf_vague, (largeur_ecran // 2 - surf_vague.get_width() // 2, 14))
+
+        # HUD principal (avec shake)
+        self.fenetre.blit(self.police_hud.render(f"Vie : {self.points_de_vie_mur}", True, couleur_texte), (20 + ox, 20 + oy))
+        self.fenetre.blit(self.police_hud.render(f"Argent : {self.argent} ¤", True, couleur_texte), (20 + ox, 48 + oy))
+
+        # Compteur de mobs restants
+        total_restants = len(self.liste_ennemis) + len(self.gestionnaire_vague.mobs_a_spawner)
+        if self.gestionnaire_vague.vague_en_cours:
+            surf_mobs = pygame.font.SysFont("consolas", 14).render(f"{total_restants} ennemi(s) restant(s)", True, (200, 180, 140))
+            self.fenetre.blit(surf_mobs, (20 + ox, 74 + oy))
+
+        # Titre vague
+        if self.gestionnaire_vague.est_vague_boss and self.gestionnaire_vague.vague_en_cours:
+            texte_vague = f"⚔ VAGUE BOSS {self.vague_locale}/{self.vague_max} ⚔"
+            couleur_vague = (255, 80, 80)
+        else:
+            texte_vague = f"— Vague {self.vague_locale}/{self.vague_max} —" if self.vague_locale > 0 else "— Pret —"
+            couleur_vague = (200, 180, 80)
+        surf_vague = self.police_vague.render(texte_vague, True, couleur_vague)
+        self.fenetre.blit(surf_vague, (largeur_ecran // 2 - surf_vague.get_width() // 2 + ox, 14 + oy))
+
         self._dessiner_effets()
         self.affichage_xp.dessiner(self.fenetre, self.progression)
         self._dessiner_bouton_recompense()
+
+        # Message bonus fidélité 
+        if self._timer_message_fidelite > 0:
+            alpha_fid = min(255, int(self._timer_message_fidelite * 80))
+            surf_fid = pygame.font.SysFont("consolas", 16, bold=True).render(self._message_fidelite, True, (255, 220, 80))
+            surf_fid.set_alpha(alpha_fid)
+            self.fenetre.blit(surf_fid, (largeur_ecran // 2 - surf_fid.get_width() // 2, 50))
+
         if self.tour_actuellement_selectionnee:
             self._dessiner_info_tour()
         if self.mode_placement_actif and self.type_tour_a_placer is None:
@@ -400,6 +565,9 @@ class Jeu:
         self.panneau_infos.dessiner(self.fenetre)
         self.panneau_achevement.dessiner(self.fenetre)
         self.ecran_fin_vague.dessiner(self.fenetre)
+        # marché et scores 
+        self.fenetre_marche.dessiner(self.fenetre)
+        self.fenetre_scores.dessiner(self.fenetre)
         self.panneau_competences.dessiner(
             self.fenetre,
             self.gestionnaire_competences,
@@ -460,7 +628,7 @@ class Jeu:
 
     def _jouer_son_effet(self, type_effet):
         sons = {
-            "tir": "musique/effets/tir.wav",
+            "tir": "musique/effets/tir.wav", # ne fonctionne pas sur tous les systèmes, à cause de la polyphonie limitée de pygame.mixer. À revoir.
             "explosion": "musique/effets/explosion.wav",
             "mur": "musique/effets/mur.wav",
             "clic": "musique/effets/clic.wav",
@@ -501,10 +669,65 @@ class Jeu:
         if self.inventaire_objets.get(cle_objet, 0) <= 0:
             return
         self.inventaire_objets[cle_objet] -= 1
+        # Talent alchimiste : multiplicateur sur les effets d'objets 
+        mult = 1.0 + 0.5 * self.talents_appliques.get("alchimiste", 0)
         if cle_objet == "potion_mur":
-            self.points_de_vie_mur = min(vie_mur_depart + 10, self.points_de_vie_mur + 2)
+            soin = int(2 * mult)
+            self.points_de_vie_mur = min(vie_mur_depart + 10, self.points_de_vie_mur + soin)
+            self._ajouter_effet((position_mur - 30, hauteur_ecran // 2), (80, 220, 120), 30, 0.4)
         elif cle_objet == "bourse_or":
-            self.argent += 6
+            or_gagne = int(6 * mult)
+            self.argent += or_gagne
+            self._ajouter_effet((80, 48), (255, 215, 0), 20, 0.35)
         elif cle_objet == "totem_froid":
+            duree = 1.2 * mult
             for ennemi in self.liste_ennemis:
-                ennemi.appliquer_ralentissement(0.45, 1.2)
+                ennemi.appliquer_ralentissement(0.45, duree)
+
+    def _appliquer_carte_marche(self, id_carte):
+        """Applique l'effet d'une carte choisie dans le marché."""
+        mult = 1.0 + 0.5 * self.talents_appliques.get("alchimiste", 0)
+        if id_carte == "or_bonus":
+            self.argent += int(20 * mult)
+            self._ajouter_effet((largeur_ecran // 2, hauteur_ecran // 2), (255, 215, 0), 50, 0.4)
+        elif id_carte == "soin_mur":
+            soin = int(3 * mult)
+            self.points_de_vie_mur = min(vie_mur_depart + 10, self.points_de_vie_mur + soin)
+            self._ajouter_effet((position_mur - 20, hauteur_ecran // 2), (80, 220, 120), 40, 0.4)
+        elif id_carte == "tour_gratuite":
+            # Rend toutes les tours gratuites pour le prochain placement
+            self.couts_tours = {k: 0 for k in self.couts_tours}
+        elif id_carte == "cadence_bonus":
+            # Améliore la cadence de toutes les tours de 15%
+            for tour in self.liste_tours:
+                tour.cadence = max(0.1, tour.cadence * 0.85)
+        elif id_carte == "portee_bonus":
+            # +20 portée sur toutes les tours existantes
+            bonus = int(20 * mult)
+            for tour in self.liste_tours:
+                tour.portee += bonus
+            self._bonus_portee_cartes = bonus  # aussi pour les tours futures
+        elif id_carte == "xp_bonus":
+            xp = int(25 * mult)
+            self.progression.gagner_xp(xp)
+        elif id_carte == "argent_double":
+            # Les primes sont doublées pendant la prochaine vague
+            self._primes_doubles_vague = True
+        elif id_carte == "gel_global":
+            duree = 2.0 * mult
+            for ennemi in self.liste_ennemis:
+                ennemi.appliquer_ralentissement(0.3, duree)
+
+    def _ajouter_particules_mort(self, x, y, couleur):
+        """5 éclats colorés qui explosent à la mort d'un ennemi."""
+        import random as _rand
+        # Particule centrale claire
+        self._ajouter_effet((x, y), (255, 255, 200), 18, 0.3)
+        # 4 éclats dans des directions aléatoires
+        for _ in range(4):
+            dx = _rand.randint(-30, 30)
+            dy = _rand.randint(-30, 30)
+            taille = _rand.randint(6, 14)
+            self._ajouter_effet((x + dx, y + dy), couleur, taille, 0.25)
+        # Anneau extérieur de la couleur du mob
+        self._ajouter_effet((x, y), couleur, 28, 0.2)

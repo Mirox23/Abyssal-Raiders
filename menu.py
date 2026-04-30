@@ -4,6 +4,7 @@ import os
 from setting import largeur_ecran, hauteur_ecran
 from musique import MusiqueManager
 from progression_monde import ProgressionMonde
+from sauvegarde import sauvegarder, charger, lister_sauvegardes, appliquer_sauvegarde
 
 
 class Menu:
@@ -54,8 +55,21 @@ class Menu:
         self.bouton_retour = pygame.Rect(largeur_ecran - 160, hauteur_ecran - 60, 140, 40)
         self.bouton_volume_moins = pygame.Rect(360, 230, 56, 44)
         self.bouton_volume_plus = pygame.Rect(584, 230, 56, 44)
+        self.nom_sauvegarde = ""
+        self.message_sauvegarde = ""
+        self.bouton_sauvegarder = pygame.Rect(300, 240, 170, 44)
+        self.bouton_charger = pygame.Rect(500, 240, 170, 44)
 
     def gerer_evenement(self, evenement):
+        if self.etat == "sauvegarde" and evenement.type == pygame.KEYDOWN:
+            if evenement.key == pygame.K_BACKSPACE:
+                self.nom_sauvegarde = self.nom_sauvegarde[:-1]
+            elif evenement.key == pygame.K_RETURN and self.nom_sauvegarde.strip():
+                ok = sauvegarder(self.nom_sauvegarde.strip(), self.progression_monde)
+                self.message_sauvegarde = "Sauvegarde creee." if ok else "Erreur de sauvegarde."
+            elif evenement.unicode and evenement.unicode.isprintable() and len(self.nom_sauvegarde) < 24:
+                self.nom_sauvegarde += evenement.unicode
+            return None
         if evenement.type != pygame.MOUSEBUTTONDOWN:
             return None
         clic = evenement.pos
@@ -108,6 +122,18 @@ class Menu:
         elif self.etat == "sauvegarde":
             if self.bouton_retour.collidepoint(clic):
                 self.etat = "principal"
+                return None
+            if self.bouton_sauvegarder.collidepoint(clic) and self.nom_sauvegarde.strip():
+                ok = sauvegarder(self.nom_sauvegarde.strip(), self.progression_monde)
+                self.message_sauvegarde = "Sauvegarde creee." if ok else "Erreur de sauvegarde."
+                return None
+            if self.bouton_charger.collidepoint(clic) and self.nom_sauvegarde.strip():
+                donnees = charger(self.nom_sauvegarde.strip())
+                if donnees:
+                    appliquer_sauvegarde(donnees, self.progression_monde)
+                    self.message_sauvegarde = "Sauvegarde chargee."
+                else:
+                    self.message_sauvegarde = "Aucune sauvegarde trouvee."
                 return None
 
         # Mini-fenêtre carte continent (depuis mondes ou map)
@@ -222,8 +248,24 @@ class Menu:
     def _dessiner_sauvegarde(self):
         titre = self.police_titre.render("Sauvegarde", True, (200, 200, 200))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 90))
-        txt = self.police_avertissement.render("Bientôt : sauvegarde de la progression.", True, (200, 220, 205))
-        self.ecran.blit(txt, (largeur_ecran // 2 - txt.get_width() // 2, 200))
+        champ = pygame.Rect(280, 170, 440, 44)
+        pygame.draw.rect(self.ecran, (24, 35, 44), champ, border_radius=8)
+        pygame.draw.rect(self.ecran, (90, 130, 170), champ, width=2, border_radius=8)
+        texte = self.nom_sauvegarde or "Nom de sauvegarde..."
+        self.ecran.blit(self.police_bouton.render(texte, True, (220, 230, 245)), (champ.x + 12, champ.y + 10))
+        pygame.draw.rect(self.ecran, (38, 80, 60), self.bouton_sauvegarder, border_radius=8)
+        pygame.draw.rect(self.ecran, (60, 120, 90), self.bouton_sauvegarder, width=2, border_radius=8)
+        pygame.draw.rect(self.ecran, (60, 70, 110), self.bouton_charger, border_radius=8)
+        pygame.draw.rect(self.ecran, (90, 110, 160), self.bouton_charger, width=2, border_radius=8)
+        self.ecran.blit(self.police_bouton.render("Sauvegarder", True, (230, 245, 230)), (self.bouton_sauvegarder.x + 20, self.bouton_sauvegarder.y + 9))
+        self.ecran.blit(self.police_bouton.render("Charger", True, (230, 240, 255)), (self.bouton_charger.x + 44, self.bouton_charger.y + 9))
+        y = 320
+        for item in lister_sauvegardes()[:5]:
+            ligne = f"{item['nom']} - {item['date']}"
+            self.ecran.blit(self.police_avertissement.render(ligne, True, (200, 220, 205)), (280, y))
+            y += 24
+        if self.message_sauvegarde:
+            self.ecran.blit(self.police_avertissement.render(self.message_sauvegarde, True, (255, 220, 140)), (280, 460))
         self._dessiner_retour()
 
     def _dessiner_carte_continent(self):
@@ -263,8 +305,10 @@ class Menu:
             # petites vagues (3 carrés)
             base_x = pos[0] - 26
             base_y = pos[1] + 22
+            succes = self.progression_monde.succes_niveau(self.continent_carte, numero)
             for v in range(3):
-                pygame.draw.rect(self.ecran, (100, 100, 110), (base_x + v * 14, base_y, 10, 10), border_radius=2)
+                couleur_succes = (0, 180, 80) if succes[v] else (100, 100, 110)
+                pygame.draw.rect(self.ecran, couleur_succes, (base_x + v * 14, base_y, 10, 10), border_radius=2)
 
         # bouton lancer (obligatoire)
         pygame.draw.rect(self.ecran, (38, 70, 48), self.bouton_lancer_niveau, border_radius=8)

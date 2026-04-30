@@ -45,7 +45,7 @@ class AffichageXP:
 
 
 class PanneauTelephone:
-    noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Achèvement", "New vague", "Parametre", "Map", "Scores"]
+    noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Succes", "New vague", "Parametre", "Map", "Scores"]
 
     def __init__(self):
         self.largeur = 210
@@ -57,6 +57,12 @@ class PanneauTelephone:
         self.ouvert = False
         self.bouton_principal = pygame.Rect(self.x + 70, self.y + self.hauteur - 44, 70, 32)
         self.liste_boutons = []
+        self.image_telephone = None
+        if pygame.image.get_extended():
+            try:
+                self.image_telephone = pygame.image.load("telephone.png").convert_alpha()
+            except Exception:
+                self.image_telephone = None
         self._creer_grille_boutons()
 
     def _creer_grille_boutons(self):
@@ -83,8 +89,12 @@ class PanneauTelephone:
         hauteur_coque = self.hauteur if self.ouvert else 70
         y_coque = self.y if self.ouvert else self.y + self.hauteur - 70
         coque = pygame.Rect(self.x, y_coque, self.largeur, hauteur_coque)
-        pygame.draw.rect(fenetre, (12, 14, 20), coque, border_radius=18)
-        pygame.draw.rect(fenetre, (70, 88, 125), coque, width=2, border_radius=18)
+        if self.image_telephone and self.ouvert:
+            image = pygame.transform.scale(self.image_telephone, (self.largeur, self.hauteur))
+            fenetre.blit(image, (self.x, self.y))
+        else:
+            pygame.draw.rect(fenetre, (12, 14, 20), coque, border_radius=18)
+            pygame.draw.rect(fenetre, (70, 88, 125), coque, width=2, border_radius=18)
         pygame.draw.circle(fenetre, (30, 38, 55), (coque.centerx, coque.y + 10), 4)
         if self.ouvert:
             police_icone = pygame.font.SysFont("consolas", 17, bold=True)

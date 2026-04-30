@@ -45,7 +45,7 @@ class AffichageXP:
 
 
 class PanneauTelephone:
-    noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Achèvement", "New vague", "Parametre"]
+    noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Succes", "New vague", "Parametre"]
 
     def __init__(self):
         self.largeur = 190

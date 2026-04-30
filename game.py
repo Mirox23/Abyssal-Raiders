@@ -1,7 +1,7 @@
 import pygame
 from setting import *
 from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_niveau_vague
-from mob import MobKamikaze, MobSoigneur, MobBoss, MobRapide
+from mob import MobKamikaze, MobSoigneur, MobBoss, MobRapide, definir_continent_mob
 from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
 from ui import (
     PanneauTelephone, PanneauInfos, PanneauAchevement, EcranFinVague, AffichageXP,
@@ -56,6 +56,7 @@ class Jeu:
         self.telephone = PanneauTelephone()
         self.panneau_infos = PanneauInfos()
         self.panneau_achevement = PanneauAchevement()
+        self.panneau_achevement.lier_progression_monde(self.progression_monde)
         self.ecran_fin_vague = EcranFinVague()
         self.affichage_xp = AffichageXP()
         self.fenetre_recompenses = FenetreRecompensesTalents()
@@ -103,6 +104,7 @@ class Jeu:
         # Alarme visuelle mobs proches du mur
         self._alarme_clignotement = 0.0
         configurer_chemin_niveau_vague(self.continent, self.niveau, 1)
+        definir_continent_mob(self.continent)
         # Afficher le bonus de fidélité si présent
         self._message_fidelite = ""
         self._timer_message_fidelite = 0.0
@@ -280,7 +282,7 @@ class Jeu:
         if action_tel == "New vague" and self.en_attente_lancement_vague:
             self.lancer_nouvelle_vague()
             return
-        if action_tel == "Achèvement":
+        if action_tel == "Succes":
             self.panneau_achevement.ouvrir()
             return
         if action_tel == "Info" and self.tour_actuellement_selectionnee:
@@ -296,7 +298,7 @@ class Jeu:
             self.panneau_parametres.ouvrir()
             return
         if action_tel == "Map":
-            self.map_jeu_ouverte = True
+            self.demande_retour_map = True
             return
         if action_tel == "Scores":
             self.fenetre_scores.ouvrir(self.continent)

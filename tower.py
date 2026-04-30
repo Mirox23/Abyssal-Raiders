@@ -1,4 +1,5 @@
 import pygame
+import os
 from setting import portee_tour, cadence_tour, couleur_tour, cout_amelioration, bonus_portee, bonus_cadence, niveau_max
 from projectile import Projectile, ProjectileRalentissement
 
@@ -15,6 +16,30 @@ class Tour:
         self.type_tour = "Base"
         self.niveau = 1
         self.degats_tir = 1
+        self._image_tour = None
+        self._taille_image = (56, 56)
+        self._charger_image_tour()
+
+    def _palier_image(self):
+        if self.niveau >= 5:
+            return 3
+        if self.niveau >= 3:
+            return 2
+        return 1
+
+    def _chemins_images_possibles(self):
+        return []
+
+    def _charger_image_tour(self):
+        chemins = self._chemins_images_possibles()
+        palier = self._palier_image()
+        if palier <= len(chemins):
+            fichier = chemins[palier - 1]
+            if os.path.exists(fichier):
+                image = pygame.image.load(fichier).convert_alpha()
+                self._image_tour = pygame.transform.scale(image, self._taille_image)
+                return
+        self._image_tour = None
 
     def ameliorer(self, argent_joueur):
         if self.niveau >= niveau_max:
@@ -24,6 +49,7 @@ class Tour:
         self.niveau += 1
         self.portee += bonus_portee
         self.cadence = max(0.15, self.cadence - bonus_cadence)
+        self._charger_image_tour()
         return argent_joueur - cout_amelioration
 
     def valeur_revente(self):
@@ -56,7 +82,10 @@ class Tour:
         self.liste_projectiles = projectiles_actifs
 
     def dessiner(self, fenetre):
-        pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
+        if self._image_tour:
+            fenetre.blit(self._image_tour, (int(self.x - self._taille_image[0] // 2), int(self.y - self._taille_image[1] // 2)))
+        else:
+            pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
         pygame.draw.circle(fenetre, (80, 80, 160), (int(self.x), int(self.y)), self.portee, 1)
 
         police_niveau = pygame.font.SysFont("consolas", 10, bold=True)
@@ -80,6 +109,13 @@ class TourSniper(Tour):
         self.portee = 250
         self.type_tour = "Sniper"
         self.degats_tir = 3
+
+    def _chemins_images_possibles(self):
+        return [
+            "Tours/sniper/Tour sniper LVL1.png",
+            "Tours/sniper/Tour sniper LVL2.png",
+            "Tours/sniper/Tour sniper LVL3.png",
+        ]
 
     def mettre_a_jour(self, delta_temps, liste_ennemis):
         self.temps_depuis_dernier_tir += delta_temps
@@ -116,6 +152,13 @@ class TourCanonnier(Tour):
         self.type_tour = "Canonnier"
         self.degats_tir = 1
 
+    def _chemins_images_possibles(self):
+        return [
+            "Tours/canon/Tour canon LVL1.png",
+            "Tours/canon/Tour canon LVL2.png",
+            "Tours/canon/Tour canon LVL3.png",
+        ]
+
 
 class TourRalentissement(Tour):
     """
@@ -132,6 +175,13 @@ class TourRalentissement(Tour):
         self.facteur_ralentissement = 0.5
         self.duree_ralentissement = 2.0
         self.degats_tir = 1
+
+    def _chemins_images_possibles(self):
+        return [
+            "Tours/ralentiseuse/Tour ralentiseuse lvl1.png",
+            "Tours/ralentiseuse/Tour ralentiseus lvl2.png",
+            "Tours/ralentiseuse/Tour ralentiseuse lvl3.png",
+        ]
 
     def ameliorer(self, argent_joueur):
         resultat = super().ameliorer(argent_joueur)
@@ -189,6 +239,13 @@ class TourSupport(Tour):
         self.tours_bufferisees = []
         self.degats_tir = 0
 
+    def _chemins_images_possibles(self):
+        return [
+            "Tours/soigneuse/Tour soigneuse lvl1.png",
+            "Tours/soigneuse/Tour soigneuse lvl2.png",
+            "Tours/soigneuse/Tour soigneuse lvl3.png",
+        ]
+
     def ameliorer(self, argent_joueur):
         resultat = super().ameliorer(argent_joueur)
         if resultat >= 0:
@@ -224,7 +281,10 @@ class TourSupport(Tour):
         self.tours_bufferisees.clear()
 
     def dessiner(self, fenetre):
-        pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
+        if self._image_tour:
+            fenetre.blit(self._image_tour, (int(self.x - self._taille_image[0] // 2), int(self.y - self._taille_image[1] // 2)))
+        else:
+            pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
         # Anneau du rayon de buff en jaune doré
         pygame.draw.circle(fenetre, (220, 200, 50), (int(self.x), int(self.y)), self.rayon_buff, 1)
         # Étoile au centre pour distinguer la tour

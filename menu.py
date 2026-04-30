@@ -4,7 +4,7 @@ import os
 from setting import largeur_ecran, hauteur_ecran
 from musique import MusiqueManager
 from progression_monde import ProgressionMonde
-from sauvegarde import sauvegarder, charger, lister_sauvegardes, appliquer_sauvegarde
+from sauvegarde import sauvegarder, charger, lister_sauvegardes, appliquer_sauvegarde, supprimer
 
 
 class Menu:
@@ -59,6 +59,7 @@ class Menu:
         self.message_sauvegarde = ""
         self.bouton_sauvegarder = pygame.Rect(300, 240, 170, 44)
         self.bouton_charger = pygame.Rect(500, 240, 170, 44)
+        self.boutons_actions_sauvegardes = []
 
     def gerer_evenement(self, evenement):
         if self.etat == "sauvegarde" and evenement.type == pygame.KEYDOWN:
@@ -135,6 +136,17 @@ class Menu:
                 else:
                     self.message_sauvegarde = "Aucune sauvegarde trouvee."
                 return None
+            for action, nom, rect in self.boutons_actions_sauvegardes:
+                if rect.collidepoint(clic):
+                    if action == "charger":
+                        donnees = charger(nom)
+                        if donnees:
+                            appliquer_sauvegarde(donnees, self.progression_monde)
+                            self.message_sauvegarde = f"Sauvegarde '{nom}' chargee."
+                    if action == "supprimer":
+                        supprimer(nom)
+                        self.message_sauvegarde = f"Sauvegarde '{nom}' supprimee."
+                    return None
 
         # Mini-fenêtre carte continent (depuis mondes ou map)
         if self.afficher_carte_continent:
@@ -260,9 +272,18 @@ class Menu:
         self.ecran.blit(self.police_bouton.render("Sauvegarder", True, (230, 245, 230)), (self.bouton_sauvegarder.x + 20, self.bouton_sauvegarder.y + 9))
         self.ecran.blit(self.police_bouton.render("Charger", True, (230, 240, 255)), (self.bouton_charger.x + 44, self.bouton_charger.y + 9))
         y = 320
+        self.boutons_actions_sauvegardes = []
         for item in lister_sauvegardes()[:5]:
             ligne = f"{item['nom']} - {item['date']}"
             self.ecran.blit(self.police_avertissement.render(ligne, True, (200, 220, 205)), (280, y))
+            bouton_charger = pygame.Rect(640, y - 2, 90, 20)
+            bouton_supprimer = pygame.Rect(735, y - 2, 100, 20)
+            pygame.draw.rect(self.ecran, (50, 88, 130), bouton_charger, border_radius=5)
+            pygame.draw.rect(self.ecran, (140, 70, 70), bouton_supprimer, border_radius=5)
+            self.ecran.blit(self.police_avertissement.render("Charger", True, (230, 240, 255)), (bouton_charger.x + 14, bouton_charger.y + 2))
+            self.ecran.blit(self.police_avertissement.render("Supprimer", True, (255, 235, 235)), (bouton_supprimer.x + 11, bouton_supprimer.y + 2))
+            self.boutons_actions_sauvegardes.append(("charger", item["nom"], bouton_charger))
+            self.boutons_actions_sauvegardes.append(("supprimer", item["nom"], bouton_supprimer))
             y += 24
         if self.message_sauvegarde:
             self.ecran.blit(self.police_avertissement.render(self.message_sauvegarde, True, (255, 220, 140)), (280, 460))

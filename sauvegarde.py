@@ -145,10 +145,10 @@ def appliquer_sauvegarde(donnees, progression_monde):
         if continent in progression_monde.succes_vagues:
             propre = []
             for ligne in liste_niveaux[:8]:
-                ligne_ok = list(ligne) if isinstance(ligne, list) else [False, False, False]
-                propre.append((ligne_ok + [False, False, False])[:3])
+                ligne_ok = list(ligne) if isinstance(ligne, list) else [False, False, False, False]
+                propre.append((ligne_ok + [False, False, False, False])[:4])
             while len(propre) < 8:
-                propre.append([False, False, False])
+                propre.append([False, False, False, False])
             progression_monde.succes_vagues[continent] = propre
 
     return donnees.get("niveau_joueur", 1)

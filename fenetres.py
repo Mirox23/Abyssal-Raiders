@@ -108,7 +108,7 @@ class PanneauAchevement:
         if not (1 <= numero_niveau <= 8 and 1 <= numero_vague <= 4):
             return
         self.progression[continent][numero_niveau - 1][numero_vague - 1] = True
-        if self.progression_monde and numero_vague <= 3:
+        if self.progression_monde and numero_vague <= 4:
             self.progression_monde.marquer_succes_vague(continent, numero_niveau, numero_vague)
 
     def marquer_niveau_conquis(self, continent, numero_niveau):
@@ -159,7 +159,7 @@ class PanneauAchevement:
             cle = self.cles_mondes[self.onglet_actif]
             for niv in range(8):
                 succes = self.progression_monde.succes_niveau(cle, niv + 1)
-                for v in range(3):
+                for v in range(4):
                     progression_monde[niv][v] = succes[v]
         taille_rect_vague = 22
         espacement_vague = 6

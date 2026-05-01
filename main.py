@@ -2,6 +2,7 @@ import pygame
 from setting import largeur_ecran, hauteur_ecran, FPS
 from menu import Menu
 from game import Jeu
+from musique import MusiqueManager
 from progression_monde import ProgressionMonde
 
 
@@ -12,7 +13,9 @@ def main():
     pygame.display.set_caption("Abyssal Raiders")
     horloge = pygame.time.Clock()
 
-    menu = Menu(ecran)
+    musique_menu = MusiqueManager(0.5)
+    menu = Menu(ecran, musique_menu)
+    menu.relancer_musique_menu()
     progression_monde = ProgressionMonde()
     etat_application = "menu"
 

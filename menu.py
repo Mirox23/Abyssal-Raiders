@@ -8,15 +8,16 @@ from sauvegarde import sauvegarder, charger, lister_sauvegardes, appliquer_sauve
 
 
 class Menu:
-    def __init__(self, ecran):
+    def __init__(self, ecran, musique=None):
         self.ecran = ecran
         self.etat = "principal"
         self.minuterie_animation = 0.0
         self.volume_son = 0.5
         self.monde_selectionne = "pirate"
         self.niveau_selectionne = 1
-        self.musique = MusiqueManager(self.volume_son)
-        self.musique.jouer("musique/menu.wav")
+        self.musique = musique or MusiqueManager(self.volume_son)
+        self.musique.regler_volume(self.volume_son)
+        self.musique.garantir("menu")
 
         # Chargement de l'image de fond du menu (dans le dossier image/)
         self.image_fond_menu = None
@@ -183,6 +184,12 @@ class Menu:
 
     def mise_a_jour(self, delta_temps):
         self.minuterie_animation += delta_temps
+        self.musique.garantir("menu")
+
+    def relancer_musique_menu(self):
+        # Force la musique du menu apres une partie.
+        self.musique.piste_active = None
+        self.musique.jouer("menu", forcer=True)  # appelle musique/menu.wav ou menu.mp3
 
     def dessiner(self):
         # Fond : image si disponible, sinon grille colorée de secours
@@ -210,9 +217,9 @@ class Menu:
 
     def _dessiner_principal(self):
         pulse = int(10 * math.sin(self.minuterie_animation * 2.0))
-        titre = self.police_titre.render("ABYSSAL RAIDERS", True, (210 + pulse, 140 + pulse, 35))
+        titre = self.police_titre.render("ABYSSAL RAIDERS", True, (160 + pulse, 90 + pulse, 20))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 110))
-        sous = self.police_sous_titre.render("~ Un tower defense démoniaque ~", True, (90, 110, 95))
+        sous = self.police_sous_titre.render("~ Un tower defense démoniaque ~", True, (0, 0, 0))
         self.ecran.blit(sous, (largeur_ecran // 2 - sous.get_width() // 2, 170))
         souris = pygame.mouse.get_pos()
         for bouton in self.boutons_menu_principal:
@@ -338,11 +345,11 @@ class Menu:
             txt = self.police_avertissement.render(str(numero), True, (255, 255, 255))
             self.ecran.blit(txt, (pos[0] - txt.get_width() // 2, pos[1] - txt.get_height() // 2))
 
-            # petites vagues (3 carrés)
-            base_x = pos[0] - 26
+            # petites vagues (4 carres)
+            base_x = pos[0] - 33
             base_y = pos[1] + 22
             succes = self.progression_monde.succes_niveau(self.continent_carte, numero)
-            for v in range(3):
+            for v in range(4):
                 couleur_succes = (0, 180, 80) if succes[v] else (100, 100, 110)
                 pygame.draw.rect(self.ecran, couleur_succes, (base_x + v * 14, base_y, 10, 10), border_radius=2)
 

@@ -40,7 +40,10 @@ class Jeu:
 
     def _lancer_musique_boss(self):
         """Musique spéciale pour les vagues de boss uniquement."""
-        self.musique.jouer("boss", fondu_ms=1200)  # appelle musique/boss.wav ou boss.mp3
+        if self.niveau <= 6:
+            self.musique.jouer("boss2", fondu_ms=1200)  # niveaux 1 a 6
+        else:
+            self.musique.jouer("boss1", fondu_ms=1200)  # niveaux 7 et 8
 
     def _charger_image_fond(self):
         """
@@ -99,7 +102,7 @@ class Jeu:
         self.mode_placement_actif, self.type_tour_a_placer = False, None
         self.tour_actuellement_selectionnee = None
         self.gestionnaire_vague = GestionnaireVague()
-        # 1 niveau = 4 vagues + 1 vague boss finale (vague 4 = boss)
+        # 1 niveau = 4 vagues, avec le boss a la 4e vague.
         self.vague_locale = 0
         self.vague_max = 4
         self.en_attente_lancement_vague = True

@@ -25,7 +25,7 @@ class ProgressionMonde:
             "demoniaque": [False] * 8,
         }
         self.succes_vagues = {
-            cle: [[False] * 3 for _ in range(8)]
+            cle: [[False] * 4 for _ in range(8)]
             for cle in self.niveaux_conquis
         }
 
@@ -42,7 +42,7 @@ class ProgressionMonde:
             return
         if 1 <= numero_niveau <= 8:
             self.niveaux_conquis[continent][numero_niveau - 1] = True
-            self.succes_vagues[continent][numero_niveau - 1] = [True, True, True]
+            self.succes_vagues[continent][numero_niveau - 1] = [True, True, True, True]
 
     def est_conquis(self, continent, numero_niveau):
         if continent not in self.niveaux_conquis:
@@ -54,7 +54,7 @@ class ProgressionMonde:
     def marquer_succes_vague(self, continent, numero_niveau, numero_vague):
         """
         Explication de ce que fais la fonction :
-        Active une case de succès de vague (1..3) pour le niveau ciblé.
+        Active une case de succes de vague (1..4) pour le niveau cible.
         Les entrées :
         continent (str), numero_niveau (int), numero_vague (int).
         Le résultat :
@@ -62,26 +62,32 @@ class ProgressionMonde:
         """
         if continent not in self.succes_vagues:
             return
-        if not (1 <= numero_niveau <= 8 and 1 <= numero_vague <= 3):
+        if not (1 <= numero_niveau <= 8 and 1 <= numero_vague <= 4):
             return
+        succes = self.succes_vagues[continent][numero_niveau - 1]
+        while len(succes) < 4:
+            succes.append(False)
         self.succes_vagues[continent][numero_niveau - 1][numero_vague - 1] = True
 
     def succes_niveau(self, continent, numero_niveau):
         """
         Explication de ce que fais la fonction :
-        Renvoie les 3 succès de vagues d'un niveau.
+        Renvoie les 4 succes de vagues d'un niveau.
         Les entrées :
         continent (str), numero_niveau (int).
         Le résultat :
-        Liste de 3 booléens [v1, v2, v3].
+        Liste de 4 booleens [v1, v2, v3, v4].
         """
         if continent not in self.succes_vagues or not (1 <= numero_niveau <= 8):
-            return [False, False, False]
-        return list(self.succes_vagues[continent][numero_niveau - 1])
+            return [False, False, False, False]
+        succes = list(self.succes_vagues[continent][numero_niveau - 1])
+        while len(succes) < 4:
+            succes.append(False)
+        return succes[:4]
 
     def bonus_fidelite_argent(self, continent, numero_niveau):
         """
-        NOUVEAU — Bonus de fidélité : +3 or de départ par niveau déjà conquis
+        Bonus de fidélité : +3 or de départ par niveau déjà conquis
         dans ce continent. Récompense les joueurs qui reviennent sur des niveaux maîtrisés.
         """
         if continent not in self.niveaux_conquis:
@@ -91,7 +97,7 @@ class ProgressionMonde:
 
     def bonus_fidelite_vie(self, continent, numero_niveau):
         """
-        NOUVEAU — +1 PV de mur par tranche de 3 niveaux conquis dans le continent.
+        Bonus de fidélité : +1 PV de mur par tranche de 3 niveaux conquis dans le continent.
         """
         if continent not in self.niveaux_conquis:
             return 0

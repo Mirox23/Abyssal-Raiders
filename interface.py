@@ -90,9 +90,9 @@ class PanneauTelephone:
 
             by = self.y + decalage_haut + lig * (self.taille_icone + 28)
             if lig == 0:
-                by += 20  # La premiere ligne etait encore trop haute.
+                by += 25  
             
-            # Zone invisible reduite sans changer la hauteur de l'image.
+            # Zone invisible reduite pour mieux correspondre à la taille des icônes sur l'image du téléphone
             self.liste_boutons.append((nom, pygame.Rect(bx, by, self.taille_zone_clic, self.taille_zone_clic)))
 
     def gerer_clic(self, position_clic):

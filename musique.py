@@ -5,7 +5,8 @@ import pygame
 MUSIQUES = {
     "menu": ("menu.wav", "menu.mp3"),
     "jeu": ("jeu.wav", "jeu.mp3"),
-    "boss": ("boss.wav", "boss.mp3"),
+    "boss1": ("boss1.wav", "boss1.mp3"),
+    "boss2": ("boss2.wav", "boss2.mp3"),
 }
 
 

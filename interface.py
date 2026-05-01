@@ -49,8 +49,9 @@ class PanneauTelephone:
 
     def __init__(self):
         self.largeur = 210
-        self.hauteur = 285
+        self.hauteur = 360  # Hauteur augmentée pour mieux aligner les icônes sur l'image du téléphone
         self.taille_icone = 52
+        self.taille_zone_clic = 46
         self.marge = 12
         self.x = largeur_ecran - self.largeur - 14
         self.y = hauteur_ecran - self.hauteur - 14
@@ -79,17 +80,20 @@ class PanneauTelephone:
     def _creer_grille_boutons(self):
         self.liste_boutons = []
         colonnes = 3
-        # On décale de 72px depuis le haut du téléphone (au lieu de 48)
-        # pour que la première ligne d'icônes s'ouvre bien depuis le téléphone et pas une ligne trop haut
-        decalage_haut = 72
+        # On décale de 84px depuis le haut du téléphone pour que les icônes invisibles
+        # correspondent bien à l'emplacement des icônes sur l'image du téléphone.
+        decalage_haut = 104
         for i, nom in enumerate(self.noms_boutons):
             col = i % colonnes
             lig = i // colonnes
             bx = self.x + 16 + col * (self.taille_icone + self.marge)
 
             by = self.y + decalage_haut + lig * (self.taille_icone + 28)
+            if lig == 0:
+                by += 20  # La premiere ligne etait encore trop haute.
             
-            self.liste_boutons.append((nom, pygame.Rect(bx, by, self.taille_icone, self.taille_icone)))
+            # Zone invisible reduite sans changer la hauteur de l'image.
+            self.liste_boutons.append((nom, pygame.Rect(bx, by, self.taille_zone_clic, self.taille_zone_clic)))
 
     def gerer_clic(self, position_clic):
         if self.bouton_principal.collidepoint(position_clic):

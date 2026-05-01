@@ -35,12 +35,12 @@ class Jeu:
         self.reinitialiser()
 
     def _lancer_musique_continent(self):
-        # Musique de jeu normale (phase de vague ET phase de modification)
-        self.musique.jouer("musique/jeu.wav")
+        # Musique de jeu normale (vagues simples et modifications)
+        self.musique.jouer("jeu", fondu_ms=700)  # appelle musique/jeu.wav ou jeu.mp3
 
     def _lancer_musique_boss(self):
         """Musique spéciale pour les vagues de boss uniquement."""
-        self.musique.jouer("musique/boss.wav")
+        self.musique.jouer("boss", fondu_ms=1200)  # appelle musique/boss.wav ou boss.mp3
 
     def _charger_image_fond(self):
         """
@@ -606,6 +606,7 @@ class Jeu:
 
             if self.gestionnaire_vague.vague_terminee:
                 self.gestionnaire_vague.vague_terminee = False
+                self._lancer_musique_continent()
                 self._primes_doubles_vague = False   # reset effet carte
                 self.en_attente_lancement_vague = True
                 xp = self.progression.xp_pour_vague(self.vague_locale)

@@ -6,6 +6,7 @@ from progression_monde import ProgressionMonde
 
 
 def main():
+    pygame.mixer.pre_init(44100, -16, 2, 512)
     pygame.init()
     ecran = pygame.display.set_mode((largeur_ecran, hauteur_ecran))
     pygame.display.set_caption("Abyssal Raiders")
@@ -36,6 +37,7 @@ def main():
         elif etat_application == "jeu":
             jeu = Jeu(menu.monde_selectionne, menu.volume_son, menu.niveau_selectionne, progression_monde)
             resultat = jeu.lancer()
+            menu.relancer_musique_menu()
             menu.appliquer_progression(progression_monde)
             if resultat.get("ouvrir_map"):
                 menu.etat = "map"

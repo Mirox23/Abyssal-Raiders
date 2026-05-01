@@ -79,11 +79,16 @@ class PanneauTelephone:
     def _creer_grille_boutons(self):
         self.liste_boutons = []
         colonnes = 3
+        # On décale de 72px depuis le haut du téléphone (au lieu de 48)
+        # pour que la première ligne d'icônes s'ouvre bien depuis le téléphone et pas une ligne trop haut
+        decalage_haut = 72
         for i, nom in enumerate(self.noms_boutons):
-            col = i % colonnes 
+            col = i % colonnes
             lig = i // colonnes
             bx = self.x + 16 + col * (self.taille_icone + self.marge)
-            by = self.y + 48 + lig * (self.taille_icone + 28)
+
+            by = self.y + decalage_haut + lig * (self.taille_icone + 28)
+            
             self.liste_boutons.append((nom, pygame.Rect(bx, by, self.taille_icone, self.taille_icone)))
 
     def gerer_clic(self, position_clic):

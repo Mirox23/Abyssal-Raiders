@@ -1,6 +1,8 @@
+import os
 import pygame
 from setting import *
 from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_niveau_vague
+from mob import MobKamikaze, MobSoigneur, MobBoss, MobRapide, definir_continent_mob
 from mob import MobKamikaze, MobSoigneur, MobBoss, MobRapide, definir_continent_mob
 from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
 from ui import (
@@ -29,16 +31,39 @@ class Jeu:
         self.progression_monde = progression_monde
         self.musique = MusiqueManager(self.volume_musique)
         self._lancer_musique_continent()
+        self.image_fond = self._charger_image_fond()  # fond spécifique au continent
         self.reinitialiser()
 
     def _lancer_musique_continent(self):
-        pistes = {
-            "pirate": "musique/continent_pirate.wav",
-            "samourai": "musique/continent_japonais.wav",
-            "medieval": "musique/continent_medieval.wav",
-            "demoniaque": "musique/continent_demoniaque.wav",
+        # Musique de jeu normale (phase de vague ET phase de modification)
+        self.musique.jouer("musique/jeu.wav")
+
+    def _lancer_musique_boss(self):
+        """Musique spéciale pour les vagues de boss uniquement."""
+        self.musique.jouer("musique/boss.wav")
+
+    def _charger_image_fond(self):
+        """
+        Charge l'image de fond correspondant au continent actif.
+        Si l'image n'existe pas, retourne None (on utilisera la couleur unie de secours).
+        """
+        # Chemins possibles pour chaque continent
+        chemins_fond = {
+            "pirate": ["image/pirates/fond.png"],
+            "samourai": ["image/samourai/fond.png"],
+            "medieval": ["image/medieval/fond.png"],
+            "demoniaque": ["image/demoniaque/fond.png"],
         }
-        self.musique.jouer(pistes.get(self.continent, "musique/continent_pirate.wav"))
+        essais = chemins_fond.get(self.continent, [])
+        for chemin in essais:
+            if os.path.exists(chemin):
+                try:
+                    img = pygame.image.load(chemin).convert()
+                    # On redimensionne pour couvrir tout l'écran
+                    return pygame.transform.scale(img, (largeur_ecran, hauteur_ecran))
+                except Exception:
+                    pass
+        return None  # pas d'image trouvée, on utilisera la couleur unie
 
     def reinitialiser(self):
         self.liste_ennemis, self.liste_tours = [], []
@@ -56,6 +81,7 @@ class Jeu:
         self.telephone = PanneauTelephone()
         self.panneau_infos = PanneauInfos()
         self.panneau_achevement = PanneauAchevement()
+        self.panneau_achevement.lier_progression_monde(self.progression_monde)
         self.panneau_achevement.lier_progression_monde(self.progression_monde)
         self.ecran_fin_vague = EcranFinVague()
         self.affichage_xp = AffichageXP()
@@ -112,7 +138,17 @@ class Jeu:
         self.vague_echec_numero = 0
         self.bouton_payer_passer = pygame.Rect(largeur_ecran // 2 - 180, hauteur_ecran // 2 + 40, 170, 44)
         self.bouton_relancer_vague = pygame.Rect(largeur_ecran // 2 + 10, hauteur_ecran // 2 + 40, 170, 44)
+        self.vitesse_jeu = 1.0
+        self.est_mort = False
+        self.bouton_rejouer_payant = pygame.Rect(largeur_ecran // 2 - 180, hauteur_ecran // 2 + 40, 170, 44)
+        self.bouton_recommencer = pygame.Rect(largeur_ecran // 2 + 10, hauteur_ecran // 2 + 40, 170, 44)
+        self.vie_debut_vague = self.points_de_vie_mur
+        self.echec_vague = False
+        self.vague_echec_numero = 0
+        self.bouton_payer_passer = pygame.Rect(largeur_ecran // 2 - 180, hauteur_ecran // 2 + 40, 170, 44)
+        self.bouton_relancer_vague = pygame.Rect(largeur_ecran // 2 + 10, hauteur_ecran // 2 + 40, 170, 44)
         configurer_chemin_niveau_vague(self.continent, self.niveau, 1)
+        definir_continent_mob(self.continent)
         definir_continent_mob(self.continent)
         # Afficher le bonus de fidélité si présent
         self._message_fidelite = ""
@@ -129,6 +165,7 @@ class Jeu:
     def lancer(self):
         jeu_en_cours = True
         while jeu_en_cours:
+            delta_temps = (self.horloge.tick(FPS) / 1000) * self.vitesse_jeu
             delta_temps = (self.horloge.tick(FPS) / 1000) * self.vitesse_jeu
             for evenement in pygame.event.get():
                 if evenement.type == pygame.QUIT:
@@ -188,6 +225,32 @@ class Jeu:
             self.mode_fete = not self.mode_fete
 
     def gerer_clic(self, clic):
+        if self.est_mort:
+            if self.bouton_rejouer_payant.collidepoint(clic) and self.argent >= 200:
+                self.argent -= 200
+                self.points_de_vie_mur = max(3, vie_mur_depart // 2)
+                self.liste_ennemis = []
+                self.en_attente_lancement_vague = True
+                self.ecran_fin_vague.fermer()
+                self.fenetre_marche.fermer()
+                self.est_mort = False
+            elif self.bouton_recommencer.collidepoint(clic):
+                self.reinitialiser()
+            return
+        if self.echec_vague:
+            if self.bouton_payer_passer.collidepoint(clic) and self.argent >= 100:
+                self.argent -= 100
+                self.echec_vague = False
+                if self.vague_locale < self.vague_max:
+                    self.fenetre_marche.ouvrir()
+                else:
+                    self.fenetre_niveau_conquis.ouvrir()
+            elif self.bouton_relancer_vague.collidepoint(clic):
+                self.echec_vague = False
+                self.liste_ennemis = []
+                self.vague_locale = max(0, self.vague_echec_numero - 1)
+                self.lancer_nouvelle_vague()
+            return
         if self.est_mort:
             if self.bouton_rejouer_payant.collidepoint(clic) and self.argent >= 200:
                 self.argent -= 200
@@ -278,6 +341,10 @@ class Jeu:
                 self.vitesse_jeu = 1.5
             elif action_param == "vitesse_x2":
                 self.vitesse_jeu = 2.0
+            elif action_param == "vitesse_x15":
+                self.vitesse_jeu = 1.5
+            elif action_param == "vitesse_x2":
+                self.vitesse_jeu = 2.0
             return
         action_comp = self.panneau_competences.gerer_clic(clic)
         if action_comp:
@@ -337,6 +404,7 @@ class Jeu:
             self.panneau_parametres.ouvrir()
             return
         if action_tel == "Map":
+            self.demande_retour_map = True
             self.demande_retour_map = True
             return
         if action_tel == "Scores":
@@ -425,6 +493,11 @@ class Jeu:
         # la dernière vague est une vague boss 
         est_boss = (self.vague_locale == self.vague_max)
         self.gestionnaire_vague.demarrer_vague(CHEMIN[0], est_boss=est_boss)
+        # Musique spéciale pour le boss, musique normale sinon
+        if est_boss:
+            self._lancer_musique_boss()
+        else:
+            self._lancer_musique_continent()
         self.vie_debut_vague = self.points_de_vie_mur
         self.en_attente_lancement_vague = False
         self.ecran_fin_vague.fermer()
@@ -438,6 +511,8 @@ class Jeu:
 
     def mettre_a_jour(self, delta_temps):
         import math as _math
+        if self.est_mort or self.echec_vague:
+            return
         if self.est_mort or self.echec_vague:
             return
         self.progression.mettre_a_jour(delta_temps)
@@ -504,6 +579,14 @@ class Jeu:
                         self.fenetre_marche.fermer()
                         self.ecran_fin_vague.fermer()
                         break
+                    if self.points_de_vie_mur <= 0:
+                        self.points_de_vie_mur = 0
+                        self.est_mort = True
+                        self.en_attente_lancement_vague = True
+                        self.gestionnaire_vague.vague_en_cours = False
+                        self.fenetre_marche.fermer()
+                        self.ecran_fin_vague.fermer()
+                        break
                     self._ajouter_effet((position_mur, ennemi.y), (255, 120, 80), 28 + degats * 4, 0.5)
                     self._ajouter_effet((position_mur, ennemi.y), (255, 220, 180), 16, 0.25)
                     self._jouer_son_effet("mur")
@@ -530,6 +613,14 @@ class Jeu:
                 score_vague = int(self.points_de_vie_mur * 120 + max(0, 2000 - self.temps_vague_actuelle * 80))
                 self.score_total_partie += score_vague
                 self.ecran_fin_vague.ouvrir(self.vague_locale, xp, score_vague)
+                degats_vague = max(0, self.vie_debut_vague - self.points_de_vie_mur)
+                if self.vague_locale <= 3:
+                    if degats_vague < 3:
+                        self.panneau_achevement.marquer_vague(self.continent, self.niveau, self.vague_locale)
+                    else:
+                        self.echec_vague = True
+                        self.vague_echec_numero = self.vague_locale
+                        self.ecran_fin_vague.fermer()
                 degats_vague = max(0, self.vie_debut_vague - self.points_de_vie_mur)
                 if self.vague_locale <= 3:
                     if degats_vague < 3:
@@ -567,7 +658,11 @@ class Jeu:
         # Screen shake : décaler toute la surface de rendu 
         ox, oy = self._shake_offset
 
-        self.fenetre.fill((32, 35, 55) if self.mode_fete else couleur_fond)
+        # Fond : image du continent si dispo, sinon couleur unie de secours
+        if self.image_fond:
+            self.fenetre.blit(self.image_fond, (0, 0))
+        else:
+            self.fenetre.fill((32, 35, 55) if self.mode_fete else couleur_fond)
         draw_decor(self.fenetre, pygame)
         draw_path(self.fenetre, pygame)
 
@@ -634,6 +729,11 @@ class Jeu:
             self.talents_appliques["reduction_cout"],
         )
         self.panneau_objets.dessiner(self.fenetre, self.inventaire_objets)
+        self.panneau_parametres.dessiner(self.fenetre, self.volume_musique, self.volume_effets, self.vitesse_jeu)
+        if self.est_mort:
+            self._dessiner_ecran_defaite()
+        if self.echec_vague:
+            self._dessiner_ecran_echec_vague()
         self.panneau_parametres.dessiner(self.fenetre, self.volume_musique, self.volume_effets, self.vitesse_jeu)
         if self.est_mort:
             self._dessiner_ecran_defaite()
@@ -794,6 +894,44 @@ class Jeu:
             self._ajouter_effet((x + dx, y + dy), couleur, taille, 0.25)
         # Anneau extérieur de la couleur du mob
         self._ajouter_effet((x, y), couleur, 28, 0.2)
+
+    def _dessiner_ecran_defaite(self):
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile.fill((0, 0, 0, 170))
+        self.fenetre.blit(voile, (0, 0))
+        rect = pygame.Rect(largeur_ecran // 2 - 230, hauteur_ecran // 2 - 120, 460, 220)
+        pygame.draw.rect(self.fenetre, (30, 24, 30), rect, border_radius=12)
+        pygame.draw.rect(self.fenetre, (180, 90, 100), rect, width=2, border_radius=12)
+        titre = pygame.font.SysFont("consolas", 36, bold=True).render("Vous avez perdu !", True, (255, 190, 190))
+        self.fenetre.blit(titre, (rect.centerx - titre.get_width() // 2, rect.y + 24))
+        txt = pygame.font.SysFont("consolas", 16).render("Choisissez une action :", True, (230, 220, 220))
+        self.fenetre.blit(txt, (rect.centerx - txt.get_width() // 2, rect.y + 82))
+        pygame.draw.rect(self.fenetre, (80, 120, 70), self.bouton_rejouer_payant, border_radius=8)
+        pygame.draw.rect(self.fenetre, (150, 200, 130), self.bouton_rejouer_payant, width=1, border_radius=8)
+        pygame.draw.rect(self.fenetre, (100, 70, 70), self.bouton_recommencer, border_radius=8)
+        pygame.draw.rect(self.fenetre, (190, 130, 130), self.bouton_recommencer, width=1, border_radius=8)
+        t1 = pygame.font.SysFont("consolas", 16, bold=True).render("Payer 200 pour rejouer", True, (240, 255, 240))
+        t2 = pygame.font.SysFont("consolas", 16, bold=True).render("Recommencer", True, (255, 235, 235))
+        self.fenetre.blit(t1, (self.bouton_rejouer_payant.centerx - t1.get_width() // 2, self.bouton_rejouer_payant.y + 12))
+        self.fenetre.blit(t2, (self.bouton_recommencer.centerx - t2.get_width() // 2, self.bouton_recommencer.y + 12))
+
+    def _dessiner_ecran_echec_vague(self):
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile.fill((0, 0, 0, 170))
+        self.fenetre.blit(voile, (0, 0))
+        rect = pygame.Rect(largeur_ecran // 2 - 280, hauteur_ecran // 2 - 120, 560, 220)
+        pygame.draw.rect(self.fenetre, (35, 30, 30), rect, border_radius=12)
+        pygame.draw.rect(self.fenetre, (190, 120, 90), rect, width=2, border_radius=12)
+        titre = pygame.font.SysFont("consolas", 24, bold=True).render("Vous n'avez pas reussi a finir cette vague", True, (255, 210, 180))
+        self.fenetre.blit(titre, (rect.centerx - titre.get_width() // 2, rect.y + 30))
+        pygame.draw.rect(self.fenetre, (90, 120, 70), self.bouton_payer_passer, border_radius=8)
+        pygame.draw.rect(self.fenetre, (170, 220, 140), self.bouton_payer_passer, width=1, border_radius=8)
+        pygame.draw.rect(self.fenetre, (90, 70, 70), self.bouton_relancer_vague, border_radius=8)
+        pygame.draw.rect(self.fenetre, (200, 150, 150), self.bouton_relancer_vague, width=1, border_radius=8)
+        t1 = pygame.font.SysFont("consolas", 16, bold=True).render("Payer 100 pour passer", True, (240, 255, 240))
+        t2 = pygame.font.SysFont("consolas", 16, bold=True).render("Relancer la vague", True, (255, 235, 235))
+        self.fenetre.blit(t1, (self.bouton_payer_passer.centerx - t1.get_width() // 2, self.bouton_payer_passer.y + 12))
+        self.fenetre.blit(t2, (self.bouton_relancer_vague.centerx - t2.get_width() // 2, self.bouton_relancer_vague.y + 12))
 
     def _dessiner_ecran_defaite(self):
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)

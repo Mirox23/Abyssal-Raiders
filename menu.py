@@ -18,6 +18,17 @@ class Menu:
         self.musique = MusiqueManager(self.volume_son)
         self.musique.jouer("musique/menu.wav")
 
+        # Chargement de l'image de fond du menu (dans le dossier image/)
+        self.image_fond_menu = None
+        for chemin_fond in ["image/fond_menu.png"]:
+            if os.path.exists(chemin_fond):
+                try:
+                    img = pygame.image.load(chemin_fond).convert()
+                    self.image_fond_menu = pygame.transform.scale(img, (largeur_ecran, hauteur_ecran))
+                    break
+                except Exception:
+                    pass
+
         self.police_titre = pygame.font.SysFont("consolas", 52, bold=True)
         self.police_sous_titre = pygame.font.SysFont("consolas", 15)
         self.police_bouton = pygame.font.SysFont("consolas", 22, bold=True)
@@ -174,11 +185,15 @@ class Menu:
         self.minuterie_animation += delta_temps
 
     def dessiner(self):
-        self.ecran.fill((14, 22, 18))
-        for x in range(0, largeur_ecran, 60):
-            pygame.draw.line(self.ecran, (20, 32, 24), (x, 0), (x, hauteur_ecran))
-        for y in range(0, hauteur_ecran, 60):
-            pygame.draw.line(self.ecran, (20, 32, 24), (0, y), (largeur_ecran, y))
+        # Fond : image si disponible, sinon grille colorée de secours
+        if self.image_fond_menu:
+            self.ecran.blit(self.image_fond_menu, (0, 0))
+        else:
+            self.ecran.fill((14, 22, 18))
+            for x in range(0, largeur_ecran, 60):
+                pygame.draw.line(self.ecran, (20, 32, 24), (x, 0), (x, hauteur_ecran))
+            for y in range(0, hauteur_ecran, 60):
+                pygame.draw.line(self.ecran, (20, 32, 24), (0, y), (largeur_ecran, y))
         if self.etat == "principal":
             self._dessiner_principal()
         elif self.etat == "mondes":

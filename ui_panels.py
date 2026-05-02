@@ -4,9 +4,7 @@ from setting import largeur_ecran, hauteur_ecran
 from interface import Bouton
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  Fenêtre RÉCOMPENSES DE NIVEAU (séparée de l'arbre)
-# ──────────────────────────────────────────────────────────────────────────────
+#  Fenêtre de récompenses de niveau + arbre à talents 
 
 class FenetreRecompenses:
     """
@@ -66,9 +64,9 @@ class FenetreRecompenses:
     def dessiner(self, fenetre, progression):
         if not self.visible:
             return
-        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA) #SRCALPHA pour transparence
         voile.fill((0, 0, 0, 150))
-        fenetre.blit(voile, (0, 0))
+        fenetre.blit(voile, (0, 0)) 
 
         pygame.draw.rect(fenetre, (20, 25, 40), self.rect, border_radius=14)
         pygame.draw.rect(fenetre, (90, 120, 175), self.rect, width=2, border_radius=14)
@@ -115,9 +113,8 @@ class FenetreRecompenses:
             y += 40
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  Fenêtre ARBRE À TALENTS (séparée des récompenses)
-# ──────────────────────────────────────────────────────────────────────────────
+#  Fenêtre arbre à talents (séparée des récompenses)
+
 
 class FenetreArbreTalents:
     """
@@ -327,9 +324,9 @@ class FenetreArbreTalents:
             fenetre.blit(s_niv, (rect.right - s_niv.get_width() - 8, rect.bottom - 20))
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  Classe de compatibilité — garde l'ancien nom utilisé dans game.py / ui.py
-# ──────────────────────────────────────────────────────────────────────────────
+
+#  Classe de compatibilité : garde l'ancien nom utilisé dans game.py et ui.py
+
 
 class FenetreRecompensesTalents:
     """
@@ -409,9 +406,7 @@ class FenetreRecompensesTalents:
         return self.fenetre_talents.reset_pour_nouveau_niveau(niveau_joueur_avant)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  Les autres panneaux (inchangés sauf noms de variables simplifiés)
-# ──────────────────────────────────────────────────────────────────────────────
+# Les autres fenêtres (compétences, objets) sont indépendantes et plus simples.
 
 class PanneauCompetences:
     def __init__(self):

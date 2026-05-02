@@ -88,9 +88,13 @@ class PanneauAchevement:
         # 8 niveaux × 4 vagues
         self.progression = {cle: [[False] * 4 for _ in range(8)] for cle in self.cles_mondes}
         self.onglet_actif = 0
+        self.progression_monde = None
         self.bouton_fermer = Bouton(self.rect.right - 90, self.rect.y + 8, 80, 30, "Fermer", 14)
         largeur_onglet = self.rect.width // 4
         self.rects_onglets = [pygame.Rect(self.rect.x + i * largeur_onglet, self.rect.y + 48, largeur_onglet, 30) for i in range(4)]
+
+    def lier_progression_monde(self, progression_monde):
+        self.progression_monde = progression_monde
 
     def ouvrir(self):
         self.visible = True
@@ -104,6 +108,8 @@ class PanneauAchevement:
         if not (1 <= numero_niveau <= 8 and 1 <= numero_vague <= 4):
             return
         self.progression[continent][numero_niveau - 1][numero_vague - 1] = True
+        if self.progression_monde and numero_vague <= 4:
+            self.progression_monde.marquer_succes_vague(continent, numero_niveau, numero_vague)
 
     def marquer_niveau_conquis(self, continent, numero_niveau):
         if continent not in self.progression:
@@ -112,6 +118,8 @@ class PanneauAchevement:
             return
         for i in range(4):
             self.progression[continent][numero_niveau - 1][i] = True
+        if self.progression_monde:
+            self.progression_monde.marquer_conquis(continent, numero_niveau)
 
     def gerer_clic(self, position_clic):
         if not self.visible:
@@ -133,7 +141,7 @@ class PanneauAchevement:
         fenetre.blit(voile, (0, 0))
         pygame.draw.rect(fenetre, (22, 24, 38), self.rect, border_radius=12)
         pygame.draw.rect(fenetre, (80, 90, 150), self.rect, width=2, border_radius=12)
-        fenetre.blit(self.police_titre.render("Achèvements", True, (220, 210, 255)), (self.rect.x + 16, self.rect.y + 12))
+        fenetre.blit(self.police_titre.render("Succes", True, (220, 210, 255)), (self.rect.x + 16, self.rect.y + 12))
         self.bouton_fermer.dessiner(fenetre)
 
         for i, (nom, rect_onglet) in enumerate(zip(self.noms_mondes, self.rects_onglets)):
@@ -147,6 +155,12 @@ class PanneauAchevement:
         zone_y_depart = self.rect.y + 88
         marge_gauche = self.rect.x + 30
         progression_monde = self.progression[self.cles_mondes[self.onglet_actif]]
+        if self.progression_monde:
+            cle = self.cles_mondes[self.onglet_actif]
+            for niv in range(8):
+                succes = self.progression_monde.succes_niveau(cle, niv + 1)
+                for v in range(4):
+                    progression_monde[niv][v] = succes[v]
         taille_rect_vague = 22
         espacement_vague = 6
         espacement_niveau = 10

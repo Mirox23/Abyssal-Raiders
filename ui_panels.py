@@ -242,7 +242,7 @@ class PanneauObjets:
 class PanneauParametresMusique:
     def __init__(self):
         self.visible = False
-        self.rect = pygame.Rect(260, 145, 480, 260)
+        self.rect = pygame.Rect(260, 130, 480, 290)
         self.police_titre = pygame.font.SysFont("consolas", 22, bold=True)
         self.police_texte = pygame.font.SysFont("consolas", 14)
         self.bouton_fermer = Bouton(self.rect.right - 94, self.rect.y + 12, 78, 28, "Fermer", 14)
@@ -250,6 +250,8 @@ class PanneauParametresMusique:
         self.bouton_plus = pygame.Rect(self.rect.x + 312, self.rect.y + 98, 48, 42)
         self.bouton_moins_effets = pygame.Rect(self.rect.x + 70, self.rect.y + 165, 48, 42)
         self.bouton_plus_effets = pygame.Rect(self.rect.x + 312, self.rect.y + 165, 48, 42)
+        self.bouton_x15 = pygame.Rect(self.rect.x + 110, self.rect.y + 225, 110, 36)
+        self.bouton_x2 = pygame.Rect(self.rect.x + 250, self.rect.y + 225, 110, 36)
 
     def ouvrir(self):
         self.visible = True
@@ -268,11 +270,15 @@ class PanneauParametresMusique:
             return "moins_effets"
         if self.bouton_plus_effets.collidepoint(position_clic):
             return "plus_effets"
+        if self.bouton_x15.collidepoint(position_clic):
+            return "vitesse_x15"
+        if self.bouton_x2.collidepoint(position_clic):
+            return "vitesse_x2"
         if self.rect.collidepoint(position_clic):
             return "consomme"
         return None
 
-    def dessiner(self, fenetre, volume, volume_effets):
+    def dessiner(self, fenetre, volume, volume_effets, vitesse_jeu=1.0):
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
@@ -300,3 +306,13 @@ class PanneauParametresMusique:
         pygame.draw.rect(fenetre, (42, 48, 65), barre_effets, border_radius=6)
         rempli_effets = int(barre_effets.width * volume_effets)
         pygame.draw.rect(fenetre, (220, 170, 90), (barre_effets.x, barre_effets.y, rempli_effets, barre_effets.height), border_radius=6)
+        fenetre.blit(self.police_texte.render(f"Vitesse du jeu : x{vitesse_jeu}", True, (220, 230, 255)), (self.rect.x + 120, self.rect.y + 202))
+        pygame.draw.rect(fenetre, (50, 85, 120), self.bouton_x15, border_radius=7)
+        pygame.draw.rect(fenetre, (80, 130, 180), self.bouton_x15, width=1, border_radius=7)
+        pygame.draw.rect(fenetre, (50, 100, 95), self.bouton_x2, border_radius=7)
+        pygame.draw.rect(fenetre, (85, 160, 145), self.bouton_x2, width=1, border_radius=7)
+        police_vitesse = pygame.font.SysFont("consolas", 15, bold=True)
+        txt15 = police_vitesse.render("x1.5", True, (235, 245, 255))
+        txt2 = police_vitesse.render("x2", True, (235, 255, 235))
+        fenetre.blit(txt15, (self.bouton_x15.centerx - txt15.get_width() // 2, self.bouton_x15.centery - txt15.get_height() // 2))
+        fenetre.blit(txt2, (self.bouton_x2.centerx - txt2.get_width() // 2, self.bouton_x2.centery - txt2.get_height() // 2))

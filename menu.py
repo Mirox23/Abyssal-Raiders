@@ -4,18 +4,31 @@ import os
 from setting import largeur_ecran, hauteur_ecran
 from musique import MusiqueManager
 from progression_monde import ProgressionMonde
+from sauvegarde import sauvegarder, charger, lister_sauvegardes, appliquer_sauvegarde, supprimer
 
 
 class Menu:
-    def __init__(self, ecran):
+    def __init__(self, ecran, musique=None):
         self.ecran = ecran
         self.etat = "principal"
         self.minuterie_animation = 0.0
         self.volume_son = 0.5
         self.monde_selectionne = "pirate"
         self.niveau_selectionne = 1
-        self.musique = MusiqueManager(self.volume_son)
-        self.musique.jouer("musique/menu.wav")
+        self.musique = musique or MusiqueManager(self.volume_son)
+        self.musique.regler_volume(self.volume_son)
+        self.musique.garantir("menu")
+
+        # Chargement de l'image de fond du menu (dans le dossier image/)
+        self.image_fond_menu = None
+        for chemin_fond in ["image/fond_menu.png"]:
+            if os.path.exists(chemin_fond):
+                try:
+                    img = pygame.image.load(chemin_fond).convert()
+                    self.image_fond_menu = pygame.transform.scale(img, (largeur_ecran, hauteur_ecran))
+                    break
+                except Exception:
+                    pass
 
         self.police_titre = pygame.font.SysFont("consolas", 52, bold=True)
         self.police_sous_titre = pygame.font.SysFont("consolas", 15)
@@ -54,8 +67,22 @@ class Menu:
         self.bouton_retour = pygame.Rect(largeur_ecran - 160, hauteur_ecran - 60, 140, 40)
         self.bouton_volume_moins = pygame.Rect(360, 230, 56, 44)
         self.bouton_volume_plus = pygame.Rect(584, 230, 56, 44)
+        self.nom_sauvegarde = ""
+        self.message_sauvegarde = ""
+        self.bouton_sauvegarder = pygame.Rect(300, 240, 170, 44)
+        self.bouton_charger = pygame.Rect(500, 240, 170, 44)
+        self.boutons_actions_sauvegardes = []
 
     def gerer_evenement(self, evenement):
+        if self.etat == "sauvegarde" and evenement.type == pygame.KEYDOWN:
+            if evenement.key == pygame.K_BACKSPACE:
+                self.nom_sauvegarde = self.nom_sauvegarde[:-1]
+            elif evenement.key == pygame.K_RETURN and self.nom_sauvegarde.strip():
+                ok = sauvegarder(self.nom_sauvegarde.strip(), self.progression_monde)
+                self.message_sauvegarde = "Sauvegarde creee." if ok else "Erreur de sauvegarde."
+            elif evenement.unicode and evenement.unicode.isprintable() and len(self.nom_sauvegarde) < 24:
+                self.nom_sauvegarde += evenement.unicode
+            return None
         if evenement.type != pygame.MOUSEBUTTONDOWN:
             return None
         clic = evenement.pos
@@ -109,6 +136,29 @@ class Menu:
             if self.bouton_retour.collidepoint(clic):
                 self.etat = "principal"
                 return None
+            if self.bouton_sauvegarder.collidepoint(clic) and self.nom_sauvegarde.strip():
+                ok = sauvegarder(self.nom_sauvegarde.strip(), self.progression_monde)
+                self.message_sauvegarde = "Sauvegarde creee." if ok else "Erreur de sauvegarde."
+                return None
+            if self.bouton_charger.collidepoint(clic) and self.nom_sauvegarde.strip():
+                donnees = charger(self.nom_sauvegarde.strip())
+                if donnees:
+                    appliquer_sauvegarde(donnees, self.progression_monde)
+                    self.message_sauvegarde = "Sauvegarde chargee."
+                else:
+                    self.message_sauvegarde = "Aucune sauvegarde trouvee."
+                return None
+            for action, nom, rect in self.boutons_actions_sauvegardes:
+                if rect.collidepoint(clic):
+                    if action == "charger":
+                        donnees = charger(nom)
+                        if donnees:
+                            appliquer_sauvegarde(donnees, self.progression_monde)
+                            self.message_sauvegarde = f"Sauvegarde '{nom}' chargee."
+                    if action == "supprimer":
+                        supprimer(nom)
+                        self.message_sauvegarde = f"Sauvegarde '{nom}' supprimee."
+                    return None
 
         # Mini-fenêtre carte continent (depuis mondes ou map)
         if self.afficher_carte_continent:
@@ -134,13 +184,23 @@ class Menu:
 
     def mise_a_jour(self, delta_temps):
         self.minuterie_animation += delta_temps
+        self.musique.garantir("menu")
+
+    def relancer_musique_menu(self):
+        # Force la musique du menu apres une partie.
+        self.musique.piste_active = None
+        self.musique.jouer("menu", forcer=True)  # appelle musique/menu.wav ou menu.mp3
 
     def dessiner(self):
-        self.ecran.fill((14, 22, 18))
-        for x in range(0, largeur_ecran, 60):
-            pygame.draw.line(self.ecran, (20, 32, 24), (x, 0), (x, hauteur_ecran))
-        for y in range(0, hauteur_ecran, 60):
-            pygame.draw.line(self.ecran, (20, 32, 24), (0, y), (largeur_ecran, y))
+        # Fond : image si disponible, sinon grille colorée de secours
+        if self.image_fond_menu:
+            self.ecran.blit(self.image_fond_menu, (0, 0))
+        else:
+            self.ecran.fill((14, 22, 18))
+            for x in range(0, largeur_ecran, 60):
+                pygame.draw.line(self.ecran, (20, 32, 24), (x, 0), (x, hauteur_ecran))
+            for y in range(0, hauteur_ecran, 60):
+                pygame.draw.line(self.ecran, (20, 32, 24), (0, y), (largeur_ecran, y))
         if self.etat == "principal":
             self._dessiner_principal()
         elif self.etat == "mondes":
@@ -157,9 +217,9 @@ class Menu:
 
     def _dessiner_principal(self):
         pulse = int(10 * math.sin(self.minuterie_animation * 2.0))
-        titre = self.police_titre.render("ABYSSAL RAIDERS", True, (210 + pulse, 140 + pulse, 35))
+        titre = self.police_titre.render("ABYSSAL RAIDERS", True, (160 + pulse, 90 + pulse, 20))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 110))
-        sous = self.police_sous_titre.render("~ Un tower defense démoniaque ~", True, (90, 110, 95))
+        sous = self.police_sous_titre.render("~ Un tower defense démoniaque ~", True, (0, 0, 0))
         self.ecran.blit(sous, (largeur_ecran // 2 - sous.get_width() // 2, 170))
         souris = pygame.mouse.get_pos()
         for bouton in self.boutons_menu_principal:
@@ -222,8 +282,33 @@ class Menu:
     def _dessiner_sauvegarde(self):
         titre = self.police_titre.render("Sauvegarde", True, (200, 200, 200))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 90))
-        txt = self.police_avertissement.render("Bientôt : sauvegarde de la progression.", True, (200, 220, 205))
-        self.ecran.blit(txt, (largeur_ecran // 2 - txt.get_width() // 2, 200))
+        champ = pygame.Rect(280, 170, 440, 44)
+        pygame.draw.rect(self.ecran, (24, 35, 44), champ, border_radius=8)
+        pygame.draw.rect(self.ecran, (90, 130, 170), champ, width=2, border_radius=8)
+        texte = self.nom_sauvegarde or "Nom de sauvegarde..."
+        self.ecran.blit(self.police_bouton.render(texte, True, (220, 230, 245)), (champ.x + 12, champ.y + 10))
+        pygame.draw.rect(self.ecran, (38, 80, 60), self.bouton_sauvegarder, border_radius=8)
+        pygame.draw.rect(self.ecran, (60, 120, 90), self.bouton_sauvegarder, width=2, border_radius=8)
+        pygame.draw.rect(self.ecran, (60, 70, 110), self.bouton_charger, border_radius=8)
+        pygame.draw.rect(self.ecran, (90, 110, 160), self.bouton_charger, width=2, border_radius=8)
+        self.ecran.blit(self.police_bouton.render("Sauvegarder", True, (230, 245, 230)), (self.bouton_sauvegarder.x + 20, self.bouton_sauvegarder.y + 9))
+        self.ecran.blit(self.police_bouton.render("Charger", True, (230, 240, 255)), (self.bouton_charger.x + 44, self.bouton_charger.y + 9))
+        y = 320
+        self.boutons_actions_sauvegardes = []
+        for item in lister_sauvegardes()[:5]:
+            ligne = f"{item['nom']} - {item['date']}"
+            self.ecran.blit(self.police_avertissement.render(ligne, True, (200, 220, 205)), (280, y))
+            bouton_charger = pygame.Rect(640, y - 2, 90, 20)
+            bouton_supprimer = pygame.Rect(735, y - 2, 100, 20)
+            pygame.draw.rect(self.ecran, (50, 88, 130), bouton_charger, border_radius=5)
+            pygame.draw.rect(self.ecran, (140, 70, 70), bouton_supprimer, border_radius=5)
+            self.ecran.blit(self.police_avertissement.render("Charger", True, (230, 240, 255)), (bouton_charger.x + 14, bouton_charger.y + 2))
+            self.ecran.blit(self.police_avertissement.render("Supprimer", True, (255, 235, 235)), (bouton_supprimer.x + 11, bouton_supprimer.y + 2))
+            self.boutons_actions_sauvegardes.append(("charger", item["nom"], bouton_charger))
+            self.boutons_actions_sauvegardes.append(("supprimer", item["nom"], bouton_supprimer))
+            y += 24
+        if self.message_sauvegarde:
+            self.ecran.blit(self.police_avertissement.render(self.message_sauvegarde, True, (255, 220, 140)), (280, 460))
         self._dessiner_retour()
 
     def _dessiner_carte_continent(self):
@@ -260,11 +345,13 @@ class Menu:
             txt = self.police_avertissement.render(str(numero), True, (255, 255, 255))
             self.ecran.blit(txt, (pos[0] - txt.get_width() // 2, pos[1] - txt.get_height() // 2))
 
-            # petites vagues (3 carrés)
-            base_x = pos[0] - 26
+            # petites vagues (4 carres)
+            base_x = pos[0] - 33
             base_y = pos[1] + 22
-            for v in range(3):
-                pygame.draw.rect(self.ecran, (100, 100, 110), (base_x + v * 14, base_y, 10, 10), border_radius=2)
+            succes = self.progression_monde.succes_niveau(self.continent_carte, numero)
+            for v in range(4):
+                couleur_succes = (0, 180, 80) if succes[v] else (100, 100, 110)
+                pygame.draw.rect(self.ecran, couleur_succes, (base_x + v * 14, base_y, 10, 10), border_radius=2)
 
         # bouton lancer (obligatoire)
         pygame.draw.rect(self.ecran, (38, 70, 48), self.bouton_lancer_niveau, border_radius=8)

@@ -111,7 +111,7 @@ class PanneauAchevement:
         fenetre.blit(voile, (0, 0))
         pygame.draw.rect(fenetre, (22, 24, 38), self.rect, border_radius=12)
         pygame.draw.rect(fenetre, (80, 90, 150), self.rect, width=2, border_radius=12)
-        fenetre.blit(self.police_titre.render("Achèvements", True, (220, 210, 255)), (self.rect.x + 16, self.rect.y + 12))
+        fenetre.blit(self.police_titre.render("Succes", True, (220, 210, 255)), (self.rect.x + 16, self.rect.y + 12))
         self.bouton_fermer.dessiner(fenetre)
         for i, (nom, rect_onglet) in enumerate(zip(self.noms_mondes, self.rects_onglets)):
             actif = i == self.onglet_actif

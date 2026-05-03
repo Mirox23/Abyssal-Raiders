@@ -8,18 +8,17 @@ from sauvegarde import sauvegarder, charger, lister_sauvegardes, appliquer_sauve
 
 
 class Menu:
-    def __init__(self, ecran, musique=None):
+    def __init__(self, ecran):
         self.ecran = ecran
         self.etat = "principal"
         self.minuterie_animation = 0.0
         self.volume_son = 0.5
         self.monde_selectionne = "pirate"
         self.niveau_selectionne = 1
-        self.musique = musique or MusiqueManager(self.volume_son)
-        self.musique.regler_volume(self.volume_son)
-        self.musique.garantir("menu")
+        self.musique = MusiqueManager(self.volume_son)
+        self.musique.jouer("musique/menu.mp3")
 
-        # Chargement de l'image de fond du menu (dans le dossier image/)
+        # Chargement de l'image de fond du menu
         self.image_fond_menu = None
         for chemin_fond in ["image/fond_menu.png"]:
             if os.path.exists(chemin_fond):
@@ -48,15 +47,13 @@ class Menu:
             {"nom": "Monde Pirate", "cle": "pirate", "couleur": (45, 85, 145), "survol": (65, 110, 180), "debloque": True, "rect": pygame.Rect(80, 200, 170, 160)},
             {"nom": "Monde Samourai", "cle": "samourai", "couleur": (145, 45, 45), "survol": (180, 65, 65), "debloque": True, "rect": pygame.Rect(290, 200, 170, 160)},
             {"nom": "Monde Médiéval", "cle": "medieval", "couleur": (45, 110, 55), "survol": (60, 140, 70), "debloque": True, "rect": pygame.Rect(500, 200, 170, 160)},
-            {"nom": "Monde Démoniaque", "cle": "demoniaque", "couleur": (55, 55, 55), "survol": (70, 70, 70), "debloque": False, "rect": pygame.Rect(710, 200, 170, 160)},
+            {"nom": "Monde Démoniaque", "cle": "demoniaque", "couleur": (55, 55, 55), "survol": (70, 70, 70), "debloque": True, "rect": pygame.Rect(710, 200, 170, 160)},
         ]
-        # Ordre : Pirate (bas gauche) → Médiéval (au-dessus) → Samouraï (encore au-dessus) → Démoniaque (en haut)
-        # Le champ "debloque" est recalculé dynamiquement dans _maj_deblocages_map()
         self.points_map_globale = [
-            {"nom": "Pirate",      "pos": (210, 420), "debloque": True,  "cle": "pirate"},
-            {"nom": "Medieval",    "pos": (340, 310), "debloque": False, "cle": "medieval"},
-            {"nom": "Samourai",    "pos": (530, 210), "debloque": False, "cle": "samourai"},
-            {"nom": "Demoniaque",  "pos": (730, 300), "debloque": False, "cle": "demoniaque"},
+            {"nom": "Pirate", "pos": (270, 394), "debloque": True, "cle": "pirate"},
+            {"nom": "Medieval", "pos": (240, 288), "debloque": True, "cle": "medieval"}, 
+            {"nom": "Samouraï", "pos": (560, 290), "debloque": True, "cle": "samourai"},
+            {"nom": "Demoniaque", "pos": (650, 400), "debloque": True, "cle": "demoniaque"},
         ]
         self.monde_map_detail = None
         self.afficher_carte_continent = False
@@ -74,6 +71,11 @@ class Menu:
         self.bouton_sauvegarder = pygame.Rect(300, 240, 170, 44)
         self.bouton_charger = pygame.Rect(500, 240, 170, 44)
         self.boutons_actions_sauvegardes = []
+
+    
+    """Relance la musique du menu quand on revient du jeu.""" 
+    def relancer_musique_menu(self): 
+        self.musique.jouer("musique/menu.mp3")
 
     def gerer_evenement(self, evenement):
         if self.etat == "sauvegarde" and evenement.type == pygame.KEYDOWN:
@@ -120,7 +122,7 @@ class Menu:
                 return None
             for point in self.points_map_globale:
                 if ((clic[0] - point["pos"][0]) ** 2 + (clic[1] - point["pos"][1]) ** 2) ** 0.5 <= 12:
-                    if point["debloque"]:
+                    if point["debloque"] and point["cle"] != "demoniaque":
                         self.continent_carte = point["cle"]
                         self.afficher_carte_continent = True
                         self.niveau_selectionne = 1
@@ -186,13 +188,6 @@ class Menu:
 
     def mise_a_jour(self, delta_temps):
         self.minuterie_animation += delta_temps
-        self.musique.garantir("menu")
-        self._maj_deblocages_map()
-
-    def relancer_musique_menu(self):
-        # Force la musique du menu apres une partie.
-        self.musique.piste_active = None
-        self.musique.jouer("menu", forcer=True)  # appelle musique/menu.wav ou menu.mp3
 
     def dessiner(self):
         # Fond : image si disponible, sinon grille colorée de secours
@@ -220,9 +215,9 @@ class Menu:
 
     def _dessiner_principal(self):
         pulse = int(10 * math.sin(self.minuterie_animation * 2.0))
-        titre = self.police_titre.render("ABYSSAL RAIDERS", True, (160 + pulse, 90 + pulse, 20))
+        titre = self.police_titre.render("ABYSSAL RAIDERS", True, (210 + pulse, 140 + pulse, 35))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 110))
-        sous = self.police_sous_titre.render("~ Un tower defense démoniaque ~", True, (0, 0, 0))
+        sous = self.police_sous_titre.render("~ Un tower defense démoniaque ~", True, (90, 110, 95))
         self.ecran.blit(sous, (largeur_ecran // 2 - sous.get_width() // 2, 170))
         souris = pygame.mouse.get_pos()
         for bouton in self.boutons_menu_principal:
@@ -273,27 +268,13 @@ class Menu:
             self.ecran.blit(self.map_entier, rect_carte.topleft)
         else:
             pygame.draw.rect(self.ecran, (30, 60, 100), rect_carte, border_radius=8)
-        # Mettre à jour les déblocages à chaque dessin (au cas où la progression a changé)
-        self._maj_deblocages_map()
-
         for point in self.points_map_globale:
             px, py = point["pos"]
-            debloque = point["debloque"]
-
-            if debloque:
-                # Continent débloqué : cercle blanc discret + nom blanc
-                pygame.draw.circle(self.ecran, (200, 200, 200), (px, py), 11)
-                pygame.draw.circle(self.ecran, (160, 160, 160), (px, py), 9)
-                coul_txt = (255, 255, 255)
-            else:
-                # Continent verrouillé (brouillard) : cercle gris + nom en noir
-                pygame.draw.circle(self.ecran, (80, 80, 80), (px, py), 11)
-                pygame.draw.circle(self.ecran, (55, 55, 55), (px, py), 9)
-                coul_txt = (20, 20, 20)
-
-            txt = self.police_avertissement.render(point["nom"], True, coul_txt)
-            self.ecran.blit(txt, (px - txt.get_width() // 2, py + 14))
-
+            couleur = (0, 220, 100) if point["debloque"] else (100, 100, 100)
+            pygame.draw.circle(self.ecran, (255, 255, 255), (px, py), 11)
+            pygame.draw.circle(self.ecran, couleur, (px, py), 9)
+            txt = self.police_avertissement.render(point["nom"], True, (255, 255, 255))
+            self.ecran.blit(txt, (px - txt.get_width() // 2, py - 22))
         self._dessiner_retour()
 
     def _dessiner_sauvegarde(self):
@@ -362,11 +343,11 @@ class Menu:
             txt = self.police_avertissement.render(str(numero), True, (255, 255, 255))
             self.ecran.blit(txt, (pos[0] - txt.get_width() // 2, pos[1] - txt.get_height() // 2))
 
-            # petites vagues (4 carres)
-            base_x = pos[0] - 33
+            # petites vagues (3 carrés)
+            base_x = pos[0] - 26
             base_y = pos[1] + 22
             succes = self.progression_monde.succes_niveau(self.continent_carte, numero)
-            for v in range(4):
+            for v in range(3):
                 couleur_succes = (0, 180, 80) if succes[v] else (100, 100, 110)
                 pygame.draw.rect(self.ecran, couleur_succes, (base_x + v * 14, base_y, 10, 10), border_radius=2)
 
@@ -397,30 +378,6 @@ class Menu:
 
     def appliquer_progression(self, progression_monde):
         self.progression_monde = progression_monde
-        self._maj_deblocages_map()
-
-    def _maj_deblocages_map(self):
-        """
-        Recalcule quels continents sont visibles sur la carte.
-        Pirate : toujours visible.
-        Medieval : dès qu'un niveau pirate est conquis.
-        Samourai : dès qu'un niveau medieval est conquis.
-        Demoniaque : dès qu'un niveau samourai est conquis.
-        """
-        pm = self.progression_monde
-        pirate_conquis   = pm and any(pm.est_conquis("pirate",   n) for n in range(1, 9))
-        medieval_conquis = pm and any(pm.est_conquis("medieval", n) for n in range(1, 9))
-        samourai_conquis = pm and any(pm.est_conquis("samourai", n) for n in range(1, 9))
-        for point in self.points_map_globale:
-            cle = point["cle"]
-            if cle == "pirate":
-                point["debloque"] = True
-            elif cle == "medieval":
-                point["debloque"] = bool(pirate_conquis)
-            elif cle == "samourai":
-                point["debloque"] = bool(medieval_conquis)
-            elif cle == "demoniaque":
-                point["debloque"] = bool(samourai_conquis)
 
     def _dessiner_options(self):
         titre = self.police_titre.render("Options du capitaine", True, (205, 205, 225))

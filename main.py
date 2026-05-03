@@ -13,9 +13,7 @@ def main():
     pygame.display.set_caption("Abyssal Raiders")
     horloge = pygame.time.Clock()
 
-    musique_menu = MusiqueManager(0.5)
-    menu = Menu(ecran, musique_menu)
-    menu.relancer_musique_menu()
+    menu = Menu(ecran)
     progression_monde = ProgressionMonde()
     etat_application = "menu"
 
@@ -34,6 +32,7 @@ def main():
                         etat_application = "quitter"
 
             menu.mise_a_jour(delta_temps)
+            ecran.fill((0, 0, 0))
             menu.dessiner()
             pygame.display.flip()
 

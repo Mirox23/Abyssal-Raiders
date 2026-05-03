@@ -59,16 +59,8 @@ CHEMINS_CONTINENTS = {
 
 CHEMIN = list(CHEMINS_CONTINENTS["pirate"])
 
-liste_decors = [
-    {"type": "rock",  "x": 80,  "y": 140, "r": 18},
-    {"type": "rock",  "x": 220, "y": 420, "r": 14},
-    {"type": "grass", "x": 450, "y": 220, "r": 22},
-    {"type": "rock",  "x": 680, "y": 310, "r": 16},
-    {"type": "grass", "x": 720, "y": 460, "r": 20},
-    {"type": "rock",  "x": 300, "y": 80,  "r": 12},
-    {"type": "grass", "x": 500, "y": 470, "r": 18},
-    {"type": "rock",  "x": 850, "y": 180, "r": 15},
-]
+# Plus besoin des décors ronds rock/grass depuis qu'on a des images de fond par continent
+liste_decors = []
 
 
 def configurer_chemin_continent(continent):
@@ -139,12 +131,7 @@ def configurer_chemin_niveau_vague(continent, numero_niveau, numero_vague_dans_n
 
 
 def draw_decor(fenetre, pygame):
-    for decor in liste_decors:
-        if decor["type"] == "rock":
-            couleur = couleur_decor_rock
-        else:
-            couleur = couleur_decor_grass
-        pygame.draw.circle(fenetre, couleur, (decor["x"], decor["y"]), decor["r"])
+    pass  # Les décors viennent maintenant de l'image de fond du continent
 
 
 def draw_path(fenetre, pygame):

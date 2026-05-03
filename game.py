@@ -292,6 +292,12 @@ class Jeu:
             self.demande_retour_map = True
             return
         if action_niveau == "niveau_suivant":
+            # On remet l'arbre à zéro mais on garde un petit bonus permanent
+            niv_avant = self.progression.niveau
+            bonus_deg, bonus_port = self.fenetre_recompenses.reset_pour_nouveau_niveau(niv_avant)
+            self.progression.appliquer_bonus_niveau_precedent(niv_avant)
+            self.talents_appliques["degats_competence"] = bonus_deg
+            self.talents_appliques["ingenieur"] = bonus_port
             self.niveau = min(8, self.niveau + 1)
             self.reinitialiser()
             return

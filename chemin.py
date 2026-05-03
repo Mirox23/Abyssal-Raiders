@@ -135,9 +135,5 @@ def draw_decor(fenetre, pygame):
 
 
 def draw_path(fenetre, pygame):
-    if len(CHEMIN) >= 2:
-        pygame.draw.lines(fenetre, (60, 80, 60), False, CHEMIN, 28)
-        pygame.draw.lines(fenetre, (75, 95, 75), False, CHEMIN, 4)
-
     rect_mur = pygame.Rect(position_mur, 0, largeur_ecran - position_mur, hauteur_ecran)
     fenetre.fill(couleur_wall, rect_mur)

@@ -36,15 +36,11 @@ class Jeu:
 
     def _lancer_musique_continent(self):
         # Musique de jeu normale (vagues simples et modifications)
-        self.musique.jouer("jeu", fondu_ms=700)  # appelle musique/jeu.wav ou jeu.mp3
+        self.musique.jouer("jeu")  # appelle musique/jeu.mp3
 
     def _lancer_musique_boss(self):
         """Musique spéciale pour les vagues de boss uniquement."""
-        if self.niveau <= 6:
-            self.musique.jouer("boss2", fondu_ms=1200)  # niveaux 1 a 6
-        else:
-            self.musique.jouer("boss1", fondu_ms=1200)  # niveaux 7 et 8
-
+        self.musique.jouer("boss")  # appelle musique/boss.mp3
     def _charger_image_fond(self):
         """
         Charge l'image de fond correspondant au continent actif.
@@ -72,7 +68,7 @@ class Jeu:
         self.liste_ennemis, self.liste_tours = [], []
         self.points_de_vie_mur = vie_mur_depart
         self.argent = argent_depart
-        # === NOUVEAU : Bonus de fidélité inter-sessions ===
+        # Bonus de fidélité inter-sessions (augmente avec la progression dans le monde, réinitialisé à 0 si pas de progression fournie)
         if self.progression_monde:
             self.argent += self.progression_monde.bonus_fidelite_argent(self.continent, self.niveau)
             self.points_de_vie_mur += self.progression_monde.bonus_fidelite_vie(self.continent, self.niveau)
@@ -102,7 +98,7 @@ class Jeu:
         self.mode_placement_actif, self.type_tour_a_placer = False, None
         self.tour_actuellement_selectionnee = None
         self.gestionnaire_vague = GestionnaireVague()
-        # 1 niveau = 4 vagues, avec le boss a la 4e vague.
+        # 1 niveau = 3 vagues + 1 vague boss finale (vague 4 = boss)
         self.vague_locale = 0
         self.vague_max = 4
         self.en_attente_lancement_vague = True
@@ -292,12 +288,6 @@ class Jeu:
             self.demande_retour_map = True
             return
         if action_niveau == "niveau_suivant":
-            # On remet l'arbre à zéro mais on garde un petit bonus permanent
-            niv_avant = self.progression.niveau
-            bonus_deg, bonus_port = self.fenetre_recompenses.reset_pour_nouveau_niveau(niv_avant)
-            self.progression.appliquer_bonus_niveau_precedent(niv_avant)
-            self.talents_appliques["degats_competence"] = bonus_deg
-            self.talents_appliques["ingenieur"] = bonus_port
             self.niveau = min(8, self.niveau + 1)
             self.reinitialiser()
             return
@@ -801,10 +791,10 @@ class Jeu:
 
     def _jouer_son_effet(self, type_effet):
         sons = {
-            "tir": "musique/effets/tir.wav", # ne fonctionne pas sur tous les systèmes, à cause de la polyphonie limitée de pygame.mixer. À revoir.
-            "explosion": "musique/effets/explosion.wav",
-            "mur": "musique/effets/mur.wav",
-            "clic": "musique/effets/clic.wav",
+            "tir": "musique/effets/tir.mp3", # ne fonctionne pas sur tous les systèmes, à cause de la polyphonie limitée de pygame.mixer. À revoir.
+            "explosion": "musique/effets/explosion.mp3",
+            "mur": "musique/effets/mur.mp3",
+            "clic": "musique/effets/clic.mp3",
         }
         chemin = sons.get(type_effet)
         if chemin:
@@ -970,7 +960,7 @@ class Jeu:
         rect = pygame.Rect(largeur_ecran // 2 - 280, hauteur_ecran // 2 - 120, 560, 220)
         pygame.draw.rect(self.fenetre, (35, 30, 30), rect, border_radius=12)
         pygame.draw.rect(self.fenetre, (190, 120, 90), rect, width=2, border_radius=12)
-        titre = pygame.font.SysFont("consolas", 24, bold=True).render("Vous n'avez pas reussi a finir cette vague", True, (255, 210, 180))
+        titre = pygame.font.SysFont("consolas", 24, bold=True).render("Vous n'avez pas réussi a finir cette vague", True, (255, 210, 180))
         self.fenetre.blit(titre, (rect.centerx - titre.get_width() // 2, rect.y + 30))
         pygame.draw.rect(self.fenetre, (90, 120, 70), self.bouton_payer_passer, border_radius=8)
         pygame.draw.rect(self.fenetre, (170, 220, 140), self.bouton_payer_passer, width=1, border_radius=8)

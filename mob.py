@@ -331,7 +331,7 @@ class MobBoss(Mob):
     couleur_mob = (200, 30, 200)
     vie_de_base = 70
     vitesse_de_base = 55.0
-    taille_mob = 22
+    taille_mob = 34
     recompense_mort = 20
     xp_mort = 15
     degats_mur = 5
@@ -346,6 +346,10 @@ class MobBoss(Mob):
         self.recompense = self.recompense_mort
         self.xp = self.xp_mort
         self._pulse = 0.0  # animation halo
+
+        # Boss visuellement plus grand que les autres mobs.
+        if self.image is not None:
+            self.image = pygame.transform.scale(self.image, (72, 72))
 
     def avancer(self, delta_temps, chemin):
         self._pulse += delta_temps * 3.0

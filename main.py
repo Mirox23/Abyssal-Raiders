@@ -4,6 +4,7 @@ from menu import Menu
 from game import Jeu
 from musique import MusiqueManager
 from progression_monde import ProgressionMonde
+from sauvegarde import sauvegarder
 
 
 def main():
@@ -23,6 +24,7 @@ def main():
         if etat_application == "menu":
             for evenement in pygame.event.get():
                 if evenement.type == pygame.QUIT: 
+                    sauvegarder("autosave", progression_monde)
                     etat_application = "quitter"
                 else:
                     resultat = menu.gerer_evenement(evenement)
@@ -39,12 +41,17 @@ def main():
         elif etat_application == "jeu":
             jeu = Jeu(menu.monde_selectionne, menu.volume_son, menu.niveau_selectionne, progression_monde)
             resultat = jeu.lancer()
+            if resultat.get("quitter"):
+                sauvegarder("autosave", progression_monde)
+                etat_application = "quitter"
+                continue
             menu.relancer_musique_menu()
             menu.appliquer_progression(progression_monde)
             if resultat.get("ouvrir_map"):
                 menu.etat = "map"
             etat_application = "menu"
 
+    sauvegarder("autosave", progression_monde)
     pygame.quit()
 
 

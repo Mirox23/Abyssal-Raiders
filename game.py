@@ -20,8 +20,8 @@ from tutoriel import GestionnaireTutoriel, etape_ameliorer_tour, etape_lancer_va
 class Jeu:
     def __init__(self, continent="pirate", volume_musique=0.5, niveau=1, progression_monde=None):
         pygame.init()
-        # Mode plein écran en gardant la résolution logique du projet.
-        self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran), pygame.FULLSCREEN)
+        # Fenêtre classique (avec les boutons système Windows).
+        self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran), pygame.RESIZABLE)
         pygame.display.set_caption("Abyssal Raiders")
         self.horloge = pygame.time.Clock()
         self.police_hud = pygame.font.SysFont("consolas", 22)
@@ -161,14 +161,19 @@ class Jeu:
 
     def lancer(self):
         jeu_en_cours = True
+        fermeture_par_croix = False
         while jeu_en_cours:
             delta_temps = (self.horloge.tick(FPS) / 1000) * self.vitesse_jeu
             for evenement in pygame.event.get():
                 if evenement.type == pygame.QUIT:
+                    fermeture_par_croix = True
                     jeu_en_cours = False
                 elif evenement.type == pygame.MOUSEBUTTONDOWN:
                     self.gerer_clic(evenement.pos)
                 elif evenement.type == pygame.KEYDOWN:
+                    if evenement.key == pygame.K_F11:
+                        pygame.display.toggle_fullscreen()
+                        continue
                     self.gerer_competence(evenement.key)
                     self.gerer_easter_eggs(evenement.key)
             self.mettre_a_jour(delta_temps)
@@ -181,6 +186,7 @@ class Jeu:
             "niveau": self.niveau,
             "niveau_conquis": self.progression_monde.est_conquis(self.continent, self.niveau) if self.progression_monde else False,
             "ouvrir_map": self.demande_retour_map,
+            "quitter": fermeture_par_croix,
         }
 
     def gerer_competence(self, touche):

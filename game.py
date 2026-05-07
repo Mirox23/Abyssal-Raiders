@@ -1,5 +1,6 @@
 import os
 import pygame
+import unicodedata
 from setting import *
 from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_niveau_vague
 from mob import MobKamikaze, MobSoigneur, MobBoss, MobRapide, definir_continent_mob
@@ -31,6 +32,7 @@ class Jeu:
         self.volume_musique = volume_musique
         self.niveau = niveau
         self.progression_monde = progression_monde
+        self.repertoire_jeu = os.path.dirname(os.path.abspath(__file__))
         self.musique = MusiqueManager(self.volume_musique)
         self._lancer_musique_continent()
         self.image_fond = self._charger_image_fond()  # fond spécifique au continent
@@ -48,15 +50,16 @@ class Jeu:
         Charge l'image de fond correspondant au continent actif.
         Si l'image n'existe pas, retourne None (on utilisera la couleur unie de secours).
         """
-        # Chemins possibles pour chaque continent
+        continent = self._normaliser_continent(self.continent)
         chemins_fond = {
             "pirate": ["image/pirates/fond.png"],
             "samourai": ["image/samourai/fond.png"],
             "medieval": ["image/medieval/fond.png"],
-            "demoniaque": ["image/demoniaque/fond.png"],
+            "demoniaque": ["image/demoniaque/fond.png", "image/démoniaque/fond.png"],
         }
-        essais = chemins_fond.get(self.continent, [])
-        for chemin in essais:
+        essais = chemins_fond.get(continent, chemins_fond["pirate"])
+        for chemin_relatif in essais:
+            chemin = os.path.join(self.repertoire_jeu, chemin_relatif.replace("/", os.sep))
             if os.path.exists(chemin):
                 try:
                     img = pygame.image.load(chemin).convert()
@@ -65,6 +68,16 @@ class Jeu:
                 except Exception:
                     pass
         return None  # pas d'image trouvée, on utilisera la couleur unie
+
+    def _normaliser_continent(self, nom_continent):
+        if not nom_continent:
+            return "pirate"
+        texte_nfd = unicodedata.normalize("NFKD", nom_continent)
+        caracteres = []
+        for caractere in texte_nfd:
+            if not unicodedata.combining(caractere):
+                caracteres.append(caractere)
+        return "".join(caracteres).lower()
 
     def reinitialiser(self):
         self.liste_ennemis, self.liste_tours = [], []
@@ -248,6 +261,7 @@ class Jeu:
         if self.echec_vague:
             if self.bouton_payer_passer.collidepoint(clic) and self.argent >= 100:
                 self.argent -= 100
+                self._jouer_son_effet("eat")
                 self.echec_vague = False
                 if self.vague_locale < self.vague_max:
                     self.fenetre_marche.ouvrir()
@@ -451,6 +465,7 @@ class Jeu:
         if peut:
             self.liste_tours.append(self.type_tour_a_placer(clic))
             self.argent -= cout
+            self._jouer_son_effet("posage_tour")
             for tour in self.liste_tours:
                 if tour.type_tour == "Support":
                     tour.appliquer_buff(self.liste_tours)
@@ -567,7 +582,6 @@ class Jeu:
                     self.mobs_tues_vague += 1
                     # Particules de mort enrichies (5 éclats colorés) 
                     self._ajouter_particules_mort(ennemi.x, ennemi.y, ennemi.couleur)
-                    self._jouer_son_effet("explosion")
                     # Boss : spawner 3 mobs normaux à sa mort 
                     if isinstance(ennemi, MobBoss):
                         for _ in range(3):
@@ -586,6 +600,7 @@ class Jeu:
                     if self.points_de_vie_mur <= 0:
                         self.points_de_vie_mur = 0
                         self.est_mort = True
+                        self._jouer_son_effet("mort")
                         self.en_attente_lancement_vague = True
                         self.gestionnaire_vague.vague_en_cours = False
                         self.fenetre_marche.fermer()
@@ -594,6 +609,7 @@ class Jeu:
                     if self.points_de_vie_mur <= 0:
                         self.points_de_vie_mur = 0
                         self.est_mort = True
+                        self._jouer_son_effet("mort")
                         self.en_attente_lancement_vague = True
                         self.gestionnaire_vague.vague_en_cours = False
                         self.fenetre_marche.fermer()
@@ -601,7 +617,7 @@ class Jeu:
                         break
                     self._ajouter_effet((position_mur, ennemi.y), (255, 120, 80), 28 + degats * 4, 0.5)
                     self._ajouter_effet((position_mur, ennemi.y), (255, 220, 180), 16, 0.25)
-                    self._jouer_son_effet("mur")
+                    self._jouer_son_effet("explosion_fin")
                     # Screen shake quand le mur est touché : plus fort si les dégâts sont importants
                     self._shake_timer = 0.25 + degats * 0.05
                     self._shake_amplitude = 4 + degats
@@ -651,6 +667,7 @@ class Jeu:
                     if self.progression_monde:
                         self.progression_monde.marquer_conquis(self.continent, self.niveau)
                     self.panneau_achevement.marquer_niveau_conquis(self.continent, self.niveau)
+                    self._jouer_son_effet("victoire")
                     # Enregistrer le score total dans le leaderboard local 
                     enregistrer_score(self.continent, self.niveau, self.score_total_partie, self.progression.niveau)
                     self.fenetre_niveau_conquis.ouvrir()
@@ -666,7 +683,8 @@ class Jeu:
             tour.mettre_a_jour(delta_temps, self.liste_ennemis)
             if len(tour.liste_projectiles) > nb_projectiles_avant:
                 self._ajouter_effet((tour.x, tour.y), (255, 230, 120), 10, 0.12)
-                self._jouer_son_effet("tir")
+                if tour.type_tour == "Canonnier":
+                    self._jouer_son_effet("tir")
             tour.cadence = c0
         for tour in self.liste_tours:
             if tour.type_tour == "Support":
@@ -837,16 +855,25 @@ class Jeu:
 
     def _jouer_son_effet(self, type_effet):
         sons = {
-            "tir": "musique/effets/tir.mp3", # ne fonctionne pas sur tous les systèmes, à cause de la polyphonie limitée de pygame.mixer. À revoir.
-            "explosion": "musique/effets/explosion.mp3",
-            "mur": "musique/effets/mur.mp3",
-            "clic": "musique/effets/clic.mp3",
-            "construction" : "musique/effets/construction.mp3",
-            "amelioration" : "musique/effets/amelioration.mp3",
-            "erreur" : "musique/effets/erreur.mp3",
-            "selection" : "musique/effets/selection.mp3",
+            "tir": "musique/effets/tir.mp3",
+            "eat": "musique/effets/eat.mp3",
+            "explosion": "musique/effets/explosion_fin.mp3",
+            "explosion_fin": "musique/effets/explosion_fin.mp3",
+            "posage_tour": "musique/effets/posage_tour.mp3",
+            "mort": "musique/effets/mort",
+            "victoire": "musique/effets/victoire",
         }
-        chemin = sons.get(type_effet)
+        chemin = sons.get(type_effet, "")
+        if chemin and not os.path.splitext(chemin)[1]:
+            extensions = [".mp3", ".wav", ".ogg", ".mkv"]
+            chemin_detecte = ""
+            for extension in extensions:
+                chemin_test = chemin + extension
+                chemin_absolu = os.path.join(self.repertoire_jeu, chemin_test.replace("/", os.sep))
+                if os.path.exists(chemin_absolu):
+                    chemin_detecte = chemin_test
+                    break
+            chemin = chemin_detecte
         if chemin:
             self.musique.jouer_effet(chemin)
 

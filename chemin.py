@@ -1,10 +1,10 @@
 from setting import (
     largeur_ecran, hauteur_ecran,
-    position_mur,
-    couleur_decor_rock, couleur_decor_grass, couleur_wall,
+    position_mur, couleur_wall,
 )
 import importlib.util
 import os
+import unicodedata
 
 CHEMINS_CONTINENTS = {
     "pirate": [
@@ -68,8 +68,20 @@ def configurer_chemin_continent(continent):
     Met à jour le chemin actif selon le continent choisi.
     On modifie la liste en place pour garder les références déjà importées.
     """
-    chemin_continent = CHEMINS_CONTINENTS.get(continent, CHEMINS_CONTINENTS["pirate"])
+    cle_continent = _normaliser_continent(continent)
+    chemin_continent = CHEMINS_CONTINENTS.get(cle_continent, CHEMINS_CONTINENTS["pirate"])
     CHEMIN[:] = chemin_continent
+
+
+def _normaliser_continent(continent):
+    if not continent:
+        return "pirate"
+    texte_nfd = unicodedata.normalize("NFKD", continent)
+    caracteres = []
+    for caractere in texte_nfd:
+        if not unicodedata.combining(caractere):
+            caracteres.append(caractere)
+    return "".join(caracteres).lower()
 
 
 def _charger_chemins_niveau(numero_niveau):
@@ -120,6 +132,7 @@ def configurer_chemin_niveau_vague(continent, numero_niveau, numero_vague_dans_n
     Configure le chemin actif pour une vague donnée.
     Chaque niveau contient 4 vagues avec 4 chemins dédiés.
     """
+    continent = _normaliser_continent(continent)
     chemins_vagues = _charger_chemins_niveau(numero_niveau)
     if not chemins_vagues:
         configurer_chemin_continent(continent)

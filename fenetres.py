@@ -388,12 +388,12 @@ class FenetreMarcheVague:
 # Tableau des meilleurs scores
 
 class FenetreScores:
-    """Affiche le top 5 global + meilleurs temps par vague."""
+    """Affiche le nouveau système de scores : top runs + records de vague."""
 
     def __init__(self):
         self.visible = False
         self.continent = "pirate"
-        self.rect = pygame.Rect(largeur_ecran // 2 - 280, hauteur_ecran // 2 - 200, 560, 400)
+        self.rect = pygame.Rect(largeur_ecran // 2 - 320, hauteur_ecran // 2 - 220, 640, 440)
         self.police_titre = pygame.font.SysFont("consolas", 22, bold=True)
         self.police_ligne = pygame.font.SysFont("consolas", 15)
         self.police_petit = pygame.font.SysFont("consolas", 12)
@@ -429,45 +429,66 @@ class FenetreScores:
         pygame.draw.rect(fenetre, (90, 120, 180), self.rect, width=2, border_radius=12)
 
         nom_continent = self.continent.capitalize()
-        titre = self.police_titre.render(f"🏆 Meilleurs scores — {nom_continent}", True, (220, 200, 80))
+        titre = self.police_titre.render(f"Meilleurs scores - {nom_continent}", True, (220, 200, 80))
         fenetre.blit(titre, (self.rect.centerx - titre.get_width() // 2, self.rect.y + 14))
         self.bouton_fermer.dessiner(fenetre)
 
-        # En-têtes
-        entetes_y = self.rect.y + 58
-        fenetre.blit(self.police_petit.render("#", True, (160, 160, 200)), (self.rect.x + 30, entetes_y))
-        fenetre.blit(self.police_petit.render("Score", True, (160, 160, 200)), (self.rect.x + 80, entetes_y))
-        fenetre.blit(self.police_petit.render("Niveau", True, (160, 160, 200)), (self.rect.x + 220, entetes_y))
-        fenetre.blit(self.police_petit.render("Niv. joueur", True, (160, 160, 200)), (self.rect.x + 340, entetes_y))
-        pygame.draw.line(fenetre, (70, 80, 120), (self.rect.x + 20, entetes_y + 18), (self.rect.right - 20, entetes_y + 18))
+        rect_top = pygame.Rect(self.rect.x + 20, self.rect.y + 58, self.rect.width - 40, 240)
+        rect_vagues = pygame.Rect(self.rect.x + 20, rect_top.bottom + 12, self.rect.width - 40, 108)
+
+        pygame.draw.rect(fenetre, (26, 30, 48), rect_top, border_radius=8)
+        pygame.draw.rect(fenetre, (64, 82, 128), rect_top, width=1, border_radius=8)
+        pygame.draw.rect(fenetre, (24, 28, 44), rect_vagues, border_radius=8)
+        pygame.draw.rect(fenetre, (64, 82, 128), rect_vagues, width=1, border_radius=8)
+
+        entetes_y = rect_top.y + 10
+        fenetre.blit(self.police_petit.render("Rang", True, (160, 160, 200)), (rect_top.x + 16, entetes_y))
+        fenetre.blit(self.police_petit.render("Score", True, (160, 160, 200)), (rect_top.x + 90, entetes_y))
+        fenetre.blit(self.police_petit.render("Niveau", True, (160, 160, 200)), (rect_top.x + 210, entetes_y))
+        fenetre.blit(self.police_petit.render("Niveau joueur", True, (160, 160, 200)), (rect_top.x + 350, entetes_y))
+        pygame.draw.line(fenetre, (70, 80, 120), (rect_top.x + 12, entetes_y + 18), (rect_top.right - 12, entetes_y + 18))
 
         if not self.scores:
-            msg = self.police_ligne.render("Aucun score enregistré pour ce continent.", True, (160, 160, 180))
-            fenetre.blit(msg, (self.rect.centerx - msg.get_width() // 2, self.rect.centery - 10))
+            msg = self.police_ligne.render("Aucun score enregistre pour ce continent.", True, (160, 160, 180))
+            fenetre.blit(msg, (rect_top.centerx - msg.get_width() // 2, rect_top.centery - 10))
         else:
-            medailles = ["🥇", "🥈", "🥉", "4.", "5."]
-            for i, entree in enumerate(self.scores[:5]):
-                y_ligne = entetes_y + 30 + i * 44
-                couleur = (255, 220, 80) if i == 0 else (200, 200, 215)
-                fond_rect = pygame.Rect(self.rect.x + 18, y_ligne - 4, self.rect.width - 36, 38)
-                pygame.draw.rect(fenetre, (30, 36, 55) if i % 2 == 0 else (26, 30, 46), fond_rect, border_radius=6)
-                medaille = medailles[i] if i < 3 else medailles[i]
-                fenetre.blit(self.police_ligne.render(medaille, True, couleur), (self.rect.x + 25, y_ligne + 6))
-                fenetre.blit(self.police_ligne.render(str(entree["score"]), True, couleur), (self.rect.x + 75, y_ligne + 6))
-                fenetre.blit(self.police_ligne.render(f"Niv. {entree['niveau']}", True, (200, 210, 230)), (self.rect.x + 215, y_ligne + 6))
-                fenetre.blit(self.police_ligne.render(f"Joueur Niv. {entree['niveau_joueur']}", True, (180, 195, 215)), (self.rect.x + 335, y_ligne + 6))
+            medailles = ["1", "2", "3", "4", "5"]
+            for index_score, entree in enumerate(self.scores[:5]):
+                y_ligne = entetes_y + 30 + index_score * 38
+                fond_ligne = pygame.Rect(rect_top.x + 10, y_ligne - 4, rect_top.width - 20, 32)
+                if index_score % 2 == 0:
+                    couleur_fond = (32, 38, 58)
+                else:
+                    couleur_fond = (28, 34, 52)
+                pygame.draw.rect(fenetre, couleur_fond, fond_ligne, border_radius=5)
 
-        titre_vague = self.police_petit.render("Meilleurs temps par vague :", True, (200, 200, 220))
-        fenetre.blit(titre_vague, (self.rect.x + 24, self.rect.bottom - 110))
+                if index_score == 0:
+                    couleur_ligne = (255, 220, 80)
+                else:
+                    couleur_ligne = (205, 210, 225)
+
+                fenetre.blit(self.police_ligne.render(medailles[index_score], True, couleur_ligne), (rect_top.x + 20, y_ligne + 4))
+                fenetre.blit(self.police_ligne.render(str(entree["score"]), True, couleur_ligne), (rect_top.x + 90, y_ligne + 4))
+                fenetre.blit(self.police_ligne.render(f"Niv. {entree['niveau']}", True, (200, 210, 230)), (rect_top.x + 210, y_ligne + 4))
+                fenetre.blit(self.police_ligne.render(f"Niv. {entree['niveau_joueur']}", True, (180, 195, 215)), (rect_top.x + 350, y_ligne + 4))
+
+        titre_vagues = self.police_petit.render("Records de temps par vague", True, (200, 200, 220))
+        fenetre.blit(titre_vagues, (rect_vagues.x + 12, rect_vagues.y + 8))
+
         for numero_vague in range(1, 5):
-            infos = self.meilleurs_par_vague.get(str(numero_vague))
-            if infos:
-                texte = f"Vague {numero_vague} : {infos['temps']} s - {infos.get('nom_joueur', 'Joueur')}"
+            infos_vague = self.meilleurs_par_vague.get(str(numero_vague))
+            if infos_vague:
+                texte = f"Vague {numero_vague} : {infos_vague['temps']} s - {infos_vague.get('nom_joueur', 'Joueur')}"
                 couleur = (180, 230, 180)
             else:
                 texte = f"Vague {numero_vague} : aucun score"
                 couleur = (145, 155, 180)
-            fenetre.blit(
-                self.police_petit.render(texte, True, couleur),
-                (self.rect.x + 26 + ((numero_vague - 1) % 2) * 260, self.rect.bottom - 88 + ((numero_vague - 1) // 2) * 22),
-            )
+
+            if numero_vague <= 2:
+                position_x = rect_vagues.x + 14
+                position_y = rect_vagues.y + 34 + (numero_vague - 1) * 24
+            else:
+                position_x = rect_vagues.x + rect_vagues.width // 2 + 6
+                position_y = rect_vagues.y + 34 + (numero_vague - 3) * 24
+
+            fenetre.blit(self.police_petit.render(texte, True, couleur), (position_x, position_y))

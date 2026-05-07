@@ -2,12 +2,59 @@ import pygame
 import math
 import random
 import os
+import unicodedata
 
 CONTINENT_MOB_ACTIF = "pirate"
+REPERTOIRE_JEU = os.path.dirname(os.path.abspath(__file__))
+DOSSIER_IMAGE = os.path.join(REPERTOIRE_JEU, "image")
+
+NOMS_SPRITES_PAR_CONTINENT = {
+    "pirate": {
+        "base": ["Roi_des_pirates.png"],
+        "rapide": ["Fantome_pirate.png"],
+        "tank": ["Triton.png"],
+        "kamikaze": ["squelette_pirate.png"],
+        "soigneur": ["Requin.png", "requin.png"],
+    },
+    "samourai": {
+        "base": ["Oni.png"],
+        "rapide": ["loup spirituel.png"],
+        "tank": ["Sprite boss monde Samurai 1.png"],
+        "kamikaze": ["marionette.png"],
+        "soigneur": ["Serpent.png"],
+    },
+    "medieval": {
+        "base": ["Chevalier corrompu.png"],
+        "rapide": ["bandit masqué.png"],
+        "tank": ["Chevalier sans tete.png"],
+        "kamikaze": ["Archer maléfique.png"],
+        "soigneur": ["Paysan possede.png"],
+    },
+    "demoniaque": {
+        "base": ["Demon fantome.png"],
+        "rapide": ["Demon chauve souris.png"],
+        "tank": ["Demon lourd.png"],
+        "kamikaze": ["Demon sorcier.png"],
+        "soigneur": ["Sprite boss monde volcanique 1.png"],
+    },
+}
+
+
+def _normaliser_texte(texte):
+    texte_nfd = unicodedata.normalize("NFKD", texte)
+    caracteres = []
+    for caractere in texte_nfd:
+        if not unicodedata.combining(caractere):
+            caracteres.append(caractere)
+    return "".join(caracteres).lower()
 
 
 def definir_continent_mob(continent):
-    CONTINENT = continent or "pirate"
+    continent_brut = continent or "pirate"
+    continent_normalise = _normaliser_texte(continent_brut)
+    if continent_normalise not in NOMS_SPRITES_PAR_CONTINENT:
+        continent_normalise = "pirate"
+    CONTINENT = continent_normalise
     globals()["CONTINENT_MOB_ACTIF"] = CONTINENT
     Mob.image_base = None
     MobRapide.image_rapide = None
@@ -16,15 +63,36 @@ def definir_continent_mob(continent):
     MobSoigneur.image_soigneur = None
 
 
-def _charger_image_continent(nom_fichier, taille):
-    essais = [
-        f"image/{CONTINENT_MOB_ACTIF}/{nom_fichier}",
-        f"image/{CONTINENT_MOB_ACTIF}s/{nom_fichier}",
-    ]
-    for chemin in essais:
-        if os.path.exists(chemin):
-            image = pygame.image.load(chemin).convert_alpha()
-            return pygame.transform.scale(image, taille)
+def _dossiers_possibles_continent():
+    dossiers = []
+    dossier_principal = CONTINENT_MOB_ACTIF
+    dossiers.append(os.path.join(DOSSIER_IMAGE, dossier_principal))
+    dossiers.append(os.path.join(DOSSIER_IMAGE, dossier_principal + "s"))
+    if CONTINENT_MOB_ACTIF == "demoniaque":
+        dossiers.append(os.path.join(DOSSIER_IMAGE, "démoniaque"))
+    return dossiers
+
+
+def _charger_image_continent(type_sprite, taille):
+    candidats = []
+    noms_par_type = NOMS_SPRITES_PAR_CONTINENT.get(CONTINENT_MOB_ACTIF, {})
+    if type_sprite in noms_par_type:
+        for nom in noms_par_type[type_sprite]:
+            candidats.append(nom)
+    if CONTINENT_MOB_ACTIF != "pirate":
+        for nom in NOMS_SPRITES_PAR_CONTINENT["pirate"].get(type_sprite, []):
+            candidats.append(nom)
+
+    for dossier in _dossiers_possibles_continent():
+        for nom_fichier in candidats:
+            chemin = os.path.join(dossier, nom_fichier)
+            if os.path.exists(chemin):
+                try:
+                    image = pygame.image.load(chemin).convert_alpha()
+                    return pygame.transform.scale(image, taille)
+                except Exception:
+                    continue
+
     image = pygame.Surface(taille, pygame.SRCALPHA)
     pygame.draw.circle(image, (170, 170, 190), (taille[0] // 2, taille[1] // 2), min(taille) // 2)
     return image
@@ -67,7 +135,7 @@ class Mob:
         
         # image spécifique pour le mob de base seulement
         if Mob.image_base is None:
-            Mob.image_base = _charger_image_continent("Roi_des_pirates.png", (32, 32))
+            Mob.image_base = _charger_image_continent("base", (32, 32))
 
         self.image = Mob.image_base
 
@@ -196,7 +264,7 @@ class MobRapide(Mob):
         self.xp = self.xp_mort
         
         if MobRapide.image_rapide is None:
-            MobRapide.image_rapide = _charger_image_continent("Fantome_pirate.png", (28, 28))
+            MobRapide.image_rapide = _charger_image_continent("rapide", (28, 28))
 
         self.image = MobRapide.image_rapide
 
@@ -225,7 +293,7 @@ class MobTank(Mob):
         self.xp = self.xp_mort
         
         if MobTank.image_tank is None:
-            MobTank.image_tank = _charger_image_continent("Triton.png", (36, 36))
+            MobTank.image_tank = _charger_image_continent("tank", (36, 36))
 
         self.image = MobTank.image_tank
 
@@ -257,7 +325,7 @@ class MobKamikaze(Mob):
         self.xp = self.xp_mort
         
         if MobKamikaze.image_kamikaze is None:
-            MobKamikaze.image_kamikaze = _charger_image_continent("squelette_pirate.png", (28, 28))
+            MobKamikaze.image_kamikaze = _charger_image_continent("kamikaze", (28, 28))
 
         self.image = MobKamikaze.image_kamikaze
 
@@ -292,7 +360,7 @@ class MobSoigneur(Mob):
         self.minuterie_soin = 0.0
         
         if MobSoigneur.image_soigneur is None:
-            MobSoigneur.image_soigneur = _charger_image_continent("requin.png", (28, 28))
+            MobSoigneur.image_soigneur = _charger_image_continent("soigneur", (28, 28))
 
         self.image = MobSoigneur.image_soigneur
 

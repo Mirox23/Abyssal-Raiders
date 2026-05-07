@@ -40,7 +40,12 @@ class FenetreRecompenses:
         On affiche les 8 niveaux qui entourent le niveau courant.
         """
         debut = max(1, niveau_joueur - 2)
-        return [(debut + i, self._calcul_recompense(debut + i)) for i in range(8)]
+        lignes = []
+        for i in range(8):
+            numero_niveau = debut + i
+            montant = self._calcul_recompense(numero_niveau)
+            lignes.append((numero_niveau, montant))
+        return lignes
 
     def ouvrir(self):
         self.visible = True
@@ -178,7 +183,9 @@ class FenetreArbreTalents:
         self.bouton_fermer = Bouton(self.rect.right - 100, self.rect.y + 12, 84, 30, "Fermer", 14)
 
         # État des talents : niveau actuel pour chaque talent
-        self.talents = {cle: {"niveau": 0, "max": d["max"]} for cle, d in self.TALENTS.items()}
+        self.talents = {}
+        for cle, donnees_talent in self.TALENTS.items():
+            self.talents[cle] = {"niveau": 0, "max": donnees_talent["max"]}
 
         # Icônes chargées une seule fois
         self._icones = {}

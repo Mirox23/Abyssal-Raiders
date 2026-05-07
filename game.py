@@ -500,8 +500,6 @@ class Jeu:
         import math as _math
         if self.est_mort or self.echec_vague:
             return
-        if self.est_mort or self.echec_vague:
-            return
         self.progression.mettre_a_jour(delta_temps)
         self.gestionnaire_competences.mettre_a_jour(delta_temps)
         # Mise a jour du tutoriel
@@ -670,7 +668,10 @@ class Jeu:
         draw_path(self.fenetre, pygame)
 
         # Alarme visuelle : flash rouge sur le bord droit quand ennemi proche du mur 
-        mobs_danger = [e for e in self.liste_ennemis if e.x >= position_mur - 200]
+        mobs_danger = []
+        for ennemi in self.liste_ennemis:
+            if ennemi.x >= position_mur - 200:
+                mobs_danger.append(ennemi)
         if mobs_danger:
             alpha = int(55 + 45 * _math.sin(self._alarme_clignotement * 7))
             alpha = max(0, min(140, alpha))
@@ -865,7 +866,10 @@ class Jeu:
             self._ajouter_effet((position_mur - 20, hauteur_ecran // 2), (80, 220, 120), 40, 0.4)
         elif id_carte == "tour_gratuite":
             # Rend toutes les tours gratuites pour le prochain placement
-            self.couts_tours = {k: 0 for k in self.couts_tours}
+            nouveaux_couts = {}
+            for cle_tour in self.couts_tours:
+                nouveaux_couts[cle_tour] = 0
+            self.couts_tours = nouveaux_couts
         elif id_carte == "cadence_bonus":
             # Améliore la cadence de toutes les tours de 15%
             for tour in self.liste_tours:
@@ -929,44 +933,6 @@ class Jeu:
         pygame.draw.rect(self.fenetre, (35, 30, 30), rect, border_radius=12)
         pygame.draw.rect(self.fenetre, (190, 120, 90), rect, width=2, border_radius=12)
         titre = pygame.font.SysFont("consolas", 24, bold=True).render("Vous n'avez pas reussi a finir cette vague", True, (255, 210, 180))
-        self.fenetre.blit(titre, (rect.centerx - titre.get_width() // 2, rect.y + 30))
-        pygame.draw.rect(self.fenetre, (90, 120, 70), self.bouton_payer_passer, border_radius=8)
-        pygame.draw.rect(self.fenetre, (170, 220, 140), self.bouton_payer_passer, width=1, border_radius=8)
-        pygame.draw.rect(self.fenetre, (90, 70, 70), self.bouton_relancer_vague, border_radius=8)
-        pygame.draw.rect(self.fenetre, (200, 150, 150), self.bouton_relancer_vague, width=1, border_radius=8)
-        t1 = pygame.font.SysFont("consolas", 16, bold=True).render("Payer 100 pour passer", True, (240, 255, 240))
-        t2 = pygame.font.SysFont("consolas", 16, bold=True).render("Relancer la vague", True, (255, 235, 235))
-        self.fenetre.blit(t1, (self.bouton_payer_passer.centerx - t1.get_width() // 2, self.bouton_payer_passer.y + 12))
-        self.fenetre.blit(t2, (self.bouton_relancer_vague.centerx - t2.get_width() // 2, self.bouton_relancer_vague.y + 12))
-
-    def _dessiner_ecran_defaite(self):
-        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
-        voile.fill((0, 0, 0, 170))
-        self.fenetre.blit(voile, (0, 0))
-        rect = pygame.Rect(largeur_ecran // 2 - 230, hauteur_ecran // 2 - 120, 460, 220)
-        pygame.draw.rect(self.fenetre, (30, 24, 30), rect, border_radius=12)
-        pygame.draw.rect(self.fenetre, (180, 90, 100), rect, width=2, border_radius=12)
-        titre = pygame.font.SysFont("consolas", 36, bold=True).render("Vous avez perdu !", True, (255, 190, 190))
-        self.fenetre.blit(titre, (rect.centerx - titre.get_width() // 2, rect.y + 24))
-        txt = pygame.font.SysFont("consolas", 16).render("Choisissez une action :", True, (230, 220, 220))
-        self.fenetre.blit(txt, (rect.centerx - txt.get_width() // 2, rect.y + 82))
-        pygame.draw.rect(self.fenetre, (80, 120, 70), self.bouton_rejouer_payant, border_radius=8)
-        pygame.draw.rect(self.fenetre, (150, 200, 130), self.bouton_rejouer_payant, width=1, border_radius=8)
-        pygame.draw.rect(self.fenetre, (100, 70, 70), self.bouton_recommencer, border_radius=8)
-        pygame.draw.rect(self.fenetre, (190, 130, 130), self.bouton_recommencer, width=1, border_radius=8)
-        t1 = pygame.font.SysFont("consolas", 16, bold=True).render("Payer 200 pour rejouer", True, (240, 255, 240))
-        t2 = pygame.font.SysFont("consolas", 16, bold=True).render("Recommencer", True, (255, 235, 235))
-        self.fenetre.blit(t1, (self.bouton_rejouer_payant.centerx - t1.get_width() // 2, self.bouton_rejouer_payant.y + 12))
-        self.fenetre.blit(t2, (self.bouton_recommencer.centerx - t2.get_width() // 2, self.bouton_recommencer.y + 12))
-
-    def _dessiner_ecran_echec_vague(self):
-        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
-        voile.fill((0, 0, 0, 170))
-        self.fenetre.blit(voile, (0, 0))
-        rect = pygame.Rect(largeur_ecran // 2 - 280, hauteur_ecran // 2 - 120, 560, 220)
-        pygame.draw.rect(self.fenetre, (35, 30, 30), rect, border_radius=12)
-        pygame.draw.rect(self.fenetre, (190, 120, 90), rect, width=2, border_radius=12)
-        titre = pygame.font.SysFont("consolas", 24, bold=True).render("Vous n'avez pas réussi a finir cette vague", True, (255, 210, 180))
         self.fenetre.blit(titre, (rect.centerx - titre.get_width() // 2, rect.y + 30))
         pygame.draw.rect(self.fenetre, (90, 120, 70), self.bouton_payer_passer, border_radius=8)
         pygame.draw.rect(self.fenetre, (170, 220, 140), self.bouton_payer_passer, width=1, border_radius=8)

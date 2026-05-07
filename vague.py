@@ -1,99 +1,77 @@
-import random
-from mob import Mob, MobRapide, MobTank, MobKamikaze, MobSoigneur, MobBoss
+from mob import Mob, MobBoss, MobKamikaze, MobRapide, MobSoigneur, MobTank
+from contenu_vagues.generateur_vagues import charger_configuration
 
 
-def generer_vague(numero_vague):
-    liste_mobs = []
-    temps_courant = 0.0
-    intervalle = max(0.4, 0.9 - numero_vague * 0.05)
-    nombre_total = 8 + (numero_vague - 1) * 4
-
-    for i in range(nombre_total):
-        tirage = random.random()
-
-        # Plus la vague est avancée, plus les mobs rares apparaissent
-        seuil_rapide = min(0.35, 0.05 + numero_vague * 0.04)
-        seuil_tank = min(0.20, 0.0 + numero_vague * 0.025) if numero_vague >= 2 else 0
-        seuil_kamikaze = min(0.15, 0.0 + numero_vague * 0.02) if numero_vague >= 3 else 0
-        seuil_soigneur = min(0.10, 0.0 + numero_vague * 0.015) if numero_vague >= 4 else 0
-
-        cumul_rapide = seuil_rapide
-        cumul_tank = cumul_rapide + seuil_tank
-        cumul_kamikaze = cumul_tank + seuil_kamikaze
-        cumul_soigneur = cumul_kamikaze + seuil_soigneur
-
-        if tirage < cumul_rapide:
-            liste_mobs.append((MobRapide, temps_courant))
-        elif tirage < cumul_tank:
-            liste_mobs.append((MobTank, temps_courant))
-        elif tirage < cumul_kamikaze:
-            liste_mobs.append((MobKamikaze, temps_courant))
-        elif tirage < cumul_soigneur:
-            liste_mobs.append((MobSoigneur, temps_courant))
-        else:
-            liste_mobs.append((Mob, temps_courant))
-
-        temps_courant += intervalle
-
-    return liste_mobs
-
-
-def _generer_vague_boss(numero_vague):
-    """
-    Vague boss : le boss arrive précédé de plusieurs gardes.
-    Gardes d'abord, puis le boss après 4 secondes.
-    """
-    liste_mobs = []
-    # Gardes
-    nb_gardes = 4 + numero_vague // 2
-    for i in range(nb_gardes):
-        tirage = random.random()
-        if tirage < 0.4:
-            liste_mobs.append((MobRapide, i * 0.6))
-        elif tirage < 0.65:
-            liste_mobs.append((MobKamikaze, i * 0.6))
-        else:
-            liste_mobs.append((Mob, i * 0.6))
-    # Le boss arrive après les gardes
-    temps_boss = nb_gardes * 0.6 + 2.5
-    liste_mobs.append((MobBoss, temps_boss))
-    return liste_mobs
+CLASSES_MOBS = {
+    "Mob": Mob,
+    "MobRapide": MobRapide,
+    "MobTank": MobTank,
+    "MobKamikaze": MobKamikaze,
+    "MobSoigneur": MobSoigneur,
+}
 
 
 class GestionnaireVague:
     def __init__(self):
+        self.continent = "pirate"
+        self.niveau = 1
+        self.configuration_vagues = {}
         self.numero_vague = 0
         self.mobs_a_spawner = []
-        self.minuterie = 0.0
         self.vague_en_cours = False
         self.vague_terminee = False
-        self.est_vague_boss = False  # indique si c'est une vague boss
+        self.est_vague_boss = False
+        self._spawn_position = (0, 0)
+        self._temps_vague = 0.0
 
-    def demarrer_vague(self, point_depart_chemin, est_boss=False):
-        self.numero_vague += 1
-        self.est_vague_boss = est_boss
-        if est_boss:
-            self.mobs_a_spawner = _generer_vague_boss(self.numero_vague)
-        else:
-            self.mobs_a_spawner = generer_vague(self.numero_vague)
-        self.minuterie = 0.0
-        self.vague_en_cours = True
+    def configurer_contexte(self, continent, niveau):
+        self.continent = str(continent or "pirate").lower()
+        self.niveau = max(1, int(niveau))
+        self.configuration_vagues = charger_configuration(self.continent, self.niveau)
+        self.numero_vague = 0
+        self.mobs_a_spawner = []
+        self.vague_en_cours = False
         self.vague_terminee = False
+        self.est_vague_boss = False
+
+    def demarrer_vague(self, spawn_position, est_boss=False):
+        self._spawn_position = spawn_position
+        self._temps_vague = 0.0
+        self.vague_terminee = False
+        self.vague_en_cours = True
+        self.est_vague_boss = bool(est_boss)
+        self.numero_vague += 1
+        self.mobs_a_spawner = []
+
+        if self.est_vague_boss:
+            self.mobs_a_spawner.append((0.0, MobBoss, 0.0))
+            return
+
+        configuration = self.configuration_vagues.get(self.numero_vague, self.configuration_vagues.get(1, {}))
+        intervalle = float(configuration.get("intervalle_spawn", 0.8))
+        temps_courant = 0.0
+
+        for groupe in configuration.get("groupes", []):
+            type_mob = groupe.get("type", "Mob")
+            classe_mob = CLASSES_MOBS.get(type_mob, Mob)
+            nombre = max(1, int(groupe.get("nombre", 1)))
+            decalage = float(groupe.get("decalage", 0.0))
+            bonus_vitesse = float(groupe.get("bonus_vitesse", 0.0))
+            for _ in range(nombre):
+                self.mobs_a_spawner.append((temps_courant + decalage, classe_mob, bonus_vitesse))
+                temps_courant += intervalle
 
     def mettre_a_jour(self, delta_temps, liste_ennemis, chemin):
         if not self.vague_en_cours:
             return
 
-        self.minuterie += delta_temps
+        self._temps_vague += delta_temps
 
-        mobs_restants = []
-        for (ClasseMob, temps_spawn) in self.mobs_a_spawner:
-            if self.minuterie >= temps_spawn:
-                liste_ennemis.append(ClasseMob(chemin[0]))
-            else:
-                mobs_restants.append((ClasseMob, temps_spawn))
-        self.mobs_a_spawner = mobs_restants
+        while self.mobs_a_spawner and self.mobs_a_spawner[0][0] <= self._temps_vague:
+            _, classe_mob, bonus_vitesse = self.mobs_a_spawner.pop(0)
+            vitesse = getattr(classe_mob, "vitesse_de_base", 100.0) * (1.0 + max(0.0, bonus_vitesse))
+            liste_ennemis.append(classe_mob(self._spawn_position, vitesse=vitesse))
 
-        if not self.mobs_a_spawner and len(liste_ennemis) == 0:
+        if not self.mobs_a_spawner and not liste_ennemis:
             self.vague_en_cours = False
             self.vague_terminee = True

@@ -3,8 +3,8 @@ from setting import largeur_ecran, hauteur_ecran, FPS
 from menu import Menu
 from game import Jeu
 from musique import MusiqueManager
+from dialogue_quitter_sauvegarde import demander_sauvegarde_avant_quitter
 from progression_monde import ProgressionMonde
-from sauvegarde import sauvegarder
 
 
 def main():
@@ -23,15 +23,16 @@ def main():
 
         if etat_application == "menu":
             for evenement in pygame.event.get():
-                if evenement.type == pygame.QUIT: 
-                    sauvegarder("autosave", progression_monde)
-                    etat_application = "quitter"
+                if evenement.type == pygame.QUIT:
+                    if demander_sauvegarde_avant_quitter(ecran, progression_monde):
+                        etat_application = "quitter"
                 else:
                     resultat = menu.gerer_evenement(evenement)
                     if resultat == "lancer_jeu":
                         etat_application = "jeu"
                     elif resultat == "quitter":
-                        etat_application = "quitter"
+                        if demander_sauvegarde_avant_quitter(ecran, progression_monde):
+                            etat_application = "quitter"
 
             menu.mise_a_jour(delta_temps)
             ecran.fill((0, 0, 0))
@@ -42,8 +43,10 @@ def main():
             jeu = Jeu(menu.monde_selectionne, menu.volume_son, menu.niveau_selectionne, progression_monde)
             resultat = jeu.lancer()
             if resultat.get("quitter"):
-                sauvegarder("autosave", progression_monde)
-                etat_application = "quitter"
+                if demander_sauvegarde_avant_quitter(ecran, progression_monde):
+                    etat_application = "quitter"
+                else:
+                    etat_application = "menu"
                 continue
             menu.relancer_musique_menu()
             menu.appliquer_progression(progression_monde)
@@ -51,7 +54,6 @@ def main():
                 menu.etat = "map"
             etat_application = "menu"
 
-    sauvegarder("autosave", progression_monde)
     pygame.quit()
 
 

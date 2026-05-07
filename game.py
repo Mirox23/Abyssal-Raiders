@@ -13,7 +13,7 @@ from vague import GestionnaireVague
 from progression import Progression
 from competence import GestionnaireCompetences
 from musique import MusiqueManager
-from scores import enregistrer_score, obtenir_meilleur_score
+from scores import enregistrer_score
 from tutoriel import GestionnaireTutoriel, etape_ameliorer_tour, etape_lancer_vague
 
 
@@ -110,7 +110,7 @@ class Jeu:
         self.talents_appliques = {
             "degats_competence": 0, "reduction_cout": 0,
             "prime_or": 0, "resistance_mur": 0,
-            # NOUVEAUX TALENTS
+            # Nouveaux talents à implémenter dans progression.py et appliquer dans les méthodes correspondantes :
             "chasseur": 0, "ingenieur": 0, "alchimiste": 0,
         }
         self.inventaire_objets = {"potion_mur": 2, "bourse_or": 2, "totem_froid": 1}

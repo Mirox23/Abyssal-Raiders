@@ -802,6 +802,10 @@ class Jeu:
             "explosion": "musique/effets/explosion.mp3",
             "mur": "musique/effets/mur.mp3",
             "clic": "musique/effets/clic.mp3",
+            "construction" : "musique/effets/construction.mp3",
+            "amelioration" : "musique/effets/amelioration.mp3",
+            "erreur" : "musique/effets/erreur.mp3",
+            "selection" : "musique/effets/selection.mp3",
         }
         chemin = sons.get(type_effet)
         if chemin:

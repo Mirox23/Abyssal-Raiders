@@ -1,0 +1,21 @@
+- Les talents faudrait ajouter les images
+- Améliorer les boutons du menu (Jouer...)
+- Faire que quand on ferme le jeu : on puisse sauvegarder la partie
+- Rééquilibrer le jeu
+- Optimiser les vagues
+- Augmenter la taille des boss
+- Améliorer l'interface des objets (UI - comme minecraft, case d'objet avec quand on passe la souris dessus, on voit le nom et les descriptions)
+- Mettre le jeu en pleine écran
+- Descendre les carrés invisibles du téléphone de quelques pixel
+- A voir : remettre les chemins visibles
+- Créer la map mais en 4 fois, avec les nuages
+- Améliorer le système de score :
+        - score d'une vague = temps passé * mobs tué / x (avec x un nombre pour équilibré)
+        - Tableau des scores qui marche comme celui des succès. PAr exemple : dans l'onglet "continent pirate", il y a "vague 1" : <meilleur_temps> + <nom_du_joueur>
+- Faire les commits
+- Séparer les fichiers 
+- Faire une vidéo juste avant le jeu - Après que le joueur a cliquer sur "JOuer"
+- Ajouter le mob rossier à la fin : dernière vague à la toute fin. 
+- Corriger le fait que les pirates sont partout
+- Corriger le bug de la flèche du tutoriel
+- 

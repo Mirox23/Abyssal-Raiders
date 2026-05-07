@@ -324,7 +324,6 @@ class FenetreArbreTalents:
             fenetre.blit(s_niv, (rect.right - s_niv.get_width() - 8, rect.bottom - 20))
 
 
-
 #  Classe de compatibilité : garde l'ancien nom utilisé dans game.py et ui.py
 
 
@@ -465,7 +464,7 @@ class PanneauCompetences:
             elif en_cooldown:
                 statut, coul_s = "En cooldown", (240, 180, 110)
             else:
-                statut, coul_s = "Pas assez d'or", (235, 130, 130)
+                statut, coul_s = "Pas assez d'or", (235, 130, 130) # rouge vif, coul_s : couleur du statut à droite
             fenetre.blit(self.police_texte.render(statut, True, coul_s), (rect.right - 220, rect.y + 34))
             y += 74
 
@@ -535,10 +534,10 @@ class PanneauParametresMusique:
         self.police_titre = pygame.font.SysFont("consolas", 22, bold=True)
         self.police_texte = pygame.font.SysFont("consolas", 14)
         self.bouton_fermer = Bouton(self.rect.right - 94, self.rect.y + 12, 78, 28, "Fermer", 14)
-        self.bouton_moins       = pygame.Rect(self.rect.x + 70,  self.rect.y + 98,  48, 42)
-        self.bouton_plus        = pygame.Rect(self.rect.x + 312, self.rect.y + 98,  48, 42)
+        self.bouton_moins  = pygame.Rect(self.rect.x + 70,  self.rect.y + 98,  48, 42)
+        self.bouton_plus = pygame.Rect(self.rect.x + 312, self.rect.y + 98,  48, 42)
         self.bouton_moins_effets = pygame.Rect(self.rect.x + 70,  self.rect.y + 165, 48, 42)
-        self.bouton_plus_effets  = pygame.Rect(self.rect.x + 312, self.rect.y + 165, 48, 42)
+        self.bouton_plus_effets = pygame.Rect(self.rect.x + 312, self.rect.y + 165, 48, 42)
         self.bouton_x15 = pygame.Rect(self.rect.x + 110, self.rect.y + 225, 110, 36)
         self.bouton_x2  = pygame.Rect(self.rect.x + 250, self.rect.y + 225, 110, 36)
 
@@ -551,13 +550,13 @@ class PanneauParametresMusique:
         if self.bouton_fermer.rect.collidepoint(pos_clic):
             self.visible = False
             return None
-        if self.bouton_moins.collidepoint(pos_clic):       return "moins"
-        if self.bouton_plus.collidepoint(pos_clic):        return "plus"
+        if self.bouton_moins.collidepoint(pos_clic): return "moins"
+        if self.bouton_plus.collidepoint(pos_clic): return "plus"
         if self.bouton_moins_effets.collidepoint(pos_clic): return "moins_effets"
-        if self.bouton_plus_effets.collidepoint(pos_clic):  return "plus_effets"
-        if self.bouton_x15.collidepoint(pos_clic):         return "vitesse_x15"
-        if self.bouton_x2.collidepoint(pos_clic):          return "vitesse_x2"
-        if self.rect.collidepoint(pos_clic):               return "consomme"
+        if self.bouton_plus_effets.collidepoint(pos_clic): return "plus_effets"
+        if self.bouton_x15.collidepoint(pos_clic): return "vitesse_x15"
+        if self.bouton_x2.collidepoint(pos_clic): return "vitesse_x2"
+        if self.rect.collidepoint(pos_clic): return "consomme"
         return None
 
     def dessiner(self, fenetre, volume, volume_effets, vitesse_jeu=1.0):

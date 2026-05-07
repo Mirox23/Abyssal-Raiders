@@ -247,11 +247,11 @@ class Menu:
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 30))
         rect_carte = pygame.Rect(80, 110, largeur_ecran - 160, hauteur_ecran - 200)
         if self.map_entier is None:
-            chemins = [
+            chemin_map = [
                 "image/map_entier.png",
             ]
             image_chargee = None
-            for chemin in chemin:
+            for chemin in chemin_map:
                 if os.path.exists(chemin):
                     try:
                         image_chargee = pygame.image.load(chemin).convert()

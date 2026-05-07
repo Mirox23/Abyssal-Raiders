@@ -1,154 +1,40 @@
 """
-Qu'est-ce que le fichier gère :
-    Tout le système de sauvegarde et chargement de parties.
-    Les données sont stockées dans un fichier JSON dans le dossier 'sauvegardes/'.
-Entrée :
-    Nom de la sauvegarde, données de progression (niveaux conquis, argent, etc.)
-Résultat :
-    Fichiers JSON lisibles, liste des sauvegardes disponibles, chargement des données.
+Point d'entrée du système de sauvegarde — les grosses fonctions sont dans d'autres fichiers.
 """
 
-import json
-import os
-from datetime import datetime
-
-# Dossier où les sauvegardes sont stockées
-DOSSIER_SAUVEGARDES = "sauvegardes"
+from sauvegarde_dossier_parties import DOSSIER_SAUVEGARDES, assurer_le_dossier
+from sauvegarde_fichier_json import ecrire_sauvegarde_json, lire_sauvegarde_json
+from sauvegarde_injecter_progression import copier_donnees_dans_progression
+from sauvegarde_lister_fichiers import obtenir_liste_des_sauvegardes
+from sauvegarde_nom_joueur import choisir_nom_final, rendre_nom_fichier_propre
+from sauvegarde_preparation_donnees import fabriquer_dict_sauvegarde
+from sauvegarde_supprimer_fichier import supprimer_fichier_de_sauvegarde
 
 
 def _assurer_dossier():
-    """
-    Explication : Crée le dossier de sauvegardes s'il n'existe pas encore.
-    Les entrées : aucune
-    Le résultat : dossier 'sauvegardes/' créé sur le disque si absent
-    """
-    if not os.path.exists(DOSSIER_SAUVEGARDES):
-        os.makedirs(DOSSIER_SAUVEGARDES)
+    assurer_le_dossier()
 
 
 def sauvegarder(nom, progression_monde, progression_joueur=None):
-    """
-    Explication : Sauvegarde la progression complète dans un fichier JSON nommé par le joueur.
-    Les entrées :
-        nom (str) : le nom choisi par le joueur pour sa sauvegarde
-        progression_monde (ProgressionMonde) : contient les niveaux conquis par continent
-        progression_joueur (Progression ou None) : niveau XP du joueur, peut être None
-    Le résultat : fichier JSON créé/écrasé dans le dossier sauvegardes/
-    """
     _assurer_dossier()
-
-    # On nettoie le nom pour éviter les caractères interdits dans les noms de fichiers
-    nom_propre = "".join(c for c in nom if c.isalnum() or c in (" ", "_", "-")).strip()
-    if not nom_propre:
-        nom_propre = "partie_sans_nom"
-
-    donnees = {
-        "nom": nom_propre,
-        "date": datetime.now().strftime("%d/%m/%Y %H:%M"),
-        "niveaux_conquis": progression_monde.niveaux_conquis,  # dict continent -> liste bool
-        "succès_vagues": getattr(progression_monde, "succès_vagues", {}),
-    }
-
-    # Ajoute les infos du joueur si disponibles
-    if progression_joueur is not None:
-        donnees["niveau_joueur"] = progression_joueur.niveau
-        donnees["xp_actuelle"] = progression_joueur.xp_actuelle
-
-    chemin = os.path.join(DOSSIER_SAUVEGARDES, f"{nom_propre}.json")
-    try:
-        with open(chemin, "w", encoding="utf-8") as f:
-            json.dump(donnees, f, ensure_ascii=False, indent=2)
-        return True
-    except Exception:
-        return False
+    nom_nettoye = rendre_nom_fichier_propre(nom)
+    nom_final = choisir_nom_final(nom_nettoye)
+    donnees = fabriquer_dict_sauvegarde(nom_final, progression_monde, progression_joueur)
+    ok = ecrire_sauvegarde_json(nom_final, donnees)
+    return ok
 
 
 def charger(nom):
-    """
-    Explication : Charge une sauvegarde depuis son nom et retourne les données brutes.
-    Les entrées :
-        nom (str) : nom de la sauvegarde (sans l'extension .json)
-    Le résultat :
-        dict avec les données de la sauvegarde, ou None si le fichier n'existe pas
-    """
-    chemin = os.path.join(DOSSIER_SAUVEGARDES, f"{nom}.json")
-    if not os.path.exists(chemin):
-        return None
-    try:
-        with open(chemin, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return None
+    return lire_sauvegarde_json(nom)
 
 
 def lister_sauvegardes():
-    """
-    Explication : Retourne la liste de toutes les sauvegardes disponibles avec leurs infos.
-    Les entrées : aucune
-    Le résultat :
-        liste de dicts {"nom", "date", "niveau_joueur"} triée par date (plus récente d'abord)
-    """
-    _assurer_dossier()
-    resultats = []
-    for fichier in os.listdir(DOSSIER_SAUVEGARDES):
-        if not fichier.endswith(".json"):
-            continue
-        chemin = os.path.join(DOSSIER_SAUVEGARDES, fichier)
-        try:
-            with open(chemin, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            resultats.append({
-                "nom": data.get("nom", fichier[:-5]),
-                "date": data.get("date", "Inconnue"),
-                "niveau_joueur": data.get("niveau_joueur", 1),
-            })
-        except Exception:
-            pass
-    # Tri : plus récente en premier (comparaison alphabétique de la date formatée)
-    resultats.sort(key=lambda x: x["date"], reverse=True)
-    return resultats
+    return obtenir_liste_des_sauvegardes()
 
 
 def supprimer(nom):
-    """
-    Explication : Supprime définitivement une sauvegarde du disque.
-    Les entrées :
-        nom (str) : nom de la sauvegarde à supprimer
-    Le résultat : True si supprimé, False si le fichier n'existait pas
-    """
-    chemin = os.path.join(DOSSIER_SAUVEGARDES, f"{nom}.json")
-    if os.path.exists(chemin):
-        os.remove(chemin)
-        return True
-    return False
+    return supprimer_fichier_de_sauvegarde(nom)
 
 
 def appliquer_sauvegarde(donnees, progression_monde):
-    """
-    Explication : Injecte les données d'une sauvegarde dans l'objet ProgressionMonde.
-    Les entrées :
-        donnees (dict) : données brutes issues de charger()
-        progression_monde (ProgressionMonde) : objet à remplir
-    Le résultat : progression_monde modifié en place, retourne le niveau joueur (int)
-    """
-    if donnees is None:
-        return 1
-
-    # Recharge les niveaux conquis
-    niveaux = donnees.get("niveaux_conquis", {})
-    for continent, liste in niveaux.items():
-        if continent in progression_monde.niveaux_conquis:
-            # On s'assure que la longueur est correcte (8 niveaux)
-            progression_monde.niveaux_conquis[continent] = (liste + [False] * 8)[:8]
-    succes = donnees.get("succès_vagues", {})
-    for continent, liste_niveaux in succes.items():
-        if continent in progression_monde.succes_vagues:
-            propre = []
-            for ligne in liste_niveaux[:8]:
-                ligne_ok = list(ligne) if isinstance(ligne, list) else [False, False, False, False]
-                propre.append((ligne_ok + [False, False, False, False])[:4])
-            while len(propre) < 8:
-                propre.append([False, False, False, False])
-            progression_monde.succes_vagues[continent] = propre
-
-    return donnees.get("niveau_joueur", 1)
+    return copier_donnees_dans_progression(donnees, progression_monde)

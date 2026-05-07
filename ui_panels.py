@@ -366,7 +366,7 @@ class FenetreRecompensesTalents:
             self._onglet = "talents"
             self.fenetre_recompenses.visible = False
             self.fenetre_talents.visible = True
-            return ("consomme", None)
+            return ("onglet_talent", None)
 
         # Déléguer au bon panneau
         if self._onglet == "recompenses":

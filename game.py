@@ -3,7 +3,6 @@ import pygame
 from setting import *
 from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_niveau_vague
 from mob import MobKamikaze, MobSoigneur, MobBoss, MobRapide, definir_continent_mob
-from mob import MobKamikaze, MobSoigneur, MobBoss, MobRapide, definir_continent_mob
 from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
 from ui import (
     PanneauTelephone, PanneauInfos, PanneauAchevement, EcranFinVague, AffichageXP,
@@ -14,7 +13,8 @@ from vague import GestionnaireVague
 from progression import Progression
 from competence import GestionnaireCompetences
 from musique import MusiqueManager
-from scores import enregistrer_score,obtenir_meilleur_score
+from scores import enregistrer_score, obtenir_meilleur_score
+from tutoriel import GestionnaireTutoriel, etape_ameliorer_tour, etape_lancer_vague
 
 
 class Jeu:
@@ -81,7 +81,6 @@ class Jeu:
         self.panneau_infos = PanneauInfos()
         self.panneau_achevement = PanneauAchevement()
         self.panneau_achevement.lier_progression_monde(self.progression_monde)
-        self.panneau_achevement.lier_progression_monde(self.progression_monde)
         self.ecran_fin_vague = EcranFinVague()
         self.affichage_xp = AffichageXP()
         self.fenetre_recompenses = FenetreRecompensesTalents()
@@ -137,18 +136,16 @@ class Jeu:
         self.vague_echec_numero = 0
         self.bouton_payer_passer = pygame.Rect(largeur_ecran // 2 - 180, hauteur_ecran // 2 + 40, 170, 44)
         self.bouton_relancer_vague = pygame.Rect(largeur_ecran // 2 + 10, hauteur_ecran // 2 + 40, 170, 44)
-        self.vitesse_jeu = 1.0
-        self.est_mort = False
-        self.bouton_rejouer_payant = pygame.Rect(largeur_ecran // 2 - 180, hauteur_ecran // 2 + 40, 170, 44)
-        self.bouton_recommencer = pygame.Rect(largeur_ecran // 2 + 10, hauteur_ecran // 2 + 40, 170, 44)
-        self.vie_debut_vague = self.points_de_vie_mur
-        self.echec_vague = False
-        self.vague_echec_numero = 0
-        self.bouton_payer_passer = pygame.Rect(largeur_ecran // 2 - 180, hauteur_ecran // 2 + 40, 170, 44)
-        self.bouton_relancer_vague = pygame.Rect(largeur_ecran // 2 + 10, hauteur_ecran // 2 + 40, 170, 44)
         configurer_chemin_niveau_vague(self.continent, self.niveau, 1)
         definir_continent_mob(self.continent)
-        definir_continent_mob(self.continent)
+        # Le tutoriel ne se lance qu'a la toute premiere vague (niveau 1, pas encore joue)
+        tutoriel_deja_fait = False
+        if self.progression_monde:
+            tutoriel_deja_fait = getattr(self.progression_monde, "tutoriel_termine", False)
+        if self.niveau == 1 and not tutoriel_deja_fait:
+            self.tutoriel = GestionnaireTutoriel()
+        else:
+            self.tutoriel = None
         # Afficher le bonus de fidélité si présent
         self._message_fidelite = ""
         self._timer_message_fidelite = 0.0
@@ -164,7 +161,6 @@ class Jeu:
     def lancer(self):
         jeu_en_cours = True
         while jeu_en_cours:
-            delta_temps = (self.horloge.tick(FPS) / 1000) * self.vitesse_jeu
             delta_temps = (self.horloge.tick(FPS) / 1000) * self.vitesse_jeu
             for evenement in pygame.event.get():
                 if evenement.type == pygame.QUIT:
@@ -250,32 +246,6 @@ class Jeu:
                 self.vague_locale = max(0, self.vague_echec_numero - 1)
                 self.lancer_nouvelle_vague()
             return
-        if self.est_mort:
-            if self.bouton_rejouer_payant.collidepoint(clic) and self.argent >= 200:
-                self.argent -= 200
-                self.points_de_vie_mur = max(3, vie_mur_depart // 2)
-                self.liste_ennemis = []
-                self.en_attente_lancement_vague = True
-                self.ecran_fin_vague.fermer()
-                self.fenetre_marche.fermer()
-                self.est_mort = False
-            elif self.bouton_recommencer.collidepoint(clic):
-                self.reinitialiser()
-            return
-        if self.echec_vague:
-            if self.bouton_payer_passer.collidepoint(clic) and self.argent >= 100:
-                self.argent -= 100
-                self.echec_vague = False
-                if self.vague_locale < self.vague_max:
-                    self.fenetre_marche.ouvrir()
-                else:
-                    self.fenetre_niveau_conquis.ouvrir()
-            elif self.bouton_relancer_vague.collidepoint(clic):
-                self.echec_vague = False
-                self.liste_ennemis = []
-                self.vague_locale = max(0, self.vague_echec_numero - 1)
-                self.lancer_nouvelle_vague()
-            return
         self._ajouter_effet(clic, (130, 210, 255), 16, 0.2)
         self._jouer_son_effet("clic")
         if self.map_jeu_ouverte:
@@ -293,6 +263,8 @@ class Jeu:
             return
         if self.bouton_recompense.collidepoint(clic):
             self.fenetre_recompenses.ouvrir()
+            if self.tutoriel:
+                self.tutoriel.notifier_action("bouton_recompense_clique")
             return
         action = self.fenetre_recompenses.gerer_clic(clic, self.progression)
         if action:
@@ -304,10 +276,13 @@ class Jeu:
                 # Tous les talents connus (anciens + nouveaux)
                 if cle_t in self.talents_appliques:
                     self.talents_appliques[cle_t] = niv_t
-                # Talent ingénieur : augmenter portée de toutes les tours existantes
+                # Talent ingenieur : augmenter portee de toutes les tours existantes
                 if cle_t == "ingenieur":
                     for tour in self.liste_tours:
                         tour.portee += 8
+            elif action[0] == "onglet_talent":
+                if self.tutoriel:
+                    self.tutoriel.notifier_action("onglet_talent_clique")
             return
 
         # Marché entre vagues
@@ -340,10 +315,6 @@ class Jeu:
                 self.vitesse_jeu = 1.5
             elif action_param == "vitesse_x2":
                 self.vitesse_jeu = 2.0
-            elif action_param == "vitesse_x15":
-                self.vitesse_jeu = 1.5
-            elif action_param == "vitesse_x2":
-                self.vitesse_jeu = 2.0
             return
         action_comp = self.panneau_competences.gerer_clic(clic)
         if action_comp:
@@ -367,6 +338,8 @@ class Jeu:
         if fin == "modification":
             self.ecran_fin_vague.fermer()
             self.en_attente_lancement_vague = True
+            if self.tutoriel:
+                self.tutoriel.notifier_action("modification_cliquee")
             return
         if self.panneau_achevement.gerer_clic(clic):
             return
@@ -383,27 +356,38 @@ class Jeu:
         action_tel = self.telephone.gerer_clic(clic)
         if action_tel == "Tourelle":
             self.mode_placement_actif, self.type_tour_a_placer, self.tour_actuellement_selectionnee = True, None, None
+            if self.tutoriel:
+                self.tutoriel.notifier_action("telephone_tourelle_clique")
             return
         if action_tel == "New vague" and self.en_attente_lancement_vague:
             self.lancer_nouvelle_vague()
+            if self.tutoriel:
+                self.tutoriel.notifier_action("vague_lancee")
             return
         if action_tel == "Succes":
             self.panneau_achevement.ouvrir()
+            if self.tutoriel:
+                self.tutoriel.notifier_action("telephone_succes_clique")
             return
         if action_tel == "Info" and self.tour_actuellement_selectionnee:
             self.panneau_infos.ouvrir(self.tour_actuellement_selectionnee)
+            if self.tutoriel:
+                self.tutoriel.notifier_action("telephone_info_clique")
             return
         if action_tel == "Competence":
             self.panneau_competences.ouvrir()
+            if self.tutoriel:
+                self.tutoriel.notifier_action("telephone_competence_clique")
             return
         if action_tel == "Objets":
             self.panneau_objets.ouvrir()
+            if self.tutoriel:
+                self.tutoriel.notifier_action("telephone_objet_clique")
             return
         if action_tel == "Parametre":
             self.panneau_parametres.ouvrir()
             return
         if action_tel == "Map":
-            self.demande_retour_map = True
             self.demande_retour_map = True
             return
         if action_tel == "Scores":
@@ -415,6 +399,8 @@ class Jeu:
             for tour in self.liste_tours:
                 if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 <= tour.taille + 4:
                     self.tour_actuellement_selectionnee = tour
+                    if self.tutoriel:
+                        self.tutoriel.notifier_action("tour_selectionnee")
                     break
         if self.mode_placement_actif and self.type_tour_a_placer is None:
             self._selectionner_tour_menu(clic)
@@ -455,6 +441,8 @@ class Jeu:
             for tour in self.liste_tours:
                 if tour.type_tour == "Support":
                     tour.appliquer_buff(self.liste_tours)
+            if self.tutoriel:
+                self.tutoriel.notifier_action("tour_placee")
         self.mode_placement_actif = False
         self.type_tour_a_placer = None
 
@@ -516,6 +504,18 @@ class Jeu:
             return
         self.progression.mettre_a_jour(delta_temps)
         self.gestionnaire_competences.mettre_a_jour(delta_temps)
+        # Mise a jour du tutoriel
+        if self.tutoriel:
+            self.tutoriel.mettre_a_jour(delta_temps)
+            # On propose l'amelioration quand le joueur a assez d'or pendant la vague
+            if self.tutoriel.etape_actuelle == etape_lancer_vague and self.gestionnaire_vague.vague_en_cours:
+                if self.argent >= 15 and self.liste_tours:
+                    self.tutoriel.etape_actuelle = etape_ameliorer_tour
+            # Quand le tutoriel est fini on le note dans la progression pour ne plus le relancer
+            if self.tutoriel.est_termine():
+                if self.progression_monde:
+                    self.progression_monde.tutoriel_termine = True
+                self.tutoriel = None
 
         # Timers divers
         self._alarme_clignotement += delta_temps
@@ -606,6 +606,9 @@ class Jeu:
             if self.gestionnaire_vague.vague_terminee:
                 self.gestionnaire_vague.vague_terminee = False
                 self._lancer_musique_continent()
+                # On signale au tutoriel que la vague est finie pour passer a l'etape modification
+                if self.tutoriel:
+                    self.tutoriel.notifier_vague_terminee()
                 self._primes_doubles_vague = False   # reset effet carte
                 self.en_attente_lancement_vague = True
                 xp = self.progression.xp_pour_vague(self.vague_locale)
@@ -741,6 +744,9 @@ class Jeu:
             self._dessiner_ecran_echec_vague()
         self.fenetre_recompenses.dessiner(self.fenetre, self.progression)
         self.fenetre_niveau_conquis.dessiner(self.fenetre)
+        # Dessin du tutoriel par dessus tout le reste
+        if self.tutoriel:
+            self.tutoriel.dessiner(self.fenetre)
         if self.map_jeu_ouverte:
             self._dessiner_map_jeu()
 

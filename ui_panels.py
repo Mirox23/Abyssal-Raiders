@@ -1,5 +1,6 @@
 import os
 import pygame
+import unicodedata
 from setting import largeur_ecran, hauteur_ecran
 from interface import Bouton
 
@@ -197,7 +198,7 @@ class FenetreArbreTalents:
     def _charger_icones(self):
         taille = (48, 48)
         for cle, donnees in self.TALENTS.items():
-            chemin = donnees["icone"]
+            chemin = self._trouver_chemin_icone(cle, donnees["icone"])
             if os.path.exists(chemin):
                 try:
                     img = pygame.image.load(chemin).convert_alpha()
@@ -206,6 +207,52 @@ class FenetreArbreTalents:
                     self._icones[cle] = None
             else:
                 self._icones[cle] = None
+
+    def _normaliser_nom(self, texte):
+        """
+        Enlève les accents et met en minuscule pour comparer des noms de fichiers
+        même si les écritures diffèrent un peu.
+        """
+        texte_normalise = unicodedata.normalize("NFKD", texte)
+        texte_sans_accents = "".join(
+            caractere for caractere in texte_normalise if not unicodedata.combining(caractere)
+        )
+        return texte_sans_accents.lower().replace(" ", "_")
+
+    def _trouver_chemin_icone(self, cle_talent, chemin_par_defaut):
+        """
+        Cherche l'icône d'un talent avec plusieurs essais:
+        - chemin indiqué dans TALENTS
+        - variantes png/jpg/webp basées sur la clé
+        - scan simple du dossier image/talent
+        """
+        chemins_possibles = [
+            chemin_par_defaut,
+            f"image/talent/{cle_talent}.png",
+            f"image/talent/{cle_talent}.jpg",
+            f"image/talent/{cle_talent}.jpeg",
+            f"image/talent/{cle_talent}.webp",
+        ]
+
+        for chemin_actuel in chemins_possibles:
+            if os.path.exists(chemin_actuel):
+                return chemin_actuel
+
+        dossier_talent = "image/talent"
+        if not os.path.isdir(dossier_talent):
+            return chemin_par_defaut
+
+        cle_normalisee = self._normaliser_nom(cle_talent)
+        nom_talent = self.TALENTS[cle_talent]["nom"]
+        nom_talent_normalise = self._normaliser_nom(nom_talent)
+
+        for nom_fichier in os.listdir(dossier_talent):
+            base_sans_extension = os.path.splitext(nom_fichier)[0]
+            base_normalisee = self._normaliser_nom(base_sans_extension)
+            if cle_normalisee in base_normalisee or nom_talent_normalise in base_normalisee:
+                return os.path.join(dossier_talent, nom_fichier)
+
+        return chemin_par_defaut
 
     def _maj_boutons(self):
         self._boutons_talents = []

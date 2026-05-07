@@ -113,6 +113,7 @@ class Mob:
             if self.minuterie_ralentissement <= 0:
                 self.facteur_ralentissement = 1.0
 
+        # Vitesse appliquée après ralentissement éventuel.
         vitesse_effective = self.vitesse * self.facteur_ralentissement
 
         cible_x, cible_y = chemin[self.etape]
@@ -150,12 +151,15 @@ class Mob:
             image_affichee.fill((255, 255, 255, 180), special_flags=pygame.BLEND_RGBA_ADD)
 
         # Petite animation de flottement pour donner de la vie aux mobs
-        oscillation = math.sin((pygame.time.get_ticks() * 0.01) + self.x * 0.04) * 2.2
+        temps_animation = pygame.time.get_ticks() * 0.01
+        oscillation = math.sin(temps_animation + self.x * 0.04) * 2.2
 
         # shake offset sur les dégâts
         sx, sy = self.shake_offset if self.shake_timer > 0 else (0, 0)
 
-        fenetre.blit(image_affichee, (int(self.x - largeur // 2) + sx, int(self.y - hauteur // 2 + oscillation) + sy))
+        position_x = int(self.x - largeur // 2) + sx
+        position_y = int(self.y - hauteur // 2 + oscillation) + sy
+        fenetre.blit(image_affichee, (position_x, position_y))
 
         # Barre de vie
         largeur_barre = 30

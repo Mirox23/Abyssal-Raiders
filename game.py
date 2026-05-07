@@ -20,7 +20,8 @@ from tutoriel import GestionnaireTutoriel, etape_ameliorer_tour, etape_lancer_va
 class Jeu:
     def __init__(self, continent="pirate", volume_musique=0.5, niveau=1, progression_monde=None):
         pygame.init()
-        self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran))
+        # Mode plein écran en gardant la résolution logique du projet.
+        self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran), pygame.FULLSCREEN)
         pygame.display.set_caption("Abyssal Raiders")
         self.horloge = pygame.time.Clock()
         self.police_hud = pygame.font.SysFont("consolas", 22)
@@ -191,7 +192,9 @@ class Jeu:
         if data["cooldown"] > 0 or self.argent < cout:
             return
         if cle == "tir_puissant" and self.liste_ennemis:
-            max(self.liste_ennemis, key=lambda e: e.etape).vie -= 8 + self.talents_appliques["degats_competence"]
+            # On vise l'ennemi le plus avancé sur le chemin.
+            ennemi_plus_avance = max(self.liste_ennemis, key=lambda ennemi: ennemi.etape)
+            ennemi_plus_avance.vie -= 8 + self.talents_appliques["degats_competence"]
         elif cle == "pluie_bombes" and self.liste_ennemis:
             pos = pygame.mouse.get_pos()
             self._ajouter_effet(pos, (255, 90, 80), 90, 0.3)
@@ -622,14 +625,6 @@ class Jeu:
                         self.echec_vague = True
                         self.vague_echec_numero = self.vague_locale
                         self.ecran_fin_vague.fermer()
-                degats_vague = max(0, self.vie_debut_vague - self.points_de_vie_mur)
-                if self.vague_locale <= 3:
-                    if degats_vague < 3:
-                        self.panneau_achevement.marquer_vague(self.continent, self.niveau, self.vague_locale)
-                    else:
-                        self.echec_vague = True
-                        self.vague_echec_numero = self.vague_locale
-                        self.ecran_fin_vague.fermer()
                 if self.vague_locale >= self.vague_max:
                     if self.progression_monde:
                         self.progression_monde.marquer_conquis(self.continent, self.niveau)
@@ -638,7 +633,10 @@ class Jeu:
                     enregistrer_score(self.continent, self.niveau, self.score_total_partie, self.progression.niveau)
                     self.fenetre_niveau_conquis.ouvrir()
 
-        mult = self.gestionnaire_competences.competences["buff_tours"]["multiplicateur_cadence"] if self.gestionnaire_competences.buff_actif() else 1.0
+        # Bonus temporaire de cadence lancé par la compétence de buff.
+        mult = 1.0
+        if self.gestionnaire_competences.buff_actif():
+            mult = self.gestionnaire_competences.competences["buff_tours"]["multiplicateur_cadence"]
         for tour in self.liste_tours:
             c0 = tour.cadence
             tour.cadence = max(0.08, c0 * mult)
@@ -733,11 +731,6 @@ class Jeu:
             self.talents_appliques["reduction_cout"],
         )
         self.panneau_objets.dessiner(self.fenetre, self.inventaire_objets)
-        self.panneau_parametres.dessiner(self.fenetre, self.volume_musique, self.volume_effets, self.vitesse_jeu)
-        if self.est_mort:
-            self._dessiner_ecran_defaite()
-        if self.echec_vague:
-            self._dessiner_ecran_echec_vague()
         self.panneau_parametres.dessiner(self.fenetre, self.volume_musique, self.volume_effets, self.vitesse_jeu)
         if self.est_mort:
             self._dessiner_ecran_defaite()

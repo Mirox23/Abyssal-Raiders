@@ -27,27 +27,60 @@ def _sauvegarder(data):
         pass
 
 
-def enregistrer_score(continent, niveau, score, niveau_joueur):
-    """Ajoute une entrée de score et ne garde que le top 5 par continent."""
+def _normaliser_data_continent(data_continent):
+    if isinstance(data_continent, list):
+        return {"top_runs": data_continent, "meilleurs_par_vague": {}}
+    if isinstance(data_continent, dict):
+        if "top_runs" not in data_continent:
+            data_continent["top_runs"] = []
+        if "meilleurs_par_vague" not in data_continent:
+            data_continent["meilleurs_par_vague"] = {}
+        return data_continent
+    return {"top_runs": [], "meilleurs_par_vague": {}}
+
+
+def enregistrer_score(continent, niveau, score, niveau_joueur, numero_vague=None, temps_vague=None, nom_joueur="Joueur"):
+    """Ajoute une entrée de score + met à jour le meilleur temps de vague."""
     data = _charger()
     cle = continent
     if cle not in data:
-        data[cle] = []
+        data[cle] = {"top_runs": [], "meilleurs_par_vague": {}}
+    data[cle] = _normaliser_data_continent(data[cle])
     entree = {
         "niveau": niveau,
         "score": score,
         "niveau_joueur": niveau_joueur,
+        "nom_joueur": nom_joueur,
     }
-    data[cle].append(entree)
+    data[cle]["top_runs"].append(entree)
     # Tri décroissant par score et on coupe à MAX_SCORES_PAR_CONTINENT
-    data[cle] = sorted(data[cle], key=lambda e: e["score"], reverse=True)[:MAX_SCORES_PAR_CONTINENT]
+    data[cle]["top_runs"] = sorted(data[cle]["top_runs"], key=lambda e: e["score"], reverse=True)[:MAX_SCORES_PAR_CONTINENT]
+
+    if numero_vague is not None and temps_vague is not None:
+        cle_vague = str(numero_vague)
+        meilleur_actuel = data[cle]["meilleurs_par_vague"].get(cle_vague)
+        if meilleur_actuel is None or temps_vague < meilleur_actuel.get("temps", 999999):
+            data[cle]["meilleurs_par_vague"][cle_vague] = {
+                "nom_joueur": nom_joueur,
+                "temps": round(float(temps_vague), 2),
+                "score": int(score),
+            }
+
     _sauvegarder(data)
 
 
 def obtenir_scores(continent):
     """Retourne la liste des meilleures entrées pour un continent."""
     data = _charger()
-    return data.get(continent, [])
+    data_continent = _normaliser_data_continent(data.get(continent, []))
+    return data_continent["top_runs"]
+
+
+def obtenir_meilleurs_par_vague(continent):
+    """Retourne le meilleur temps par vague pour un continent."""
+    data = _charger()
+    data_continent = _normaliser_data_continent(data.get(continent, []))
+    return data_continent["meilleurs_par_vague"]
 
 
 def obtenir_meilleur_score(continent):

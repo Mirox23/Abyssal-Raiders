@@ -20,8 +20,6 @@ def _charger_image_continent(nom_fichier, taille):
     essais = [
         f"image/{CONTINENT_MOB_ACTIF}/{nom_fichier}",
         f"image/{CONTINENT_MOB_ACTIF}s/{nom_fichier}",
-        f"image/pirate/{nom_fichier}",
-        f"image/pirates/{nom_fichier}",
     ]
     for chemin in essais:
         if os.path.exists(chemin):

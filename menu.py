@@ -122,7 +122,7 @@ class Menu:
                 return None
             for point in self.points_map_globale:
                 if ((clic[0] - point["pos"][0]) ** 2 + (clic[1] - point["pos"][1]) ** 2) ** 0.5 <= 12:
-                    if point["debloque"] and point["cle"] != "demoniaque":
+                    if point["debloque"]:
                         self.continent_carte = point["cle"]
                         self.afficher_carte_continent = True
                         self.niveau_selectionne = 1

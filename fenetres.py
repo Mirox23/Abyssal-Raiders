@@ -388,7 +388,7 @@ class FenetreMarcheVague:
 # Tableau des meilleurs scores
 
 class FenetreScores:
-    """Affiche le top 5 des scores locaux pour le continent actuel."""
+    """Affiche le top 5 global + meilleurs temps par vague."""
 
     def __init__(self):
         self.visible = False
@@ -399,11 +399,13 @@ class FenetreScores:
         self.police_petit = pygame.font.SysFont("consolas", 12)
         self.bouton_fermer = Bouton(self.rect.right - 90, self.rect.y + 10, 78, 30, "Fermer", 13)
         self.scores = []
+        self.meilleurs_par_vague = {}
 
     def ouvrir(self, continent):
-        from scores import obtenir_scores
+        from scores import obtenir_scores, obtenir_meilleurs_par_vague
         self.continent = continent
         self.scores = obtenir_scores(continent)
+        self.meilleurs_par_vague = obtenir_meilleurs_par_vague(continent)
         self.visible = True
 
     def fermer(self):
@@ -454,3 +456,18 @@ class FenetreScores:
                 fenetre.blit(self.police_ligne.render(str(entree["score"]), True, couleur), (self.rect.x + 75, y_ligne + 6))
                 fenetre.blit(self.police_ligne.render(f"Niv. {entree['niveau']}", True, (200, 210, 230)), (self.rect.x + 215, y_ligne + 6))
                 fenetre.blit(self.police_ligne.render(f"Joueur Niv. {entree['niveau_joueur']}", True, (180, 195, 215)), (self.rect.x + 335, y_ligne + 6))
+
+        titre_vague = self.police_petit.render("Meilleurs temps par vague :", True, (200, 200, 220))
+        fenetre.blit(titre_vague, (self.rect.x + 24, self.rect.bottom - 110))
+        for numero_vague in range(1, 5):
+            infos = self.meilleurs_par_vague.get(str(numero_vague))
+            if infos:
+                texte = f"Vague {numero_vague} : {infos['temps']} s - {infos.get('nom_joueur', 'Joueur')}"
+                couleur = (180, 230, 180)
+            else:
+                texte = f"Vague {numero_vague} : aucun score"
+                couleur = (145, 155, 180)
+            fenetre.blit(
+                self.police_petit.render(texte, True, couleur),
+                (self.rect.x + 26 + ((numero_vague - 1) % 2) * 260, self.rect.bottom - 88 + ((numero_vague - 1) // 2) * 22),
+            )

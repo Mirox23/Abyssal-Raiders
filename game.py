@@ -22,6 +22,7 @@ class Jeu:
         pygame.init()
         # Fenêtre classique (avec les boutons système Windows).
         self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran), pygame.RESIZABLE)
+        self.surface_logique = pygame.Surface((largeur_ecran, hauteur_ecran))
         pygame.display.set_caption("Abyssal Raiders")
         self.horloge = pygame.time.Clock()
         self.police_hud = pygame.font.SysFont("consolas", 22)
@@ -122,6 +123,7 @@ class Jeu:
         self.bouton_retour_jeu = pygame.Rect(largeur_ecran // 2 - 120, hauteur_ecran - 92, 240, 44)
         self.temps_vague_actuelle = 0.0
         self.score_total_partie = 0
+        self.mobs_tues_vague = 0
         # Screen shake
         self._shake_timer = 0.0
         self._shake_amplitude = 0
@@ -168,8 +170,10 @@ class Jeu:
                 if evenement.type == pygame.QUIT:
                     fermeture_par_croix = True
                     jeu_en_cours = False
+                elif evenement.type == pygame.VIDEORESIZE:
+                    self.fenetre = pygame.display.set_mode((evenement.w, evenement.h), pygame.RESIZABLE)
                 elif evenement.type == pygame.MOUSEBUTTONDOWN:
-                    self.gerer_clic(evenement.pos)
+                    self.gerer_clic(self._position_souris_logique(evenement.pos))
                 elif evenement.type == pygame.KEYDOWN:
                     if evenement.key == pygame.K_F11:
                         pygame.display.toggle_fullscreen()
@@ -202,14 +206,14 @@ class Jeu:
             ennemi_plus_avance = max(self.liste_ennemis, key=lambda ennemi: ennemi.etape)
             ennemi_plus_avance.vie -= 8 + self.talents_appliques["degats_competence"]
         elif cle == "pluie_bombes" and self.liste_ennemis:
-            pos = pygame.mouse.get_pos()
+            pos = self._position_souris_logique(pygame.mouse.get_pos())
             self._ajouter_effet(pos, (255, 90, 80), 90, 0.3)
             self._jouer_son_effet("explosion")
             for ennemi in self.liste_ennemis:
                 if ((ennemi.x - pos[0]) ** 2 + (ennemi.y - pos[1]) ** 2) ** 0.5 <= 95:
                     ennemi.vie -= 4 + self.talents_appliques["degats_competence"]
         elif cle == "ralentissement_zone":
-            pos = pygame.mouse.get_pos()
+            pos = self._position_souris_logique(pygame.mouse.get_pos())
             for ennemi in self.liste_ennemis:
                 if ((ennemi.x - pos[0]) ** 2 + (ennemi.y - pos[1]) ** 2) ** 0.5 <= 130:
                     ennemi.appliquer_ralentissement(0.35, 2.8)
@@ -499,6 +503,7 @@ class Jeu:
         self.ecran_fin_vague.fermer()
         self.fenetre_marche.fermer()
         self.temps_vague_actuelle = 0.0
+        self.mobs_tues_vague = 0
         # Appliquer bonus de portée issu des cartes marché
         if self._bonus_portee_cartes > 0:
             for tour in self.liste_tours:
@@ -559,6 +564,7 @@ class Jeu:
                     if self._primes_doubles_vague:
                         self.argent += ennemi.recompense
                     self.progression.gagner_xp(self.progression.xp_pour_kill() + ennemi.xp)
+                    self.mobs_tues_vague += 1
                     # Particules de mort enrichies (5 éclats colorés) 
                     self._ajouter_particules_mort(ennemi.x, ennemi.y, ennemi.couleur)
                     self._jouer_son_effet("explosion")
@@ -620,9 +626,19 @@ class Jeu:
                 self.en_attente_lancement_vague = True
                 xp = self.progression.xp_pour_vague(self.vague_locale)
                 self.progression.gagner_xp(xp)
-                score_vague = int(self.points_de_vie_mur * 120 + max(0, 2000 - self.temps_vague_actuelle * 80))
+                facteur_equilibrage = 5.0
+                score_vague = int((self.temps_vague_actuelle * max(1, self.mobs_tues_vague)) / facteur_equilibrage)
                 self.score_total_partie += score_vague
                 self.ecran_fin_vague.ouvrir(self.vague_locale, xp, score_vague)
+                enregistrer_score(
+                    self.continent,
+                    self.niveau,
+                    score_vague,
+                    self.progression.niveau,
+                    numero_vague=self.vague_locale,
+                    temps_vague=self.temps_vague_actuelle,
+                    nom_joueur="Joueur",
+                )
                 degats_vague = max(0, self.vie_debut_vague - self.points_de_vie_mur)
                 if self.vague_locale <= 3:
                     if degats_vague < 3:
@@ -659,6 +675,8 @@ class Jeu:
 
     def dessiner(self):
         import math as _math
+        fenetre_reelle = self.fenetre
+        self.fenetre = self.surface_logique
 
         # Screen shake : décaler toute la surface de rendu 
         ox, oy = self._shake_offset
@@ -749,6 +767,28 @@ class Jeu:
             self.tutoriel.dessiner(self.fenetre)
         if self.map_jeu_ouverte:
             self._dessiner_map_jeu()
+        self.fenetre = fenetre_reelle
+        largeur_reelle, hauteur_reelle = fenetre_reelle.get_size()
+        if largeur_reelle == largeur_ecran and hauteur_reelle == hauteur_ecran:
+            fenetre_reelle.blit(self.surface_logique, (0, 0))
+        else:
+            image_redimensionnee = pygame.transform.smoothscale(self.surface_logique, (largeur_reelle, hauteur_reelle))
+            fenetre_reelle.blit(image_redimensionnee, (0, 0))
+
+    def _position_souris_logique(self, position_reelle):
+        surface_ecran = pygame.display.get_surface()
+        if surface_ecran is None:
+            return position_reelle
+        largeur_reelle, hauteur_reelle = surface_ecran.get_size()
+        if largeur_reelle <= 0 or hauteur_reelle <= 0:
+            return position_reelle
+        ratio_x = largeur_ecran / largeur_reelle
+        ratio_y = hauteur_ecran / hauteur_reelle
+        x_logique = int(position_reelle[0] * ratio_x)
+        y_logique = int(position_reelle[1] * ratio_y)
+        x_logique = max(0, min(largeur_ecran - 1, x_logique))
+        y_logique = max(0, min(hauteur_ecran - 1, y_logique))
+        return x_logique, y_logique
 
     def _ajouter_effet(self, pos, couleur, rayon, duree):
         self.effets_visuels.append({"x": float(pos[0]), "y": float(pos[1]), "couleur": couleur, "rayon": rayon, "duree": duree, "temps": duree})
@@ -772,7 +812,7 @@ class Jeu:
         x = largeur_ecran - 200
         y = 34
         self.bouton_recompense = pygame.Rect(x, y, 180, 26)
-        survol = self.bouton_recompense.collidepoint(pygame.mouse.get_pos())
+        survol = self.bouton_recompense.collidepoint(self._position_souris_logique(pygame.mouse.get_pos()))
         couleur_fond = (68, 128, 82) if survol else (40, 90, 58)
         pygame.draw.rect(self.fenetre, couleur_fond, self.bouton_recompense, border_radius=6)
         pygame.draw.rect(self.fenetre, (170, 230, 180), self.bouton_recompense, width=1, border_radius=6)

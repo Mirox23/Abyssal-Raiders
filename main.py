@@ -10,8 +10,7 @@ from sauvegarde import sauvegarder
 def main():
     pygame.mixer.pre_init(44100, -16, 2, 512)
     pygame.init()
-    info = pygame.display.Info()
-    ecran = pygame.display.set_mode((info.current_w, info.current_h),pygame.FULLSCREEN)
+    ecran = pygame.display.set_mode((largeur_ecran, hauteur_ecran))
     pygame.display.set_caption("Abyssal Raiders")
     horloge = pygame.time.Clock()
 

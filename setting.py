@@ -7,8 +7,8 @@ Résultat : variables importables dans tous les autres fichiers
 """
 
 # Taille de la fenêtre
-largeur_ecran = 1920
-hauteur_ecran = 1080
+largeur_ecran = 1000
+hauteur_ecran = 560
 FPS = 60
 
 # Le mur que les ennemis veulent atteindre

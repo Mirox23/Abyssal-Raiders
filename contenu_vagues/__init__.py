@@ -1,0 +1,1 @@
+from contenu_vagues.generateur_vagues import charger_configuration

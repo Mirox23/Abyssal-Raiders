@@ -46,7 +46,7 @@ def sauvegarder(nom, progression_monde, progression_joueur=None):
         "nom": nom_propre,
         "date": datetime.now().strftime("%d/%m/%Y %H:%M"),
         "niveaux_conquis": progression_monde.niveaux_conquis,  # dict continent -> liste bool
-        "succes_vagues": getattr(progression_monde, "succes_vagues", {}),
+        "succès_vagues": getattr(progression_monde, "succès_vagues", {}),
     }
 
     # Ajoute les infos du joueur si disponibles
@@ -140,7 +140,7 @@ def appliquer_sauvegarde(donnees, progression_monde):
         if continent in progression_monde.niveaux_conquis:
             # On s'assure que la longueur est correcte (8 niveaux)
             progression_monde.niveaux_conquis[continent] = (liste + [False] * 8)[:8]
-    succes = donnees.get("succes_vagues", {})
+    succes = donnees.get("succès_vagues", {})
     for continent, liste_niveaux in succes.items():
         if continent in progression_monde.succes_vagues:
             propre = []

@@ -17,4 +17,5 @@
 - Faire une vidéo juste avant le jeu - Après que le joueur a cliquer sur "JOuer"
 - Ajouter le mob rossier à la fin : dernière vague à la toute fin. 
 - Corriger le fait que les pirates sont partout
+- Corriger le bug de la flèche du tutoriel
 - 

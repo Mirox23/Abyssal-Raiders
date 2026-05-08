@@ -76,7 +76,7 @@ def configurer_chemin_continent(continent):
 def _normaliser_continent(continent):
     if not continent:
         return "pirate"
-    texte_nfd = unicodedata.normalize("NFKD", continent)
+    texte_nfd = unicodedata.normalize("NFKD", continent)  # Convertit les caractères accentués en caractères de base + accents séparés
     caracteres = []
     for caractere in texte_nfd:
         if not unicodedata.combining(caractere):

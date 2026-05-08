@@ -7,7 +7,7 @@ from setting import largeur_ecran, hauteur_ecran
 
 class FenetreArbreTalents:
     """
-    Arbre à talents avec icônes PNG (dossier image/talent/).
+    Arbre à talents avec les icônes (dossier image/talent/).
     L'arbre se reset à chaque nouveau niveau de jeu, mais le joueur
     repart avec un petit bonus permanent basé sur son niveau précédent.
     """
@@ -91,7 +91,7 @@ class FenetreArbreTalents:
             else:
                 self._icones[cle] = None
 
-    def _normaliser_nom(self, texte):
+    def _normaliser_nom(self, texte): # elle n'est pas vraiment très importante mais elle permet d'éviter des erreurs à cause d'erreurs d'écritures
         """
         Enlève les accents et met en minuscule pour comparer des noms de fichiers
         même si les écritures diffèrent un peu.
@@ -105,16 +105,12 @@ class FenetreArbreTalents:
     def _trouver_chemin_icone(self, cle_talent, chemin_par_defaut):
         """
         Cherche l'icône d'un talent avec plusieurs essais:
-        - chemin indiqué dans TALENTS
-        - variantes png/jpg/webp basées sur la clé
+        - chemin indiqué dans talents
         - scan simple du dossier image/talent
         """
         chemins_possibles = [
             chemin_par_defaut,
             f"image/talent/{cle_talent}.png",
-            f"image/talent/{cle_talent}.jpg",
-            f"image/talent/{cle_talent}.jpeg",
-            f"image/talent/{cle_talent}.webp",
         ]
 
         for chemin_actuel in chemins_possibles:
@@ -190,10 +186,10 @@ class FenetreArbreTalents:
         if not self.visible:
             return
 
-        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA) # pygame  
         voile.fill((0, 0, 0, 150))
         fenetre.blit(voile, (0, 0))
-
+    
         dessiner_cadre_panneau(fenetre, self.rect)
 
         titre = self.police_titre.render("Arbre à talents", True, (238, 218, 182))

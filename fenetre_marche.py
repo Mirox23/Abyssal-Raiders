@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre marche du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 import random
 from interface import Bouton
@@ -24,6 +30,11 @@ class FenetreMarcheVague:
     """
 
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.visible = False
         self.cartes_proposees = []
         self.carte_choisie = None
@@ -35,6 +46,11 @@ class FenetreMarcheVague:
         self._rects_cartes = []
 
     def ouvrir(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = True
         self.carte_choisie = None
         self.cartes_proposees = random.sample(CATALOGUE_CARTES, min(3, len(CATALOGUE_CARTES)))
@@ -48,9 +64,19 @@ class FenetreMarcheVague:
         ]
 
     def fermer(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute fermer.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = False
 
     def gerer_clic(self, pos):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : pos.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return None
         # Sélection d'une carte
@@ -66,6 +92,11 @@ class FenetreMarcheVague:
         return None
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)

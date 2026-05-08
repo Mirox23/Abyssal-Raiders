@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie chemin du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 from setting import (
     largeur_ecran, hauteur_ecran,
     position_mur, couleur_wall,
@@ -65,8 +71,9 @@ liste_decors = []
 
 def configurer_chemin_continent(continent):
     """
-    Met à jour le chemin actif selon le continent choisi.
-    On modifie la liste en place pour garder les références déjà importées.
+    Explication de ce que fais la fonction : Cette fonction exécute configurer chemin continent.
+    Les entrées : continent.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
     """
     cle_continent = _normaliser_continent(continent)
     chemin_continent = CHEMINS_CONTINENTS.get(cle_continent, CHEMINS_CONTINENTS["pirate"])
@@ -74,9 +81,14 @@ def configurer_chemin_continent(continent):
 
 
 def _normaliser_continent(continent):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute normaliser continent.
+    Les entrées : continent.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     if not continent:
         return "pirate"
-    texte_nfd = unicodedata.normalize("NFKD", continent)  # Convertit les caractères accentués en caractères de base + accents séparés
+    texte_nfd = unicodedata.normalize("NFKD", continent)
     caracteres = []
     for caractere in texte_nfd:
         if not unicodedata.combining(caractere):
@@ -86,8 +98,9 @@ def _normaliser_continent(continent):
 
 def _charger_chemins_niveau(numero_niveau):
     """
-    Lit un fichier du dossier niveau chemin et retourne 4 chemins.
-    Le fichier doit définir CHEMINS_VAGUES = [chemin1, chemin2, chemin3, chemin4].
+    Explication de ce que fais la fonction : Cette fonction exécute charger chemins niveau.
+    Les entrées : numero_niveau.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
     """
     base = os.path.dirname(__file__)
     chemin_fichier = os.path.join(base, "niveau_chemin", f"niveau{numero_niveau}.py")
@@ -107,8 +120,9 @@ def _charger_chemins_niveau(numero_niveau):
 
 def _appliquer_variation_continent(chemin_de_base, continent):
     """
-    Petite variation pour différencier visuellement les continents
-    même avec la même structure de niveau.
+    Explication de ce que fais la fonction : Cette fonction exécute appliquer variation continent.
+    Les entrées : chemin_de_base, continent.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
     """
     decalages = {
         "pirate": (0, 0),
@@ -129,8 +143,9 @@ def _appliquer_variation_continent(chemin_de_base, continent):
 
 def configurer_chemin_niveau_vague(continent, numero_niveau, numero_vague_dans_niveau):
     """
-    Configure le chemin actif pour une vague donnée.
-    Chaque niveau contient 4 vagues avec 4 chemins dédiés.
+    Explication de ce que fais la fonction : Cette fonction exécute configurer chemin niveau vague.
+    Les entrées : continent, numero_niveau, numero_vague_dans_niveau.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
     """
     continent = _normaliser_continent(continent)
     chemins_vagues = _charger_chemins_niveau(numero_niveau)
@@ -144,9 +159,19 @@ def configurer_chemin_niveau_vague(continent, numero_niveau, numero_vague_dans_n
 
 
 def draw_decor(fenetre, pygame):
+    """
+    Explication de ce que fais la fonction : Cette fonction dessine draw decor à l'écran.
+    Les entrées : fenetre, pygame.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     pass  # Les décors viennent maintenant de l'image de fond du continent
 
 
 def draw_path(fenetre, pygame):
+    """
+    Explication de ce que fais la fonction : Cette fonction dessine draw path à l'écran.
+    Les entrées : fenetre, pygame.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     rect_mur = pygame.Rect(position_mur, 0, largeur_ecran - position_mur, hauteur_ecran)
     fenetre.fill(couleur_wall, rect_mur)

@@ -1,7 +1,18 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie sauvegarde preparation donnees du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 from datetime import datetime
 
 
 def _copie_niveaux_conquis(progression_monde):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute copie niveaux conquis.
+    Les entrées : progression_monde.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     resultat = {}
     if progression_monde is None:
         return resultat
@@ -11,6 +22,11 @@ def _copie_niveaux_conquis(progression_monde):
 
 
 def _copie_succes_vagues(progression_monde):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute copie succes vagues.
+    Les entrées : progression_monde.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     resultat = {}
     if progression_monde is None:
         return resultat
@@ -23,13 +39,18 @@ def _copie_succes_vagues(progression_monde):
 
 
 def fabriquer_dict_sauvegarde(nom_final, progression_monde, progression_joueur=None):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute fabriquer dict sauvegarde.
+    Les entrées : nom_final, progression_monde, progression_joueur.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     niveau_joueur = 1
     if progression_joueur is not None and hasattr(progression_joueur, "niveau"):
         niveau_joueur = int(progression_joueur.niveau)
 
     return {
         "nom": nom_final,
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), # Format de date lisible, ex: "2024-06-15 14:30:00", %Y: année sur 4 chiffres, %m: mois sur 2 chiffres, %d: jour sur 2 chiffres, %H: heure sur 24h, %M: minute sur 2 chiffres, %S: seconde sur 2 chiffres
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "niveau_joueur": niveau_joueur,
         "niveaux_conquis": _copie_niveaux_conquis(progression_monde),
         "succès_vagues": _copie_succes_vagues(progression_monde),

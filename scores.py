@@ -5,15 +5,15 @@ Format JSON : scores.json dans le dossier courant.
 import json
 import os
 
-FICHIER_SCORES = "scores.json"
-MAX_SCORES_PAR_CONTINENT = 5
+fichier_scores = "scores.json"
+max_score_par_continent = 5
 
 
 def _charger():
-    if not os.path.exists(FICHIER_SCORES):
+    if not os.path.exists(fichier_scores):
         return {}
     try:
-        with open(FICHIER_SCORES, "r", encoding="utf-8") as f:
+        with open(fichier_scores, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {}
@@ -21,7 +21,7 @@ def _charger():
 
 def _sauvegarder(data):
     try:
-        with open(FICHIER_SCORES, "w", encoding="utf-8") as f:
+        with open(fichier_scores, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
@@ -53,8 +53,8 @@ def enregistrer_score(continent, niveau, score, niveau_joueur, numero_vague=None
         "nom_joueur": nom_joueur,
     }
     data[cle]["top_runs"].append(entree)
-    # Tri décroissant par score et on coupe à MAX_SCORES_PAR_CONTINENT
-    data[cle]["top_runs"] = sorted(data[cle]["top_runs"], key=lambda e: e["score"], reverse=True)[:MAX_SCORES_PAR_CONTINENT]
+    # Tri décroissant par score et on coupe à max_score_par_continent
+    data[cle]["top_runs"] = sorted(data[cle]["top_runs"], key=lambda e: e["score"], reverse=True)[:max_score_par_continent]
 
     if numero_vague is not None and temps_vague is not None:
         cle_vague = str(numero_vague)

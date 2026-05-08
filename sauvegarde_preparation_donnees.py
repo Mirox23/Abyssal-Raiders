@@ -29,7 +29,7 @@ def fabriquer_dict_sauvegarde(nom_final, progression_monde, progression_joueur=N
 
     return {
         "nom": nom_final,
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), # Format de date lisible, ex: "2024-06-15 14:30:00", %Y: année sur 4 chiffres, %m: mois sur 2 chiffres, %d: jour sur 2 chiffres, %H: heure sur 24h, %M: minute sur 2 chiffres, %S: seconde sur 2 chiffres
         "niveau_joueur": niveau_joueur,
         "niveaux_conquis": _copie_niveaux_conquis(progression_monde),
         "succès_vagues": _copie_succes_vagues(progression_monde),

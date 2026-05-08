@@ -21,17 +21,17 @@ argent_seuil_amelioration = 15
 
 # Les messages affiches a chaque etape
 messages_etapes = {
-    etape_tourelle: "Ouvrez le telephone puis cliquez sur 'Tourelle' pour placer votre premiere defense !",
+    etape_tourelle: "Ouvrez le télephone puis cliquez sur 'Tourelle' pour placer votre première defense !",
     etape_placer_tour: "Choisissez une tour puis cliquez sur la carte pour la poser.",
-    etape_lancer_vague: "Bien ! Maintenant ouvrez le telephone et cliquez sur 'New vague' pour lancer la premiere vague.",
-    etape_ameliorer_tour: "Vous avez assez d'or ! Cliquez sur une de vos tours pour la selectionner.",
-    etape_infos_ameliorer: "Maintenant ouvrez le telephone, allez dans 'Info' pour ameliorer votre tour !",
-    etape_modification: "Vague terminee ! Cliquez sur 'Modification' dans l'ecran de fin pour reamenager vos defenses.",
-    etape_succes: "Vous aurez ici votre parcours de completaison du jeu. Allez voir vos succes dans le telephone !",
-    etape_recompense: "Cliquez sur le bouton 'Recompenses - Talents' en haut a droite pour voir vos recompenses.",
-    etape_arbre_talent: "Vous etes dans les recompenses. Allez dans l'onglet 'Arbre a talents' pour ameliorer vos skills !",
-    etape_competence: "Voici vos competences et objets qui vous permettront de vous sortir d'une mort certaine. Ouvrez 'Competence' dans le telephone.",
-    etape_objet: "Maintenant ouvrez 'Objets' dans le telephone pour voir votre inventaire.",
+    etape_lancer_vague: "Bien ! Maintenant ouvrez le télephone et cliquez sur 'New vague' pour lancer la première vague.",
+    etape_ameliorer_tour: "Vous avez assez d'or ! Cliquez sur une de vos tours pour la sélectionner.",
+    etape_infos_ameliorer: "Maintenant ouvrez le télephone, allez dans 'Info' pour améliorer votre tour !",
+    etape_modification: "Vague terminée ! Cliquez sur 'Modification' dans l'ecran de fin pour reamenager vos defenses.",
+    etape_succes: "Vous aurez ici votre parcours de completaison du jeu. Allez voir vos succès dans le télephone !",
+    etape_recompense: "Cliquez sur le bouton 'Récompenses - Talents' en haut a droite pour voir vos recompenses.",
+    etape_arbre_talent: "Vous êtes dans les récompenses. Allez dans l'onglet 'Arbre a talents' pour ameliorer vos skills !",
+    etape_competence: "Voici vos compétences et objets qui vous permettront de vous sortir d'une mort certaine. Ouvrez 'Compétence' dans le télephone.",
+    etape_objet: "Maintenant ouvrez 'Objets' dans le télephone pour voir votre inventaire.",
     etape_termine: "",
 }
 
@@ -54,7 +54,7 @@ class GestionnaireTutoriel:
 
     def notifier_action(self, nom_action):
         """
-        Appele depuis game.py a chaque action du joueur.
+        Appèle depuis game.py a chaque action du joueur.
         nom_action : chaine qui decrit ce que le joueur vient de faire.
         """
         if not self.actif or self.est_termine():
@@ -107,7 +107,7 @@ class GestionnaireTutoriel:
 
     def notifier_vague_terminee(self):
         """
-        Appele depuis game.py quand la vague se termine.
+        Appèle depuis game.py quand la vague se termine.
         On passe directement a l'etape modification : le message apparait
         tout seul sur l'ecran de fin de vague, sans ouvrir le telephone.
         """
@@ -201,7 +201,7 @@ def _decouper_message(message, police, largeur_max):
 
 def _dessiner_fleche_indicatrice(fenetre, etape):
     """
-    Dessine une petite fleche qui pointe vers l'element concerne par l'etape.
+    Dessine une petite flèche qui pointe vers l'élément concerne par l'etape.
     """
     # Par defaut on pointe vers le telephone en bas a droite
     cible_x = largeur_ecran - 105

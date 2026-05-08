@@ -1,4 +1,10 @@
-from mob import Mob, MobBoss, MobKamikaze, MobRapide, MobSoigneur, MobTank
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie vague du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
+from mobs_principaux import Mob, MobBoss, MobKamikaze, MobRapide, MobSoigneur, MobTank
 from contenu_vagues.generateur_vagues import charger_configuration
 
 
@@ -13,6 +19,11 @@ CLASSES_MOBS = {
 
 class GestionnaireVague:
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.continent = "pirate"
         self.niveau = 1
         self.configuration_vagues = {}
@@ -25,6 +36,11 @@ class GestionnaireVague:
         self._temps_vague = 0.0
 
     def configurer_contexte(self, continent, niveau):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute configurer contexte.
+        Les entrées : continent, niveau.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.continent = str(continent or "pirate").lower()
         self.niveau = max(1, int(niveau))
         self.configuration_vagues = charger_configuration(self.continent, self.niveau)
@@ -35,6 +51,11 @@ class GestionnaireVague:
         self.est_vague_boss = False
 
     def demarrer_vague(self, spawn_position, est_boss=False):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute demarrer vague.
+        Les entrées : spawn_position, est_boss.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self._spawn_position = spawn_position
         self._temps_vague = 0.0
         self.vague_terminee = False
@@ -62,6 +83,11 @@ class GestionnaireVague:
                 temps_courant += intervalle
 
     def mettre_a_jour(self, delta_temps, liste_ennemis, chemin):
+        """
+        Explication de ce que fais la fonction : Cette fonction met à jour mettre a jour pendant la partie.
+        Les entrées : delta_temps, liste_ennemis, chemin.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.vague_en_cours:
             return
 

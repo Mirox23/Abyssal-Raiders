@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie jeu principal du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import os
 import pygame
 import unicodedata
@@ -20,6 +26,11 @@ from tutoriel import GestionnaireTutoriel, etape_ameliorer_tour, etape_lancer_va
 
 class Jeu:
     def __init__(self, continent="pirate", volume_musique=0.5, niveau=1, progression_monde=None):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : continent, volume_musique, niveau, progression_monde.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         pygame.init()
         # Fenêtre classique (avec les boutons système Windows).
         self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran), pygame.RESIZABLE)
@@ -39,16 +50,26 @@ class Jeu:
         self.reinitialiser()
 
     def _lancer_musique_continent(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute lancer musique continent.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         # Musique de jeu normale (vagues simples et modifications)
         self.musique.jouer("jeu")  # appelle musique/jeu.mp3
 
     def _lancer_musique_boss(self):
-        """Musique spéciale pour les vagues de boss uniquement."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute lancer musique boss.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.musique.jouer("boss")  # appelle musique/boss.mp3
     def _charger_image_fond(self):
         """
-        Charge l'image de fond correspondant au continent actif.
-        Si l'image n'existe pas, retourne None (on utilisera la couleur unie de secours).
+        Explication de ce que fais la fonction : Cette fonction exécute charger image fond.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         continent = self._normaliser_continent(self.continent)
         chemins_fond = {
@@ -70,6 +91,11 @@ class Jeu:
         return None  # pas d'image trouvée, on utilisera la couleur unie
 
     def _normaliser_continent(self, nom_continent):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute normaliser continent.
+        Les entrées : nom_continent.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not nom_continent:
             return "pirate"
         texte_nfd = unicodedata.normalize("NFKD", nom_continent)
@@ -80,6 +106,11 @@ class Jeu:
         return "".join(caracteres).lower()
 
     def reinitialiser(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute reinitialiser.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.liste_ennemis, self.liste_tours = [], []
         self.points_de_vie_mur = vie_mur_depart
         self.argent = argent_depart
@@ -176,6 +207,11 @@ class Jeu:
             self._timer_message_fidelite = 4.0
 
     def lancer(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction lance lancer au bon moment du jeu.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         jeu_en_cours = True
         fermeture_par_croix = False
         while jeu_en_cours:
@@ -208,6 +244,11 @@ class Jeu:
         }
 
     def gerer_competence(self, touche):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer competence en fonction du contexte courant.
+        Les entrées : touche.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         cle = self.gestionnaire_competences.obtenir_competence_par_touche(touche)
         if not cle:
             return
@@ -235,10 +276,20 @@ class Jeu:
         self.gestionnaire_competences.activer(cle)
 
     def _cout_competence(self, cle_competence):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute cout competence.
+        Les entrées : cle_competence.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         data = self.gestionnaire_competences.competences[cle_competence]
         return max(1, data["cout"] - self.talents_appliques["reduction_cout"])
 
     def gerer_easter_eggs(self, touche):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer easter eggs en fonction du contexte courant.
+        Les entrées : touche.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if touche == pygame.K_p:
             self.argent += 25
         self.sequence_easter_egg.append(touche)
@@ -247,6 +298,11 @@ class Jeu:
             self.mode_fete = not self.mode_fete
 
     def gerer_clic(self, clic):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : clic.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self.est_mort:
             if self.bouton_rejouer_payant.collidepoint(clic) and self.argent >= 200:
                 self.argent -= 200
@@ -437,6 +493,11 @@ class Jeu:
             self._placer_tour(clic)
 
     def _selectionner_tour_menu(self, clic):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute selectionner tour menu.
+        Les entrées : clic.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         zones = [
             (pygame.Rect(330, 180, 340, 56), TourSniper),
             (pygame.Rect(330, 243, 340, 56), TourCanonnier),
@@ -449,6 +510,11 @@ class Jeu:
                 return
 
     def _placer_tour(self, clic):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute placer tour.
+        Les entrées : clic.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         cout = self.couts_tours.get(self.type_tour_a_placer, prix_tour)
         emplacement_libre = True
         for tour in self.liste_tours:
@@ -476,6 +542,11 @@ class Jeu:
         self.type_tour_a_placer = None
 
     def est_sur_chemin(self, pos):
+        """
+        Explication de ce que fais la fonction : Cette fonction vérifie est sur chemin.
+        Les entrées : pos.
+        Le résultat : Retourne True ou False selon la condition vérifiée.
+        """
         # Test géométrique précis pour éviter les faux positifs de placement.
         largeur_interdite = 18
         for i in range(len(CHEMIN) - 1):
@@ -487,6 +558,11 @@ class Jeu:
         return False
 
     def _distance_point_segment(self, px, py, x1, y1, x2, y2):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute distance point segment.
+        Les entrées : px, py, x1, y1, x2, y2.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         vx = x2 - x1
         vy = y2 - y1
         wx = px - x1
@@ -494,12 +570,17 @@ class Jeu:
         long2 = vx * vx + vy * vy
         if long2 == 0:
             return ((px - x1) ** 2 + (py - y1) ** 2) ** 0.5
-        t = max(0.0, min(1.0, (wx * vx + wy * vy) / long2)) # projection du point sur le segment, limitée à [0,1]
+        t = max(0.0, min(1.0, (wx * vx + wy * vy) / long2))  # On force la projection entre 0 et 1 pour rester sur le segment.
         proj_x = x1 + t * vx
         proj_y = y1 + t * vy
         return ((px - proj_x) ** 2 + (py - proj_y) ** 2) ** 0.5
 
     def lancer_nouvelle_vague(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction lance lancer nouvelle vague au bon moment du jeu.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self.vague_locale >= self.vague_max:
             return
         self.vague_locale += 1
@@ -527,6 +608,11 @@ class Jeu:
             self._bonus_portee_cartes = 0
 
     def mettre_a_jour(self, delta_temps):
+        """
+        Explication de ce que fais la fonction : Cette fonction met à jour mettre a jour pendant la partie.
+        Les entrées : delta_temps.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         import math as _math
         if self.est_mort or self.echec_vague:
             return
@@ -559,6 +645,7 @@ class Jeu:
         else:
             self._shake_offset = (0, 0)
 
+        # On avance la simulation seulement quand une vague est active et qu'aucune fenêtre pause la partie.
         if not self.en_attente_lancement_vague and not self.ecran_fin_vague.visible and not self.fenetre_marche.visible:
             self.temps_vague_actuelle += delta_temps
             self.gestionnaire_vague.mettre_a_jour(delta_temps, self.liste_ennemis, CHEMIN)
@@ -585,8 +672,8 @@ class Jeu:
                     self._ajouter_particules_mort(ennemi.x, ennemi.y, ennemi.couleur)
                     # Boss : spawner 3 mobs normaux à sa mort 
                     if isinstance(ennemi, MobBoss):
-                        for _ in range(3):
-                            mobs_a_spawner_apres.append(type("_SpawnMob", (), {"classe": __import__("mob").Mob, "pos": CHEMIN[0]})())
+                        for _ in range(3):  # Le boss relâche 3 mobs de base à sa mort.
+                            mobs_a_spawner_apres.append(type("_SpawnMob", (), {"classe": __import__("mobs_principaux").Mob, "pos": CHEMIN[0]})())
                     continue
 
                 if ennemi.avancer(delta_temps, CHEMIN):
@@ -644,7 +731,7 @@ class Jeu:
                 xp = self.progression.xp_pour_vague(self.vague_locale)
                 self.progression.gagner_xp(xp)
                 facteur_equilibrage = 5.0
-                score_vague = int((self.temps_vague_actuelle * max(1, self.mobs_tues_vague)) / facteur_equilibrage)
+                score_vague = int((self.temps_vague_actuelle * max(1, self.mobs_tues_vague)) / facteur_equilibrage)  # Évite un score nul si aucun mob n'est tué.
                 self.score_total_partie += score_vague
                 self.ecran_fin_vague.ouvrir(self.vague_locale, xp, score_vague)
                 enregistrer_score(
@@ -693,6 +780,11 @@ class Jeu:
         self._mettre_a_jour_effets(delta_temps)
 
     def dessiner(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         import math as _math
         fenetre_reelle = self.fenetre
         self.fenetre = self.surface_logique
@@ -791,10 +883,15 @@ class Jeu:
         if largeur_reelle == largeur_ecran and hauteur_reelle == hauteur_ecran:
             fenetre_reelle.blit(self.surface_logique, (0, 0))
         else:
-            image_redimensionnee = pygame.transform.smoothscale(self.surface_logique, (largeur_reelle, hauteur_reelle))
+            image_redimensionnee = pygame.transform.smoothscale(self.surface_logique, (largeur_reelle, hauteur_reelle))  # Garde les proportions du rendu logique en fenêtre redimensionnée.
             fenetre_reelle.blit(image_redimensionnee, (0, 0))
 
     def _position_souris_logique(self, position_reelle):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute position souris logique.
+        Les entrées : position_reelle.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         surface_ecran = pygame.display.get_surface()
         if surface_ecran is None:
             return position_reelle
@@ -810,9 +907,19 @@ class Jeu:
         return x_logique, y_logique
 
     def _ajouter_effet(self, pos, couleur, rayon, duree):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ajouter effet.
+        Les entrées : pos, couleur, rayon, duree.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.effets_visuels.append({"x": float(pos[0]), "y": float(pos[1]), "couleur": couleur, "rayon": rayon, "duree": duree, "temps": duree})
 
     def _mettre_a_jour_effets(self, delta_temps):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute mettre a jour effets.
+        Les entrées : delta_temps.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         restants = []
         for effet in self.effets_visuels:
             effet["temps"] -= delta_temps
@@ -821,12 +928,22 @@ class Jeu:
         self.effets_visuels = restants
 
     def _dessiner_effets(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner effets.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         for effet in self.effets_visuels:
             ratio = effet["temps"] / effet["duree"]
             rayon = max(2, int(effet["rayon"] * (1 - ratio * 0.5)))
             pygame.draw.circle(self.fenetre, effet["couleur"], (int(effet["x"]), int(effet["y"])), rayon, max(1, int(3 * ratio)))
 
     def _dessiner_bouton_recompense(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner bouton recompense.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         # Intégré à la zone XP sans trou visuel.
         x = largeur_ecran - 200
         y = 34
@@ -839,6 +956,11 @@ class Jeu:
         self.fenetre.blit(txt, (self.bouton_recompense.centerx - txt.get_width() // 2, self.bouton_recompense.y + 6))
 
     def _dessiner_map_jeu(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner map jeu.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
         voile.fill((0, 0, 0, 165))
         self.fenetre.blit(voile, (0, 0))
@@ -855,6 +977,11 @@ class Jeu:
         self.fenetre.blit(txt, (self.bouton_retour_jeu.centerx - txt.get_width() // 2, self.bouton_retour_jeu.centery - txt.get_height() // 2))
 
     def _jouer_son_effet(self, type_effet):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute jouer son effet.
+        Les entrées : type_effet.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         sons = {
             "tir": "musique/effets/tir.mp3",
             "eat": "musique/effets/eat.mp3",
@@ -878,6 +1005,11 @@ class Jeu:
         if chemin:
             self.musique.jouer_effet(chemin)
     def _dessiner_info_tour(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner info tour.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         tour = self.tour_actuellement_selectionnee
         police = pygame.font.SysFont("consolas", 14)
         for i, ligne in enumerate([tour.type_tour, f"Niv {tour.niveau}", f"Portée {int(tour.portee)}"]):
@@ -885,6 +1017,11 @@ class Jeu:
             self.fenetre.blit(surf, (int(tour.x) + tour.taille + 8, int(tour.y) - 20 + i * 16))
 
     def _dessiner_menu_type_tour(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner menu type tour.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         police_menu = pygame.font.SysFont("consolas", 18)
         police_desc = pygame.font.SysFont("consolas", 11)
         donnees = [
@@ -906,6 +1043,11 @@ class Jeu:
             self.fenetre.blit(police_desc.render("OK" if self.argent >= prix else "Pas assez", True, (120, 240, 120) if self.argent >= prix else (240, 120, 120)), (zone.right - 76, zone.y + 36))
 
     def utiliser_objet(self, cle_objet):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute utiliser objet.
+        Les entrées : cle_objet.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self.inventaire_objets.get(cle_objet, 0) <= 0:
             return
         self.inventaire_objets[cle_objet] -= 1
@@ -925,7 +1067,11 @@ class Jeu:
                 ennemi.appliquer_ralentissement(0.45, duree)
 
     def _appliquer_carte_marche(self, id_carte):
-        """Applique l'effet d'une carte choisie dans le marché."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute appliquer carte marche.
+        Les entrées : id_carte.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         mult = 1.0 + 0.5 * self.talents_appliques.get("alchimiste", 0)
         if id_carte == "or_bonus":
             self.argent += int(20 * mult)
@@ -962,7 +1108,11 @@ class Jeu:
                 ennemi.appliquer_ralentissement(0.3, duree)
 
     def _ajouter_particules_mort(self, x, y, couleur):
-        """5 éclats colorés qui explosent à la mort d'un ennemi."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ajouter particules mort.
+        Les entrées : x, y, couleur.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         import random as _rand
         # Particule centrale claire
         self._ajouter_effet((x, y), (255, 255, 200), 18, 0.3)
@@ -976,6 +1126,11 @@ class Jeu:
         self._ajouter_effet((x, y), couleur, 28, 0.2)
 
     def _dessiner_ecran_defaite(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner ecran defaite.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
         voile.fill((0, 0, 0, 170))
         self.fenetre.blit(voile, (0, 0))
@@ -996,6 +1151,11 @@ class Jeu:
         self.fenetre.blit(t2, (self.bouton_recommencer.centerx - t2.get_width() // 2, self.bouton_recommencer.y + 12))
 
     def _dessiner_ecran_echec_vague(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner ecran echec vague.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
         voile.fill((0, 0, 0, 170))
         self.fenetre.blit(voile, (0, 0))

@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie mobs principaux du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 import math
 import random
@@ -8,7 +14,7 @@ CONTINENT_MOB_ACTIF = "pirate"
 REPERTOIRE_JEU = os.path.dirname(os.path.abspath(__file__))
 DOSSIER_IMAGE = os.path.join(REPERTOIRE_JEU, "image")
 
-noms_par_continent = {
+NOMS_SPRITES_PAR_CONTINENT = {
     "pirate": {
         "base": ["Roi_des_pirates.png"],
         "rapide": ["Fantome_pirate.png"],
@@ -41,6 +47,11 @@ noms_par_continent = {
 
 
 def _normaliser_texte(texte):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute normaliser texte.
+    Les entrées : texte.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     texte_nfd = unicodedata.normalize("NFKD", texte)
     caracteres = []
     for caractere in texte_nfd:
@@ -50,9 +61,14 @@ def _normaliser_texte(texte):
 
 
 def definir_continent_mob(continent):
+    """
+    Explication de ce que fais la fonction : Cette fonction définit definir continent mob.
+    Les entrées : continent.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     continent_brut = continent or "pirate"
     continent_normalise = _normaliser_texte(continent_brut)
-    if continent_normalise not in noms_par_continent:
+    if continent_normalise not in NOMS_SPRITES_PAR_CONTINENT:
         continent_normalise = "pirate"
     CONTINENT = continent_normalise
     globals()["CONTINENT_MOB_ACTIF"] = CONTINENT
@@ -64,6 +80,11 @@ def definir_continent_mob(continent):
 
 
 def _dossiers_possibles_continent():
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute dossiers possibles continent.
+    Les entrées : Cette fonction ne demande pas de paramètre direct.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     dossiers = []
     dossier_principal = CONTINENT_MOB_ACTIF
     dossiers.append(os.path.join(DOSSIER_IMAGE, dossier_principal))
@@ -74,13 +95,18 @@ def _dossiers_possibles_continent():
 
 
 def _charger_image_continent(type_sprite, taille):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute charger image continent.
+    Les entrées : type_sprite, taille.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     candidats = []
-    noms_par_type = noms_par_continent.get(CONTINENT_MOB_ACTIF, {})
+    noms_par_type = NOMS_SPRITES_PAR_CONTINENT.get(CONTINENT_MOB_ACTIF, {})
     if type_sprite in noms_par_type:
         for nom in noms_par_type[type_sprite]:
             candidats.append(nom)
     if CONTINENT_MOB_ACTIF != "pirate":
-        for nom in noms_par_continent["pirate"].get(type_sprite, []):
+        for nom in NOMS_SPRITES_PAR_CONTINENT["pirate"].get(type_sprite, []):
             candidats.append(nom)
 
     for dossier in _dossiers_possibles_continent():
@@ -110,6 +136,11 @@ class Mob:
     xp_mort = 1
 
     def __init__(self, position_depart, vitesse=None, couleur=None):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position_depart, vitesse, couleur.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.x = float(position_depart[0])
         self.y = float(position_depart[1])
 
@@ -140,19 +171,32 @@ class Mob:
         self.image = Mob.image_base
 
     def appliquer_ralentissement(self, facteur, duree):
-        """Réduit temporairement la vitesse du mob."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute appliquer ralentissement.
+        Les entrées : facteur, duree.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if facteur < self.facteur_ralentissement:
             self.facteur_ralentissement = facteur
             self.minuterie_ralentissement = duree
 
     def recevoir_degats(self, quantite):
-        """Applique des dégâts et déclenche flash + shake."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute recevoir degats.
+        Les entrées : quantite.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.vie -= quantite
         self.flash_timer = 0.08   # 80ms de flash blanc
         self.shake_timer = 0.12   # 120ms de shake
         self.shake_offset = (random.randint(-3, 3), random.randint(-3, 3))
 
     def avancer(self, delta_temps, chemin):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute avancer.
+        Les entrées : delta_temps, chemin.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self.etape >= len(chemin):
             return True
 
@@ -200,6 +244,11 @@ class Mob:
         return False
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not hasattr(self, "image") or self.image is None:
             self.image = Mob.image_base
 
@@ -254,6 +303,11 @@ class MobRapide(Mob):
     image_rapide = None
 
     def __init__(self, position_depart, vitesse=None, couleur=None):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position_depart, vitesse, couleur.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
         self.couleur = couleur if couleur is not None else self.couleur_mob
@@ -283,6 +337,11 @@ class MobTank(Mob):
     image_tank = None
 
     def __init__(self, position_depart, vitesse=None, couleur=None):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position_depart, vitesse, couleur.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
         self.couleur = couleur if couleur is not None else self.couleur_mob
@@ -315,6 +374,11 @@ class MobKamikaze(Mob):
     image_kamikaze = None
 
     def __init__(self, position_depart, vitesse=None, couleur=None):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position_depart, vitesse, couleur.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
         self.couleur = couleur if couleur is not None else self.couleur_mob
@@ -349,6 +413,11 @@ class MobSoigneur(Mob):
     image_soigneur = None
 
     def __init__(self, position_depart, vitesse=None, couleur=None):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position_depart, vitesse, couleur.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
         self.couleur = couleur if couleur is not None else self.couleur_mob
@@ -365,7 +434,11 @@ class MobSoigneur(Mob):
         self.image = MobSoigneur.image_soigneur
 
     def soigner_alentours(self, delta_temps, liste_ennemis):
-        """Soigne les mobs proches toutes les cadence_soin secondes."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute soigner alentours.
+        Les entrées : delta_temps, liste_ennemis.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.minuterie_soin += delta_temps
         if self.minuterie_soin >= self.cadence_soin:
             self.minuterie_soin = 0.0
@@ -377,6 +450,11 @@ class MobSoigneur(Mob):
                     autre_mob.vie = min(autre_mob.vie_max, autre_mob.vie + self.soin_par_tick)
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         super().dessiner(fenetre)
         # Croix blanche pour identifier le soigneur
         centre_x = int(self.x)
@@ -403,6 +481,11 @@ class MobBoss(Mob):
     degats_mur = 5
 
     def __init__(self, position_depart, vitesse=None, couleur=None):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position_depart, vitesse, couleur.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position_depart, vitesse, couleur)
         self.vitesse = vitesse if vitesse is not None else self.vitesse_de_base
         self.couleur = couleur if couleur is not None else self.couleur_mob
@@ -418,10 +501,20 @@ class MobBoss(Mob):
             self.image = pygame.transform.scale(self.image, (72, 72))
 
     def avancer(self, delta_temps, chemin):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute avancer.
+        Les entrées : delta_temps, chemin.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self._pulse += delta_temps * 3.0
         return super().avancer(delta_temps, chemin)
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         # Halo doré autour du boss
         rayon_halo = int(self.taille + 10 + math.sin(self._pulse) * 5)
         alpha = int(120 + math.sin(self._pulse) * 60)

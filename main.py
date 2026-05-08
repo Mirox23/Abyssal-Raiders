@@ -1,12 +1,24 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie main du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 from setting import largeur_ecran, hauteur_ecran, FPS
 from menu_principal import Menu
 from jeu_principal import Jeu
+from musique import MusiqueManager
 from dialogue_quitter_sauvegarde import demander_sauvegarde_avant_quitter
 from progression_monde import ProgressionMonde
 
 
 def main():
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute main.
+    Les entrées : Cette fonction ne demande pas de paramètre direct.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     pygame.mixer.pre_init(44100, -16, 2, 512)
     pygame.init()
     ecran = pygame.display.set_mode((largeur_ecran, hauteur_ecran))

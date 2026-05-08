@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie musique du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import os
 import pygame
 
@@ -13,6 +19,11 @@ class MusiqueManager:
     """Gestion simple de la musique et des effets sonores."""
 
     def __init__(self, volume=0.5):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : volume.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.volume = max(0.0, min(1.0, volume))
         self.volume_effets = 0.6
         self.piste_active = None
@@ -26,7 +37,11 @@ class MusiqueManager:
             pass
 
     def _resolver_fichier_audio(self, fichier_audio):
-        """Retourne le chemin du fichier audio dans le dossier musique."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute resolver fichier audio.
+        Les entrées : fichier_audio.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         fichier_audio = MUSIQUES.get(fichier_audio, fichier_audio)
 
         if os.path.isabs(fichier_audio):
@@ -38,6 +53,11 @@ class MusiqueManager:
         return os.path.join(self.dossier_musique, fichier_audio)
 
     def jouer(self, fichier_audio):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute jouer.
+        Les entrées : fichier_audio.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         fichier_audio = self._resolver_fichier_audio(fichier_audio)
         if self.piste_active == fichier_audio:
             return
@@ -53,6 +73,11 @@ class MusiqueManager:
             self.piste_active = None
 
     def regler_volume(self, volume):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute regler volume.
+        Les entrées : volume.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.volume = max(0.0, min(1.0, volume))
         try:
             pygame.mixer.music.set_volume(self.volume)
@@ -60,10 +85,19 @@ class MusiqueManager:
             pass
 
     def regler_volume_effets(self, volume):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute regler volume effets.
+        Les entrées : volume.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.volume_effets = max(0.0, min(1.0, volume))
 
     def jouer_effet(self, fichier_audio):
-        """Joue un effet court sans interrompre la musique de fond."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute jouer effet.
+        Les entrées : fichier_audio.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         fichier_audio = self._resolver_fichier_audio(fichier_audio)
         if not os.path.exists(fichier_audio):
             return

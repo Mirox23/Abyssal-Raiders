@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie panneau parametres musique du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 from decoration_cadre_abysse import dessiner_cadre_panneau
 from interface import Bouton
@@ -5,6 +11,11 @@ from setting import largeur_ecran, hauteur_ecran
 
 class PanneauParametresMusique:
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.visible = False
         self.rect = pygame.Rect(260, 130, 480, 290)
         self.police_titre = pygame.font.SysFont("consolas", 22, bold=True)
@@ -18,9 +29,19 @@ class PanneauParametresMusique:
         self.bouton_x2  = pygame.Rect(self.rect.x + 250, self.rect.y + 225, 110, 36)
 
     def ouvrir(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = True
 
     def gerer_clic(self, pos_clic):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : pos_clic.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return None
         if self.bouton_fermer.rect.collidepoint(pos_clic):
@@ -36,6 +57,11 @@ class PanneauParametresMusique:
         return None
 
     def dessiner(self, fenetre, volume, volume_effets, vitesse_jeu=1.0):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre, volume, volume_effets, vitesse_jeu.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)

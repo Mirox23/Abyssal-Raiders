@@ -1,11 +1,11 @@
 """
-Point d'entrée du système de sauvegarde — les grosses fonctions sont dans d'autres fichiers.
+Point d'entrée du système de sauvegarde : les grosses fonctions sont dans d'autres fichiers.
 """
 
-from sauvegarde_dossier_parties import DOSSIER_SAUVEGARDES, assurer_le_dossier
+from sauvegarde_dossier_parties import assurer_le_dossier
 from sauvegarde_fichier_json import ecrire_sauvegarde_json, lire_sauvegarde_json
 from sauvegarde_injecter_progression import copier_donnees_dans_progression
-from sauvegarde_lister_fichiers import obtenir_liste_des_sauvegardes
+from sauvergarde_lister_fichiers import obtenir_liste_des_sauvegardes
 from sauvegarde_nom_joueur import choisir_nom_final, rendre_nom_fichier_propre
 from sauvegarde_preparation_donnees import fabriquer_dict_sauvegarde
 from sauvegarde_supprimer_fichier import supprimer_fichier_de_sauvegarde

@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre recompenses du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 from decoration_cadre_abysse import dessiner_cadre_panneau
 from interface import Bouton
@@ -11,6 +17,11 @@ class FenetreRecompenses:
     """
 
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.visible = False
         self.rect = pygame.Rect(200, 80, 600, 420)
         self.police_titre = pygame.font.SysFont("consolas", 22, bold=True)
@@ -22,8 +33,9 @@ class FenetreRecompenses:
 
     def _calcul_recompense(self, numero_niveau_joueur):
         """
-        Calcule le montant d'or pour le niveau joueur donné.
-        Tous les 8 niveaux = 1 cycle. Chaque cycle est un peu plus généreux.
+        Explication de ce que fais la fonction : Cette fonction exécute calcul recompense.
+        Les entrées : numero_niveau_joueur.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         cycle = (numero_niveau_joueur - 1) // 8       # 0, 1, 2 …
         rang = (numero_niveau_joueur - 1) % 8 + 1     # 1 à 8
@@ -33,8 +45,9 @@ class FenetreRecompenses:
 
     def _generer_lignes(self, niveau_joueur):
         """
-        Génère la liste des 8 prochains paliers à partir du niveau actuel.
-        On affiche les 8 niveaux qui entourent le niveau courant.
+        Explication de ce que fais la fonction : Cette fonction exécute generer lignes.
+        Les entrées : niveau_joueur.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         debut = max(1, niveau_joueur - 2)
         lignes = []
@@ -45,9 +58,19 @@ class FenetreRecompenses:
         return lignes
 
     def ouvrir(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = True
 
     def gerer_clic(self, pos_clic, progression):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : pos_clic, progression.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return None
         if self.bouton_fermer.rect.collidepoint(pos_clic):
@@ -64,6 +87,11 @@ class FenetreRecompenses:
         return None
 
     def dessiner(self, fenetre, progression):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre, progression.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA) #SRCALPHA pour transparence

@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre scores du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 from decoration_cadre_abysse import dessiner_cadre_panneau, dessiner_plat_rect
 from interface import Bouton
@@ -9,6 +15,11 @@ class FenetreScores:
     """Affiche le nouveau système de scores : top runs + records de vague."""
 
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.visible = False
         self.continent = "pirate"
         self.rect = pygame.Rect(largeur_ecran // 2 - 320, hauteur_ecran // 2 - 220, 640, 440)
@@ -26,6 +37,11 @@ class FenetreScores:
         }
 
     def ouvrir(self, continent):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Les entrées : continent.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         from scores import obtenir_scores, obtenir_meilleurs_par_vague
         self.continent = continent
         self.scores = obtenir_scores(continent)
@@ -33,9 +49,19 @@ class FenetreScores:
         self.visible = True
 
     def fermer(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute fermer.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = False
 
     def gerer_clic(self, pos):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : pos.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return False
         if self.bouton_fermer.rect.collidepoint(pos):
@@ -44,6 +70,11 @@ class FenetreScores:
         return self.rect.collidepoint(pos)
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)

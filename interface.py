@@ -1,14 +1,30 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie interface du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 from setting import largeur_ecran, hauteur_ecran, couleur_bouton, couleur_bouton_survol
 
 
 class Bouton:
     def __init__(self, x, y, largeur, hauteur, texte, taille_police=20):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : x, y, largeur, hauteur, texte, taille_police.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.rect = pygame.Rect(x, y, largeur, hauteur)
         self.texte = texte
         self.police = pygame.font.SysFont("consolas", taille_police)
 
     def dessiner(self, fenetre, couleur_fond=None, couleur_texte=(255, 255, 255)):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre, couleur_fond, couleur_texte.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         position_souris = pygame.mouse.get_pos()
         if couleur_fond is None:
             couleur = couleur_bouton_survol if self.rect.collidepoint(position_souris) else couleur_bouton
@@ -21,11 +37,21 @@ class Bouton:
 
 class AffichageXP:
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.police_niveau = pygame.font.SysFont("consolas", 18, bold=True)
         self.police_xp = pygame.font.SysFont("consolas", 13)
         self.police_message = pygame.font.SysFont("consolas", 22, bold=True)
 
     def dessiner(self, fenetre, progression):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre, progression.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         largeur_barre = 180
         hauteur_barre = 14
         barre_x = largeur_ecran - largeur_barre - 20
@@ -48,6 +74,11 @@ class PanneauTelephone:
     noms_boutons = ["Tourelle", "Info", "Objets", "Competence", "Succes", "New vague", "Parametre", "Map", "Scores"]
 
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.largeur = 210
         self.hauteur = 360  # Hauteur augmentée pour mieux aligner les icônes sur l'image du téléphone
         self.taille_icone = 52
@@ -78,6 +109,11 @@ class PanneauTelephone:
         self._creer_grille_boutons()
 
     def _creer_grille_boutons(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute creer grille boutons.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.liste_boutons = []
         colonnes = 3
         # On décale de 84px depuis le haut du téléphone pour que les icônes invisibles
@@ -96,6 +132,11 @@ class PanneauTelephone:
             self.liste_boutons.append((nom, pygame.Rect(bx, by, self.taille_zone_clic, self.taille_zone_clic)))
 
     def gerer_clic(self, position_clic):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : position_clic.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self.bouton_principal.collidepoint(position_clic):
             self.ouvert = not self.ouvert
             return None
@@ -106,6 +147,11 @@ class PanneauTelephone:
         return None
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         hauteur_coque = self.hauteur if self.ouvert else 70
         y_coque = self.y if self.ouvert else self.y + self.hauteur - 70
         coque = pygame.Rect(self.x, y_coque, self.largeur, hauteur_coque)

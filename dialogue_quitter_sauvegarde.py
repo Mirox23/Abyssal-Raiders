@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie dialogue quitter sauvegarde du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 
 from sauvegarde import sauvegarder
@@ -5,11 +11,21 @@ from setting import FPS, hauteur_ecran, largeur_ecran
 
 
 def _dessiner_centre(surface, texte, police, couleur, x, y):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute dessiner centre.
+    Les entrées : surface, texte, police, couleur, x, y.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     rendu = police.render(texte, True, couleur)
     surface.blit(rendu, (x - rendu.get_width() // 2, y - rendu.get_height() // 2))
 
 
 def demander_sauvegarde_avant_quitter(ecran, progression_monde):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute demander sauvegarde avant quitter.
+    Les entrées : ecran, progression_monde.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     horloge = pygame.time.Clock()
     police_titre = pygame.font.SysFont("consolas", 30, bold=True)
     police_texte = pygame.font.SysFont("consolas", 20)

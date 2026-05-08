@@ -1,9 +1,20 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre niveau conquis du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 from interface import Bouton
 from setting import largeur_ecran, hauteur_ecran
 
 class FenetreNiveauConquis:
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.visible = False
         self.police_titre = pygame.font.SysFont("consolas", 28, bold=True)
         self.police_texte = pygame.font.SysFont("consolas", 15)
@@ -12,9 +23,19 @@ class FenetreNiveauConquis:
         self.bouton_retour = Bouton(self.rect.right - 300, self.rect.bottom - 60, 260, 44, "Retour a la map", 18)
 
     def ouvrir(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = True
 
     def gerer_clic(self, position_clic):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : position_clic.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return None
         if self.bouton_niveau_suivant.rect.collidepoint(position_clic):
@@ -28,6 +49,11 @@ class FenetreNiveauConquis:
         return None
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)

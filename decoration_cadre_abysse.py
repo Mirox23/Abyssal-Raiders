@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie decoration cadre abysse du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 
 
@@ -15,11 +21,21 @@ COULEURS_THEME = {
 
 
 def dessiner_plat_rect(surface, rect, couleur_fond, couleur_bord, rayon=8, largeur_bord=1):
+    """
+    Explication de ce que fais la fonction : Cette fonction dessine dessiner plat rect à l'écran.
+    Les entrées : surface, rect, couleur_fond, couleur_bord, rayon, largeur_bord.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     pygame.draw.rect(surface, couleur_fond, rect, border_radius=rayon)
     pygame.draw.rect(surface, couleur_bord, rect, width=largeur_bord, border_radius=rayon)
 
 
 def _dessiner_ornements_coin(surface, rect):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute dessiner ornements coin.
+    Les entrées : surface, rect.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     taille = 14
     coins = [
         (rect.left + 8, rect.top + 8),
@@ -47,6 +63,11 @@ def _dessiner_ornements_coin(surface, rect):
 
 
 def dessiner_cadre_panneau(surface, rect, sous_zones_bleues=True):
+    """
+    Explication de ce que fais la fonction : Cette fonction dessine dessiner cadre panneau à l'écran.
+    Les entrées : surface, rect, sous_zones_bleues.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     # Fond avec double contour pour casser le style "fenêtre bleue ronde".
     dessiner_plat_rect(
         surface,
@@ -76,6 +97,11 @@ def dessiner_cadre_panneau(surface, rect, sous_zones_bleues=True):
 
 
 def dessiner_cadre_onglet(surface, rect, actif):
+    """
+    Explication de ce que fais la fonction : Cette fonction dessine dessiner cadre onglet à l'écran.
+    Les entrées : surface, rect, actif.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     if actif:
         fond = COULEURS_THEME["onglet_actif"]
         bord = COULEURS_THEME["accent_lumiere"]

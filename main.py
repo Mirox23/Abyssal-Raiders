@@ -1,8 +1,7 @@
 import pygame
 from setting import largeur_ecran, hauteur_ecran, FPS
-from menu import Menu
-from game import Jeu
-from musique import MusiqueManager
+from menu_principal import Menu
+from jeu_principal import Jeu
 from dialogue_quitter_sauvegarde import demander_sauvegarde_avant_quitter
 from progression_monde import ProgressionMonde
 

@@ -8,7 +8,7 @@ CONTINENT_MOB_ACTIF = "pirate"
 REPERTOIRE_JEU = os.path.dirname(os.path.abspath(__file__))
 DOSSIER_IMAGE = os.path.join(REPERTOIRE_JEU, "image")
 
-NOMS_SPRITES_PAR_CONTINENT = {
+noms_par_continent = {
     "pirate": {
         "base": ["Roi_des_pirates.png"],
         "rapide": ["Fantome_pirate.png"],
@@ -52,7 +52,7 @@ def _normaliser_texte(texte):
 def definir_continent_mob(continent):
     continent_brut = continent or "pirate"
     continent_normalise = _normaliser_texte(continent_brut)
-    if continent_normalise not in NOMS_SPRITES_PAR_CONTINENT:
+    if continent_normalise not in noms_par_continent:
         continent_normalise = "pirate"
     CONTINENT = continent_normalise
     globals()["CONTINENT_MOB_ACTIF"] = CONTINENT
@@ -75,12 +75,12 @@ def _dossiers_possibles_continent():
 
 def _charger_image_continent(type_sprite, taille):
     candidats = []
-    noms_par_type = NOMS_SPRITES_PAR_CONTINENT.get(CONTINENT_MOB_ACTIF, {})
+    noms_par_type = noms_par_continent.get(CONTINENT_MOB_ACTIF, {})
     if type_sprite in noms_par_type:
         for nom in noms_par_type[type_sprite]:
             candidats.append(nom)
     if CONTINENT_MOB_ACTIF != "pirate":
-        for nom in NOMS_SPRITES_PAR_CONTINENT["pirate"].get(type_sprite, []):
+        for nom in noms_par_continent["pirate"].get(type_sprite, []):
             candidats.append(nom)
 
     for dossier in _dossiers_possibles_continent():

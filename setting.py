@@ -1,9 +1,8 @@
 """
-Qu'est-ce que le fichier gère :
-    Toutes les constantes globales du jeu (taille écran, paramètres des tours,
-    couleurs, économie, etc.). C'est le seul endroit où ces valeurs sont définies.
-Entrée : aucune (ce sont des constantes figées)
-Résultat : variables importables dans tous les autres fichiers
+Qu'est-ce que le fichier gère : Ce fichier gère la partie setting du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu. --> Ce fichier contient les constantes de configuration du jeu,
+telles que les dimensions de l'écran, les couleurs, les paramètres de jeu (comme la vitesse des ennemis, les coûts des tours, etc.) et d'autres valeurs utilisées dans le projet.
 """
 
 # Taille de la fenêtre
@@ -17,7 +16,7 @@ pos_mur = position_mur              # alias court utilisé dans placer_tour
 largeur_mur = 40
 vie_mur_depart = 20
 
-# Spawning des vagues
+# Spawning des vaguess
 intervalle_spawn = 0.8
 vitesse_ennemi = 110.0
 total_ennemis = 20

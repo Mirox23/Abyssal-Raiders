@@ -1,33 +1,49 @@
 """
-Système de scores locaux : sauvegarde les 5 meilleures runs par continent.
-Format JSON : scores.json dans le dossier courant.
+Qu'est-ce que le fichier gère : Ce fichier gère la partie scores du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 import json
 import os
 
-fichier_scores = "scores.json"
-max_score_par_continent = 5
+FICHIER_SCORES = "scores.json"
+MAX_SCORES_PAR_CONTINENT = 5
 
 
 def _charger():
-    if not os.path.exists(fichier_scores):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute charger.
+    Les entrées : Cette fonction ne demande pas de paramètre direct.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
+    if not os.path.exists(FICHIER_SCORES):
         return {}
     try:
-        with open(fichier_scores, "r", encoding="utf-8") as f:
+        with open(FICHIER_SCORES, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {}
 
 
 def _sauvegarder(data):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute sauvegarder.
+    Les entrées : data.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     try:
-        with open(fichier_scores, "w", encoding="utf-8") as f:
+        with open(FICHIER_SCORES, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
 
 
 def _normaliser_data_continent(data_continent):
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute normaliser data continent.
+    Les entrées : data_continent.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     if isinstance(data_continent, list):
         return {"top_runs": data_continent, "meilleurs_par_vague": {}}
     if isinstance(data_continent, dict):
@@ -40,7 +56,11 @@ def _normaliser_data_continent(data_continent):
 
 
 def enregistrer_score(continent, niveau, score, niveau_joueur, numero_vague=None, temps_vague=None, nom_joueur="Joueur"):
-    """Ajoute une entrée de score + met à jour le meilleur temps de vague."""
+    """
+    Explication de ce que fais la fonction : Cette fonction exécute enregistrer score.
+    Les entrées : continent, niveau, score, niveau_joueur, numero_vague, temps_vague, nom_joueur.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     data = _charger()
     cle = continent
     if cle not in data:
@@ -53,8 +73,8 @@ def enregistrer_score(continent, niveau, score, niveau_joueur, numero_vague=None
         "nom_joueur": nom_joueur,
     }
     data[cle]["top_runs"].append(entree)
-    # Tri décroissant par score et on coupe à max_score_par_continent
-    data[cle]["top_runs"] = sorted(data[cle]["top_runs"], key=lambda e: e["score"], reverse=True)[:max_score_par_continent]
+    # Tri décroissant par score et on coupe à MAX_SCORES_PAR_CONTINENT
+    data[cle]["top_runs"] = sorted(data[cle]["top_runs"], key=lambda e: e["score"], reverse=True)[:MAX_SCORES_PAR_CONTINENT]
 
     if numero_vague is not None and temps_vague is not None:
         cle_vague = str(numero_vague)
@@ -70,21 +90,33 @@ def enregistrer_score(continent, niveau, score, niveau_joueur, numero_vague=None
 
 
 def obtenir_scores(continent):
-    """Retourne la liste des meilleures entrées pour un continent."""
+    """
+    Explication de ce que fais la fonction : Cette fonction récupère obtenir scores.
+    Les entrées : continent.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     data = _charger()
     data_continent = _normaliser_data_continent(data.get(continent, []))
     return data_continent["top_runs"]
 
 
 def obtenir_meilleurs_par_vague(continent):
-    """Retourne le meilleur temps par vague pour un continent."""
+    """
+    Explication de ce que fais la fonction : Cette fonction récupère obtenir meilleurs par vague.
+    Les entrées : continent.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     data = _charger()
     data_continent = _normaliser_data_continent(data.get(continent, []))
     return data_continent["meilleurs_par_vague"]
 
 
 def obtenir_meilleur_score(continent):
-    """Retourne le meilleur score pour un continent, ou 0."""
+    """
+    Explication de ce que fais la fonction : Cette fonction récupère obtenir meilleur score.
+    Les entrées : continent.
+    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    """
     scores = obtenir_scores(continent)
     if not scores:
         return 0

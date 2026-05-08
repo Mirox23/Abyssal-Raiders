@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie tower du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 import os
 from setting import portee_tour, cadence_tour, couleur_tour, cout_amelioration, bonus_portee, bonus_cadence, niveau_max
@@ -6,6 +12,11 @@ from projectile import Projectile, ProjectileRalentissement
 
 class Tour:
     def __init__(self, position):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.x, self.y = position
         self.taille = 15
         self.portee = portee_tour
@@ -21,6 +32,11 @@ class Tour:
         self._charger_image_tour()
 
     def _palier_image(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute palier image.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self.niveau >= 5:
             return 3
         if self.niveau >= 3:
@@ -28,9 +44,19 @@ class Tour:
         return 1
 
     def _chemins_images_possibles(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute chemins images possibles.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         return []
 
     def _charger_image_tour(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute charger image tour.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         chemins = self._chemins_images_possibles()
         palier = self._palier_image()
         if palier <= len(chemins):
@@ -42,6 +68,11 @@ class Tour:
         self._image_tour = None
 
     def ameliorer(self, argent_joueur):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ameliorer.
+        Les entrées : argent_joueur.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self.niveau >= niveau_max:
             return -1
         if argent_joueur < cout_amelioration:
@@ -54,13 +85,20 @@ class Tour:
 
     def valeur_revente(self):
         """
-        Revente simple: base + une partie des améliorations.
+        Explication de ce que fais la fonction : Cette fonction exécute valeur revente.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         valeur_base = 6
         bonus_niveaux = max(0, self.niveau - 1) * 3
         return valeur_base + bonus_niveaux
 
     def mettre_a_jour(self, delta_temps, liste_ennemis):
+        """
+        Explication de ce que fais la fonction : Cette fonction met à jour mettre a jour pendant la partie.
+        Les entrées : delta_temps, liste_ennemis.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.temps_depuis_dernier_tir += delta_temps
 
         if self.temps_depuis_dernier_tir >= self.cadence:
@@ -82,6 +120,11 @@ class Tour:
         self.liste_projectiles = projectiles_actifs
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self._image_tour:
             fenetre.blit(self._image_tour, (int(self.x - self._taille_image[0] // 2), int(self.y - self._taille_image[1] // 2)))
         else:
@@ -103,6 +146,11 @@ class TourSniper(Tour):
     """Grande portée, cadence lente, dégâts élevés."""
 
     def __init__(self, position):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position)
         self.couleur = (20, 20, 20)
         self.cadence = 1.5
@@ -111,6 +159,11 @@ class TourSniper(Tour):
         self.degats_tir = 3
 
     def _chemins_images_possibles(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute chemins images possibles.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         return [
             "Tours/sniper/Tour sniper LVL1.png",
             "Tours/sniper/Tour sniper LVL2.png",
@@ -118,6 +171,11 @@ class TourSniper(Tour):
         ]
 
     def mettre_a_jour(self, delta_temps, liste_ennemis):
+        """
+        Explication de ce que fais la fonction : Cette fonction met à jour mettre a jour pendant la partie.
+        Les entrées : delta_temps, liste_ennemis.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.temps_depuis_dernier_tir += delta_temps
 
         if self.temps_depuis_dernier_tir >= self.cadence:
@@ -145,6 +203,11 @@ class TourCanonnier(Tour):
     """Courte portée, cadence très rapide."""
 
     def __init__(self, position):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position)
         self.couleur = (139, 69, 19)
         self.cadence = 0.5
@@ -153,6 +216,11 @@ class TourCanonnier(Tour):
         self.degats_tir = 1
 
     def _chemins_images_possibles(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute chemins images possibles.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         return [
             "Tours/canon/Tour canon LVL1.png",
             "Tours/canon/Tour canon LVL2.png",
@@ -167,6 +235,11 @@ class TourRalentissement(Tour):
     """
 
     def __init__(self, position):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position)
         self.couleur = (40, 160, 220)
         self.cadence = 1.0
@@ -177,6 +250,11 @@ class TourRalentissement(Tour):
         self.degats_tir = 1
 
     def _chemins_images_possibles(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute chemins images possibles.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         return [
             "Tours/ralentiseuse/Tour ralentiseuse lvl1.png",
             "Tours/ralentiseuse/Tour ralentiseus lvl2.png",
@@ -184,6 +262,11 @@ class TourRalentissement(Tour):
         ]
 
     def ameliorer(self, argent_joueur):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ameliorer.
+        Les entrées : argent_joueur.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         resultat = super().ameliorer(argent_joueur)
         if resultat >= 0:
             # Chaque niveau améliore le ralentissement et la durée
@@ -192,13 +275,18 @@ class TourRalentissement(Tour):
         return resultat
 
     def mettre_a_jour(self, delta_temps, liste_ennemis):
+        """
+        Explication de ce que fais la fonction : Cette fonction met à jour mettre a jour pendant la partie.
+        Les entrées : delta_temps, liste_ennemis.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.temps_depuis_dernier_tir += delta_temps
 
         if self.temps_depuis_dernier_tir >= self.cadence:
             for ennemi in liste_ennemis:
                 delta_x = ennemi.x - self.x
                 delta_y = ennemi.y - self.y
-                distance = (delta_x**2 + delta_y**2) ** 0.5
+                distance = (delta_x**2 + delta_y**2) ** 0.5 # Calcul de la distance entre la tour et l'ennemi
                 if distance <= self.portee:
                     projectile = ProjectileRalentissement(
                         self.x, self.y, ennemi,
@@ -217,6 +305,11 @@ class TourRalentissement(Tour):
         self.liste_projectiles = projectiles_actifs
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         super().dessiner(fenetre)
         # Anneau distinctif pour la tour de ralentissement
         pygame.draw.circle(fenetre, (100, 200, 255), (int(self.x), int(self.y)), self.taille, 3)
@@ -229,6 +322,11 @@ class TourSupport(Tour):
     """
 
     def __init__(self, position):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : position.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         super().__init__(position)
         self.couleur = (200, 180, 40)
         self.cadence = 999
@@ -240,6 +338,11 @@ class TourSupport(Tour):
         self.degats_tir = 0
 
     def _chemins_images_possibles(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute chemins images possibles.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         return [
             "Tours/soigneuse/Tour soigneuse lvl1.png",
             "Tours/soigneuse/Tour soigneuse lvl2.png",
@@ -247,6 +350,11 @@ class TourSupport(Tour):
         ]
 
     def ameliorer(self, argent_joueur):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ameliorer.
+        Les entrées : argent_joueur.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         resultat = super().ameliorer(argent_joueur)
         if resultat >= 0:
             self.rayon_buff = min(200, self.rayon_buff + 15)
@@ -254,13 +362,19 @@ class TourSupport(Tour):
         return resultat
 
     def mettre_a_jour(self, delta_temps, liste_ennemis):
+        """
+        Explication de ce que fais la fonction : Cette fonction met à jour mettre a jour pendant la partie.
+        Les entrées : delta_temps, liste_ennemis.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         # La tour support ne tire pas, elle est mise à jour via appliquer_buff
         pass
 
     def appliquer_buff(self, liste_tours):
         """
-        Réduit la cadence de tir des tours dans le rayon de buff.
-        Appelé depuis game.py à chaque frame.
+        Explication de ce que fais la fonction : Cette fonction exécute appliquer buff.
+        Les entrées : liste_tours.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         for autre_tour in liste_tours:
             if autre_tour is self:
@@ -275,12 +389,21 @@ class TourSupport(Tour):
                     self.tours_bufferisees.append(autre_tour)
 
     def retirer_buff(self, liste_tours):
-        """Retire le buff quand la tour est supprimée."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute retirer buff.
+        Les entrées : liste_tours.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         for tour_buffee in self.tours_bufferisees:
             tour_buffee.cadence = min(2.0, tour_buffee.cadence / (1 - self.bonus_cadence_buff))
         self.tours_bufferisees.clear()
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self._image_tour:
             fenetre.blit(self._image_tour, (int(self.x - self._taille_image[0] // 2), int(self.y - self._taille_image[1] // 2)))
         else:

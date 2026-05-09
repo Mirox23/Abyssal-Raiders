@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre arbre talents du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import os
 import pygame
 import unicodedata
@@ -7,7 +13,7 @@ from setting import largeur_ecran, hauteur_ecran
 
 class FenetreArbreTalents:
     """
-    Arbre à talents avec les icônes (dossier image/talent/).
+    Arbre à talents avec icônes PNG (dossier image/talent/).
     L'arbre se reset à chaque nouveau niveau de jeu, mais le joueur
     repart avec un petit bonus permanent basé sur son niveau précédent.
     """
@@ -58,6 +64,11 @@ class FenetreArbreTalents:
     }
 
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.visible = False
         self.rect = pygame.Rect(120, 60, 760, 470)
         self.police_titre = pygame.font.SysFont("consolas", 22, bold=True)
@@ -79,6 +90,11 @@ class FenetreArbreTalents:
         self._maj_boutons()
 
     def _charger_icones(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute charger icones.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         taille = (48, 48)
         for cle, donnees in self.TALENTS.items():
             chemin = self._trouver_chemin_icone(cle, donnees["icone"])
@@ -91,10 +107,11 @@ class FenetreArbreTalents:
             else:
                 self._icones[cle] = None
 
-    def _normaliser_nom(self, texte): # elle n'est pas vraiment très importante mais elle permet d'éviter des erreurs à cause d'erreurs d'écritures
+    def _normaliser_nom(self, texte):
         """
-        Enlève les accents et met en minuscule pour comparer des noms de fichiers
-        même si les écritures diffèrent un peu.
+        Explication de ce que fais la fonction : Cette fonction exécute normaliser nom.
+        Les entrées : texte.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         texte_normalise = unicodedata.normalize("NFKD", texte)
         texte_sans_accents = "".join(
@@ -104,13 +121,16 @@ class FenetreArbreTalents:
 
     def _trouver_chemin_icone(self, cle_talent, chemin_par_defaut):
         """
-        Cherche l'icône d'un talent avec plusieurs essais:
-        - chemin indiqué dans talents
-        - scan simple du dossier image/talent
+        Explication de ce que fais la fonction : Cette fonction exécute trouver chemin icone.
+        Les entrées : cle_talent, chemin_par_defaut.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         chemins_possibles = [
             chemin_par_defaut,
             f"image/talent/{cle_talent}.png",
+            f"image/talent/{cle_talent}.jpg",
+            f"image/talent/{cle_talent}.jpeg",
+            f"image/talent/{cle_talent}.webp",
         ]
 
         for chemin_actuel in chemins_possibles:
@@ -134,6 +154,11 @@ class FenetreArbreTalents:
         return chemin_par_defaut
 
     def _maj_boutons(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute maj boutons.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self._boutons_talents = []
         cols = 3
         larg_carte = 220
@@ -151,12 +176,18 @@ class FenetreArbreTalents:
             self._boutons_talents.append((cle, pygame.Rect(bx, by, larg_carte, haut_carte)))
 
     def ouvrir(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = True
 
     def reset_pour_nouveau_niveau(self, niveau_joueur_avant):
         """
-        Remet tous les talents à 0 mais applique un petit bonus permanent
-        qu'on retournera à game.py pour qu'il l'ajoute à talents_appliques.
+        Explication de ce que fais la fonction : Cette fonction exécute reset pour nouveau niveau.
+        Les entrées : niveau_joueur_avant.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         for cle in self.talents:
             self.talents[cle]["niveau"] = 0
@@ -166,6 +197,11 @@ class FenetreArbreTalents:
         return bonus_degats, bonus_portee
 
     def gerer_clic(self, pos_clic, progression):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : pos_clic, progression.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return None
         if self.bouton_fermer.rect.collidepoint(pos_clic):
@@ -183,13 +219,18 @@ class FenetreArbreTalents:
         return None
 
     def dessiner(self, fenetre, progression):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre, progression.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return
 
-        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA) # pygame  
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
         voile.fill((0, 0, 0, 150))
         fenetre.blit(voile, (0, 0))
-    
+
         dessiner_cadre_panneau(fenetre, self.rect)
 
         titre = self.police_titre.render("Arbre à talents", True, (238, 218, 182))

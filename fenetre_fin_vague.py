@@ -1,9 +1,20 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre fin vague du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 from interface import Bouton
 from setting import largeur_ecran, hauteur_ecran
 
 class EcranFinVague:
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.visible = False
         self.numero_vague = 0
         self.xp_gagnee = 0
@@ -18,15 +29,30 @@ class EcranFinVague:
         self.bouton_modification = Bouton(centre_x + 20, centre_y + 60, 210, 44, "Modification", 18)
 
     def ouvrir(self, numero, xp_gagnee, score_vague):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Les entrées : numero, xp_gagnee, score_vague.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.numero_vague = numero
         self.xp_gagnee = xp_gagnee
         self.score_vague = score_vague
         self.visible = True
 
     def fermer(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute fermer.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = False
 
     def gerer_clic(self, position_clic):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : position_clic.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return None
         if self.bouton_nouvelle_vague.rect.collidepoint(position_clic):
@@ -36,6 +62,11 @@ class EcranFinVague:
         return None
 
     def dessiner(self, fenetre):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)

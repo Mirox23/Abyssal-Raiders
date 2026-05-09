@@ -1,9 +1,9 @@
-- Les talents faudrait ajouter les images
+
 - Améliorer les boutons du menu (Jouer...)
 - Faire que quand on ferme le jeu : on puisse sauvegarder la partie
 - Rééquilibrer le jeu
 - Optimiser les vagues
-- Augmenter la taille des boss
+
 - Améliorer l'interface des objets (UI - comme minecraft, case d'objet avec quand on passe la souris dessus, on voit le nom et les descriptions)
 - Mettre le jeu en pleine écran
 - Descendre les carrés invisibles du téléphone de quelques pixel

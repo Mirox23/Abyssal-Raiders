@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre recompenses talents du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 from decoration_cadre_abysse import dessiner_cadre_onglet
 from fenetre_recompenses import FenetreRecompenses
@@ -10,6 +16,11 @@ class FenetreRecompensesTalents:
     """
 
     def __init__(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.fenetre_recompenses = FenetreRecompenses()
         self.fenetre_talents = FenetreArbreTalents()
         # Alias pour que game.py puisse lire talents directement
@@ -22,12 +33,22 @@ class FenetreRecompensesTalents:
         self.rect_onglet_talent = pygame.Rect(self.rect.x + 196, self.rect.y - 36, 190, 36)
 
     def ouvrir(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.visible = True
         self.fenetre_recompenses.visible = True
         self.fenetre_talents.visible = False
         self._onglet = "recompenses"
 
     def gerer_clic(self, pos_clic, progression):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Les entrées : pos_clic, progression.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return None
 
@@ -57,6 +78,11 @@ class FenetreRecompensesTalents:
         return action
 
     def dessiner(self, fenetre, progression):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : fenetre, progression.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if not self.visible:
             return
 
@@ -76,6 +102,10 @@ class FenetreRecompensesTalents:
             self.fenetre_talents.dessiner(fenetre, progression)
 
     def reset_pour_nouveau_niveau(self, niveau_joueur_avant):
-        """Appelé par game.py à chaque nouveau niveau de jeu."""
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute reset pour nouveau niveau.
+        Les entrées : niveau_joueur_avant.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         return self.fenetre_talents.reset_pour_nouveau_niveau(niveau_joueur_avant)
 

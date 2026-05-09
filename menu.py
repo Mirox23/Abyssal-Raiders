@@ -84,7 +84,6 @@ class Menu:
         self.boutons_actions_sauvegardes = []
 
     
-    """Relance la musique du menu quand on revient du jeu.""" 
     def relancer_musique_menu(self): 
         """
         Explication de ce que fais la fonction : Cette fonction exécute relancer musique menu.

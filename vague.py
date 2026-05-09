@@ -4,7 +4,7 @@ Entrée : Les données nécessaires aux fonctions, classes et paramètres du mod
 Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
-from mobs_principaux import Mob, MobBoss, MobKamikaze, MobRapide, MobSoigneur, MobTank
+from mobs import Mob, MobBoss, MobKamikaze, MobRapide, MobSoigneur, MobTank
 from contenu_vagues.generateur_vagues import charger_configuration
 
 

@@ -51,7 +51,7 @@ class FenetreRecompenses:
         """
         debut = max(1, niveau_joueur - 2)
         lignes = []
-        for i in range(8):
+        for i in range(7):  # 7 niveaux maintenant
             numero_niveau = debut + i
             montant = self._calcul_recompense(numero_niveau)
             lignes.append((numero_niveau, montant))

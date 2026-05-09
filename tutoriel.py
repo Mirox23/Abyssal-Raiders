@@ -245,17 +245,52 @@ def _dessiner_fleche_indicatrice(fenetre, etape):
     Les entrées : fenetre, etape.
     Le résultat : Retourne la valeur attendue ou applique l'action prévue.
     """
-    # Par defaut on pointe vers le telephone en bas a droite
-    cible_x = largeur_ecran - 105
-    cible_y = hauteur_ecran - 70
+    # Position du téléphone (basée sur les coordonnées de PanneauTelephone)
+    telephone_x = largeur_ecran - 224  # x du téléphone
+    telephone_y = hauteur_ecran - 374  # y du téléphone
+    
+    # Dimensions des icônes dans le téléphone
+    taille_icone = 52
+    marge = 12
+    decalage_haut = 104
+    
+    # Position par défaut : on pointe vers le bouton principal du téléphone
+    cible_x = telephone_x + 105  # centre du bouton principal
+    cible_y = telephone_y + 316  # centre du bouton principal
 
-    # Pour les etapes liees au bouton recompense en haut a droite
-    if etape == etape_recompense or etape == etape_arbre_talent:
-        cible_x = largeur_ecran - 110
-        cible_y = 34
+    # Calcul des positions exactes des icônes dans le téléphone
+    if etape == etape_tourelle:
+        # Icône "Tourelle" (première icône, première ligne)
+        cible_x = telephone_x + 16 + 0 * (taille_icone + marge) + taille_icone // 2
+        cible_y = telephone_y + decalage_haut + 0 * (taille_icone + 28) + 25 + taille_icone // 2
+        
+    elif etape == etape_lancer_vague:
+        # Icône "New vague" (deuxième icône, deuxième ligne) - ajustement précis
+        cible_x = telephone_x + 16 + 1 * (taille_icone + marge) + taille_icone // 2
+        cible_y = telephone_y + decalage_haut + 1 * (taille_icone + 28) + 25 + taille_icone // 2
+        
+    elif etape == etape_succes:
+        # Icône "Succes" (troisième icône, première ligne)
+        cible_x = telephone_x + 16 + 2 * (taille_icone + marge) + taille_icone // 2
+        cible_y = telephone_y + decalage_haut + 0 * (taille_icone + 28) + 25 + taille_icone // 2
+        
+    elif etape == etape_recompense or etape == etape_arbre_talent:
+        # Bouton récompenses en haut à droite de l'écran
+        cible_x = largeur_ecran - 115  # centre du bouton récompense
+        cible_y = 61  # centre du bouton récompense
+        
+    elif etape == etape_competence:
+        # Icône "Competence" (deuxième icône, troisième ligne)
+        cible_x = telephone_x + 16 + 1 * (taille_icone + marge) + taille_icone // 2
+        cible_y = telephone_y + decalage_haut + 2 * (taille_icone + 28) + 25 + taille_icone // 2
+        
+    elif etape == etape_objet:
+        # Icône "Objets" (première icône, troisième ligne)
+        cible_x = telephone_x + 16 + 0 * (taille_icone + marge) + taille_icone // 2
+        cible_y = telephone_y + decalage_haut + 2 * (taille_icone + 28) + 25 + taille_icone // 2
 
-    # Pour l'etape modification le bouton est au centre de l'ecran
-    if etape == etape_modification:
+    # Pour l'étape modification le bouton est au centre de l'écran
+    elif etape == etape_modification:
         cible_x = largeur_ecran // 2 + 120
         cible_y = hauteur_ecran // 2 + 110
 

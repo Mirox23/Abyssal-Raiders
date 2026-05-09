@@ -13,13 +13,13 @@ class ProgressionMonde:
         Le résultat : Initialise correctement les attributs de l'objet.
         """
         self.niveaux_conquis = {
-            "pirate": [False] * 8,
-            "medieval": [False] * 8,
-            "samourai": [False] * 8,
-            "demoniaque": [False] * 8,
+            "pirate": [False] * 7,
+            "medieval": [False] * 7,
+            "samourai": [False] * 7,
+            "demoniaque": [False] * 7,
         }
         self.succes_vagues = {
-            cle: [[False] * 4 for _ in range(8)]
+            cle: [[False] * 4 for _ in range(7)]
             for cle in self.niveaux_conquis
         }
 
@@ -44,7 +44,7 @@ class ProgressionMonde:
         """
         if continent not in self.niveaux_conquis:
             return
-        if 1 <= numero_niveau <= 8:
+        if 1 <= numero_niveau <= 7:
             self.niveaux_conquis[continent][numero_niveau - 1] = True
             self.succes_vagues[continent][numero_niveau - 1] = [True, True, True, True]
 
@@ -56,7 +56,7 @@ class ProgressionMonde:
         """
         if continent not in self.niveaux_conquis:
             return False
-        if 1 <= numero_niveau <= 8:
+        if 1 <= numero_niveau <= 7:
             return self.niveaux_conquis[continent][numero_niveau - 1]
         return False
 
@@ -68,7 +68,7 @@ class ProgressionMonde:
         """
         if continent not in self.succes_vagues:
             return
-        if not (1 <= numero_niveau <= 8 and 1 <= numero_vague <= 4):
+        if not (1 <= numero_niveau <= 7 and 1 <= numero_vague <= 4):  # 7 niveaux maintenant
             return
         succes = self.succes_vagues[continent][numero_niveau - 1]
         while len(succes) < 4:
@@ -81,7 +81,7 @@ class ProgressionMonde:
         Les entrées : continent, numero_niveau.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
-        if continent not in self.succes_vagues or not (1 <= numero_niveau <= 8):
+        if continent not in self.succes_vagues or not (1 <= numero_niveau <= 7):  # 7 niveaux maintenant
             return [False, False, False, False]
         succes = list(self.succes_vagues[continent][numero_niveau - 1])
         while len(succes) < 4:

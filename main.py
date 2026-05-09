@@ -6,8 +6,8 @@ Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
 
 import pygame
 from setting import largeur_ecran, hauteur_ecran, FPS
-from menu_principal import Menu
-from jeu_principal import Jeu
+from menu import Menu
+from jeu import Jeu
 from musique import MusiqueManager
 from dialogue_quitter_sauvegarde import demander_sauvegarde_avant_quitter
 from progression_monde import ProgressionMonde

@@ -311,8 +311,7 @@ class TourRalentissement(Tour):
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         super().dessiner(fenetre)
-        # Anneau distinctif pour la tour de ralentissement
-        pygame.draw.circle(fenetre, (100, 200, 255), (int(self.x), int(self.y)), self.taille, 3)
+        # Plus d'anneau distinctif car la tour a maintenant son propre design
 
 
 class TourSupport(Tour):
@@ -408,10 +407,9 @@ class TourSupport(Tour):
             fenetre.blit(self._image_tour, (int(self.x - self._taille_image[0] // 2), int(self.y - self._taille_image[1] // 2)))
         else:
             pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
-        # Anneau du rayon de buff en jaune doré
+        # Anneau du rayon de buff en jaune doré (gardé pour l'utilité gameplay)
         pygame.draw.circle(fenetre, (220, 200, 50), (int(self.x), int(self.y)), self.rayon_buff, 1)
-        # Étoile au centre pour distinguer la tour
-        pygame.draw.circle(fenetre, (255, 240, 100), (int(self.x), int(self.y)), self.taille, 3)
+        # Plus d'étoile au centre car la tour a maintenant son propre design
 
         police_niveau = pygame.font.SysFont("consolas", 10, bold=True)
         surface_niveau = police_niveau.render(str(self.niveau), True, (0, 0, 0))

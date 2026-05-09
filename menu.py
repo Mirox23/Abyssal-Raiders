@@ -1,3 +1,9 @@
+"""
+Qu'est-ce que le fichier gère : Ce fichier gère la partie menu principal du projet.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import math
 import pygame
 import os
@@ -9,6 +15,11 @@ from sauvegarde import sauvegarder, charger, lister_sauvegardes, appliquer_sauve
 
 class Menu:
     def __init__(self, ecran):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute init.
+        Les entrées : ecran.
+        Le résultat : Initialise correctement les attributs de l'objet.
+        """
         self.ecran = ecran
         self.etat = "principal"
         self.minuterie_animation = 0.0
@@ -75,9 +86,19 @@ class Menu:
     
     """Relance la musique du menu quand on revient du jeu.""" 
     def relancer_musique_menu(self): 
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute relancer musique menu.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.musique.jouer("musique/menu.mp3")
 
     def gerer_evenement(self, evenement):
+        """
+        Explication de ce que fais la fonction : Cette fonction gère gerer evenement en fonction du contexte courant.
+        Les entrées : evenement.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         if self.etat == "sauvegarde" and evenement.type == pygame.KEYDOWN:
             if evenement.key == pygame.K_BACKSPACE:
                 self.nom_sauvegarde = self.nom_sauvegarde[:-1]
@@ -187,9 +208,19 @@ class Menu:
         return None
 
     def mise_a_jour(self, delta_temps):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute mise a jour.
+        Les entrées : delta_temps.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.minuterie_animation += delta_temps
 
     def dessiner(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         # Fond : image si disponible, sinon grille colorée de secours
         if self.image_fond_menu:
             self.ecran.blit(self.image_fond_menu, (0, 0))
@@ -214,6 +245,11 @@ class Menu:
             self._dessiner_carte_continent()
 
     def _dessiner_principal(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner principal.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         pulse = int(10 * math.sin(self.minuterie_animation * 2.0))
         titre = self.police_titre.render("ABYSSAL RAIDERS", True, (210 + pulse, 140 + pulse, 35))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 110))
@@ -228,6 +264,11 @@ class Menu:
             self.ecran.blit(txt, (bouton["rect"].centerx - txt.get_width() // 2, bouton["rect"].centery - txt.get_height() // 2))
 
     def _dessiner_mondes(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner mondes.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         titre = self.police_titre.render("Choisir un Monde", True, (200, 200, 200))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 100))
         souris = pygame.mouse.get_pos()
@@ -243,6 +284,11 @@ class Menu:
         self._dessiner_retour()
 
     def _dessiner_map(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner map avec débloquage progressif.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         titre = self.police_titre.render("Carte du Monde", True, (200, 200, 200))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 30))
         rect_carte = pygame.Rect(80, 110, largeur_ecran - 160, hauteur_ecran - 200)
@@ -276,6 +322,11 @@ class Menu:
         self._dessiner_retour()
 
     def _dessiner_sauvegarde(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner sauvegarde.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         titre = self.police_titre.render("Sauvegarde", True, (200, 200, 200))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 90))
         champ = pygame.Rect(280, 170, 440, 44)
@@ -308,6 +359,11 @@ class Menu:
         self._dessiner_retour()
 
     def _dessiner_carte_continent(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner carte continent.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         # voile + fenêtre
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
         voile.fill((0, 0, 0, 140))
@@ -358,6 +414,11 @@ class Menu:
         self._dessiner_retour()
 
     def _creer_positions_niveaux(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute creer positions niveaux.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         # positions simples en grille sur la mini-carte
         rect = pygame.Rect(140, 80, 720, 400)
         zone = pygame.Rect(rect.x + 16, rect.y + 52, rect.width - 32, rect.height - 120)
@@ -369,15 +430,69 @@ class Menu:
             for x in xs:
                 positions.append((i, (x, y)))
                 i += 1
-        self.niveaux_par_continent["pirate"] = positions[:8]
-        self.niveaux_par_continent["medieval"] = positions[:8]
-        self.niveaux_par_continent["samourai"] = positions[:8]
-        self.niveaux_par_continent["demoniaque"] = positions[:8]
+        self.niveaux_par_continent["pirate"] = positions[:7]  # 7 niveaux maintenant
+        self.niveaux_par_continent["medieval"] = positions[:7]
+        self.niveaux_par_continent["samourai"] = positions[:7]
+        self.niveaux_par_continent["demoniaque"] = positions[:7]
+
+    def _charger_image_map_progressive(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction charge la bonne image map selon les continents débloqués.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Charge l'image appropriée et met à jour les continents débloqués.
+        """
+        # Déterminer quelle map charger selon les continents débloqués
+        if not self.progression_monde:
+            nombre_continents_debloques = 1  # Au moins pirate est débloqué
+        else:
+            # Compter combien de continents sont complètement terminés (7 niveaux chacun)
+            nombre_continents_debloques = 0
+            for continent in ["pirate", "medieval", "samourai", "demoniaque"]:
+                continent_termine = True
+                for niveau in range(1, 8):  # 7 niveaux maintenant
+                    if not self.progression_monde.est_niveau_conquis(continent, niveau):
+                        continent_termine = False
+                        break
+                if continent_termine:
+                    nombre_continents_debloques += 1
+        
+        # Choisir la map selon le nombre de continents débloqués
+        numero_map = min(4, max(1, nombre_continents_debloques))
+        nom_fichier = f"image/map_entier{numero_map}.png"
+        
+        # Charger l'image si elle existe
+        if os.path.exists(nom_fichier):
+            try:
+                self.image_map_actuelle = pygame.image.load(nom_fichier).convert()
+                self.image_map_actuelle = pygame.transform.scale(self.image_map_actuelle, (largeur_ecran, hauteur_ecran))
+            except Exception:
+                self.image_map_actuelle = None
+        else:
+            self.image_map_actuelle = None
+        
+        # Mettre à jour les continents débloqués pour l'affichage
+        self.continents_debloques = ["pirate"]  # Toujours débloqué
+        if nombre_continents_debloques >= 2:
+            self.continents_debloques.append("medieval")
+        if nombre_continents_debloques >= 3:
+            self.continents_debloques.append("samourai")
+        if nombre_continents_debloques >= 4:
+            self.continents_debloques.append("demoniaque")
 
     def appliquer_progression(self, progression_monde):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute appliquer progression.
+        Les entrées : progression_monde.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         self.progression_monde = progression_monde
 
     def _dessiner_options(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner options.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         titre = self.police_titre.render("Options du capitaine", True, (205, 205, 225))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 70))
         rect_audio = pygame.Rect(280, 170, 440, 130)
@@ -408,6 +523,11 @@ class Menu:
         self._dessiner_retour()
 
     def _dessiner_retour(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction exécute dessiner retour.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        """
         souris = pygame.mouse.get_pos()
         couleur = (60, 80, 60) if self.bouton_retour.collidepoint(souris) else (35, 50, 38)
         pygame.draw.rect(self.ecran, couleur, self.bouton_retour, border_radius=6)

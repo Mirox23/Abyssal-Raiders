@@ -49,9 +49,9 @@ def copier_donnees_dans_progression(donnees, progression_monde):
         if continent in progression_monde.succes_vagues:
             propre = []
             if isinstance(liste_niveaux, list):
-                for ligne in liste_niveaux[:8]:
+                for ligne in liste_niveaux[:7]:  # 7 niveaux maintenant
                     propre.append(_aligner_ligne_vagues(ligne))
-            while len(propre) < 8:
+            while len(propre) < 7:  # 7 niveaux maintenant
                 propre.append([False, False, False, False])
             progression_monde.succes_vagues[continent] = propre
 

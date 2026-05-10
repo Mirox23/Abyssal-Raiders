@@ -6,7 +6,7 @@ Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
 
 import os
 import pygame
-import unicodedata
+import unicodedata # pour normaliser les noms de fichiers d'icônes
 from decoration_cadre_abysse import dessiner_cadre_panneau
 from interface import Bouton
 from setting import largeur_ecran, hauteur_ecran
@@ -113,7 +113,7 @@ class FenetreArbreTalents:
         Les entrées : texte.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
-        texte_normalise = unicodedata.normalize("NFKD", texte)
+        texte_normalise = unicodedata.normalize("NFKD", texte) # décompose les caractères accentués en base + accents, "NFKD" : Normalization Form Compatibility Decomposition
         texte_sans_accents = "".join(
             caractere for caractere in texte_normalise if not unicodedata.combining(caractere)
         )
@@ -131,7 +131,7 @@ class FenetreArbreTalents:
             f"image/talent/{cle_talent}.jpg",
             f"image/talent/{cle_talent}.jpeg",
             f"image/talent/{cle_talent}.webp",
-        ]
+        ] # vérifier d'abord les chemins basés sur la clé du talent, puis chercher dans le dossier avec une normalisation plus souple
 
         for chemin_actuel in chemins_possibles:
             if os.path.exists(chemin_actuel):
@@ -141,21 +141,21 @@ class FenetreArbreTalents:
         if not os.path.isdir(dossier_talent):
             return chemin_par_defaut
 
-        cle_normalisee = self._normaliser_nom(cle_talent)
-        nom_talent = self.TALENTS[cle_talent]["nom"]
+        cle_normalisee = self._normaliser_nom(cle_talent) # normaliser la clé du talent pour la comparaison avec les noms de fichiers, par exemple "degats_competence" → "degats_competence", "Marchandage pirate" → "marchandage_pirate"
+        nom_talent = self.TALENTS[cle_talent]["nom"] # récupérer le nom du talent pour une recherche plus flexible, par exemple "Poudre noire +" → "poudre_noire_plus"
         nom_talent_normalise = self._normaliser_nom(nom_talent)
 
         for nom_fichier in os.listdir(dossier_talent):
-            base_sans_extension = os.path.splitext(nom_fichier)[0]
+            base_sans_extension = os.path.splitext(nom_fichier)[0] # os.path.splitext sépare le nom de fichier de son extension, [0] pour ne garder que la partie avant l'extension
             base_normalisee = self._normaliser_nom(base_sans_extension)
-            if cle_normalisee in base_normalisee or nom_talent_normalise in base_normalisee:
+            if cle_normalisee in base_normalisee or nom_talent_normalise in base_normalisee: # vérifier si la clé normalisée ou le nom du talent normalisé est contenu dans le nom de fichier normalisé, cela permet de trouver des correspondances même si le nom de fichier n'est pas exactement "cle.png" ou "nom.png", par exemple "poudre_noire_plus.png" pour le talent "Poudre noire +"
                 return os.path.join(dossier_talent, nom_fichier)
 
         return chemin_par_defaut
 
     def _maj_boutons(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute maj boutons.
+        Explication de ce que fais la fonction : Cette fonction exécute maj boutons pour positionner les zones cliquables des talents.
         Les entrées : Cette fonction ne demande pas de paramètre direct.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
@@ -168,16 +168,16 @@ class FenetreArbreTalents:
         depart_x = self.rect.x + 20
         depart_y = self.rect.y + 80
 
-        for i, cle in enumerate(self.TALENTS):
-            col = i % cols
-            lig = i // cols
-            bx = depart_x + col * (larg_carte + marge_x)
+        for i, cle in enumerate(self.TALENTS): # itérer dans l'ordre défini par le dictionnaire TALENTS pour une disposition cohérente, plutôt que de se baser sur l'ordre des clés dans self.talents qui pourrait être différent
+            col = i % cols # calculer la colonne (0, 1 ou 2) en fonction de l'index du talent
+            lig = i // cols # calculer la ligne (0, 1 ou 2) en fonction de l'index du talent
+            bx = depart_x + col * (larg_carte + marge_x) # position x du bouton = position de départ + (largeur de la carte + marge) * numéro de colonne
             by = depart_y + lig * (haut_carte + marge_y)
-            self._boutons_talents.append((cle, pygame.Rect(bx, by, larg_carte, haut_carte)))
+            self._boutons_talents.append((cle, pygame.Rect(bx, by, larg_carte, haut_carte))) # stocker la clé du talent avec son rectangle de zone cliquable pour pouvoir les associer lors du clic
 
     def ouvrir(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
+        Explication de ce que fais la fonction : Cette fonction exécute ouvrir et charge le classement par vague du continent.
         Les entrées : Cette fonction ne demande pas de paramètre direct.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
@@ -185,33 +185,32 @@ class FenetreArbreTalents:
 
     def reset_pour_nouveau_niveau(self, niveau_joueur_avant):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute reset pour nouveau niveau.
+        Explication de ce que fais la fonction : Cette fonction exécute reset pour nouveau niveau et calcule les bonus permanents basés sur le niveau précédent du joueur.
         Les entrées : niveau_joueur_avant.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         for cle in self.talents:
             self.talents[cle]["niveau"] = 0
         # bonus permanent : +1 degats tous les 4 niveaux, +1 portée tous les 5 niveaux
-        bonus_degats = niveau_joueur_avant // 4
-        bonus_portee = niveau_joueur_avant // 5
+        bonus_degats = niveau_joueur_avant // 4 # division entière pour obtenir le nombre de fois que le joueur a atteint un palier de 4 niveaux, par exemple niveau 7 → +1 dégats, niveau 12 → +3 dégâts (pour les paliers 4, 8 et 12), niveau 15 → +3 dégâts (pas de bonus supplémentaire à 16 car il faut atteindre le palier suivant)
+        bonus_portee = niveau_joueur_avant // 5 # division entière pour obtenir le nombre de fois que le joueur a atteint un palier de 5 niveaux, par exemple niveau 10 → +1 portée, niveau 15 → +3 portée (pour les paliers 5, 10 et 15), niveau 20 → +4 portée (pas de bonus supplémentaire à 21 car il faut atteindre le palier suivant)
         return bonus_degats, bonus_portee
 
     def gerer_clic(self, pos_clic, progression):
         """
-        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
+        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant et de la progression du joueur (points de talent disponibles, etc).
         Les entrées : pos_clic, progression.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         if not self.visible:
             return None
-        if self.bouton_fermer.rect.collidepoint(pos_clic):
+        if self.bouton_fermer.rect.collidepoint(pos_clic): # vérifier si le clic est sur le bouton Fermer
             self.visible = False
             return ("fermer", None)
-        for cle, rect in self._boutons_talents:
-            t = self.talents[cle]
-            if rect.collidepoint(pos_clic):
-                if progression.points_talent > 0 and t["niveau"] < t["max"]:
-                    progression.points_talent -= 1
+        for cle, rect in self._boutons_talents: # vérifier si le clic est sur l'un des boutons de talent
+            t = self.talents[cle] # récupérer le niveau actuel et le niveau max du talent pour vérifier si on peut l'améliorer
+            if rect.collidepoint(pos_clic): # le clic est sur ce talent 
+                if progression.points_talent > 0 and t["niveau"] < t["max"]: # vérifier si le joueur a des points de talent disponibles et si le talent n'est pas déjà au niveau max, t["niveau"] < t["max"] est la condition pour vérifier si le talent peut être amélioré, par exemple si le talent a max 3 niveaux et que le joueur est déjà à 3, on ne peut pas l'améliorer davantage
                     t["niveau"] += 1
                     return ("talent", cle)
         if self.rect.collidepoint(pos_clic):
@@ -220,14 +219,14 @@ class FenetreArbreTalents:
 
     def dessiner(self, fenetre, progression):
         """
-        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran en fonction de la progression du joueur (points de talent disponibles, niveaux des talents, bonus permanents, etc).
         Les entrées : fenetre, progression.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         if not self.visible:
             return
 
-        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA) # créer une surface transparente pour le voile sombre en arrière-plan, pygame.SRCALPHA permet d'utiliser la transparence alpha pour dessiner un voile semi-transparent
         voile.fill((0, 0, 0, 150))
         fenetre.blit(voile, (0, 0))
 
@@ -237,7 +236,7 @@ class FenetreArbreTalents:
         fenetre.blit(titre, (self.rect.x + 14, self.rect.y + 14))
 
         pts_txt = self.police_desc.render(
-            f"Points disponibles : {progression.points_talent}  —  Bonus permanent : +{progression.bonus_degats_permanent} dégâts / +{progression.bonus_portee_permanent} portée",
+            f"Points disponibles : {progression.points_talent}  —  Bonus permanent : +{progression.bonus_degats_permanent} dégâts / +{progression.bonus_portee_permanent} portée", # afficher les points de talent disponibles et les bonus permanents basés sur le niveau précédent du joueur, par exemple "Points disponibles : 2 — Bonus permanent : +1 dégâts / +1 portée"
             True, (245, 205, 140)
         )
         fenetre.blit(pts_txt, (self.rect.x + 14, self.rect.y + 44))

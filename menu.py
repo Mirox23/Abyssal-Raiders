@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie menu principal du projet.
+A quoi sert le fichier : Ce fichier gère le menu principal du jeu et toutes ses interfaces. Il permet de naviguer entre les différents écrans (menu principal, choix des mondes, options, sauvegarde), de gérer les clics de souris, d'afficher les boutons et les cartes, et de gérer la progression du joueur dans les différents continents. Il contient aussi la gestion du volume sonore et du système de sauvegarde/chargement.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import math
@@ -14,22 +14,27 @@ from sauvegarde import sauvegarder, charger, lister_sauvegardes, appliquer_sauve
 
 
 class Menu:
+    # Classe principale qui gère tous les menus et interfaces du jeu
+    
     def __init__(self, ecran):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : ecran.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise le menu avec tous ses sous-menus, boutons, polices et données de mondes.
+        Entrée : ecran.
+        Sortie : Initialise correctement les attributs de l'objet.
         """
+        # Attributs principaux du menu
         self.ecran = ecran
-        self.etat = "principal"
-        self.minuterie_animation = 0.0
-        self.volume_son = 0.5
-        self.monde_selectionne = "pirate"
-        self.niveau_selectionne = 1
+        self.etat = "principal"  # État actuel du menu (principal, map, options, etc.)
+        self.minuterie_animation = 0.0  # Pour les animations du titre
+        self.volume_son = 0.5  # Volume audio par défaut
+        self.monde_selectionne = "pirate"  # Monde par défaut
+        self.niveau_selectionne = 1  # Niveau par défaut
+        
+        # Gestion de la musique de fond
         self.musique = MusiqueManager(self.volume_son)
         self.musique.jouer("musique/menu.mp3")
 
-        # Chargement de l'image de fond du menu
+        # Chargement de l'image de fond du menu avec gestion d'erreur
         self.image_fond_menu = None
         for chemin_fond in ["image/fond_menu.png"]:
             if os.path.exists(chemin_fond):
@@ -38,34 +43,41 @@ class Menu:
                     self.image_fond_menu = pygame.transform.scale(img, (largeur_ecran, hauteur_ecran))
                     break
                 except Exception:
-                    pass
+                    pass  # Continue si l'image ne peut pas être chargée
 
-        self.police_titre = pygame.font.SysFont("consolas", 52, bold=True)
-        self.police_sous_titre = pygame.font.SysFont("consolas", 15)
-        self.police_bouton = pygame.font.SysFont("consolas", 22, bold=True)
-        self.police_monde = pygame.font.SysFont("consolas", 17, bold=True)
-        self.police_avertissement = pygame.font.SysFont("consolas", 13)
-        self.police_retour = pygame.font.SysFont("consolas", 16)
+        # Création des différentes polices pour le texte
+        self.police_titre = pygame.font.SysFont("consolas", 52, bold=True)  # Pour le titre principal
+        self.police_sous_titre = pygame.font.SysFont("consolas", 15)  # Pour le sous-titre
+        self.police_bouton = pygame.font.SysFont("consolas", 22, bold=True)  # Pour les boutons
+        self.police_monde = pygame.font.SysFont("consolas", 17, bold=True)  # Pour les noms de mondes
+        self.police_avertissement = pygame.font.SysFont("consolas", 13)  # Pour les messages
+        self.police_retour = pygame.font.SysFont("consolas", 16)  # Pour le bouton retour
 
+        # Position X centrale pour aligner les boutons
         cx = largeur_ecran // 2
+        
+        # Boutons du menu principal avec leurs positions et actions
         self.boutons_menu_principal = [
             {"texte": "Jouer", "rect": pygame.Rect(cx - 120, 210, 240, 50), "action": "ouvrir_mondes"},
             {"texte": "Options", "rect": pygame.Rect(cx - 120, 272, 240, 50), "action": "options"},
             {"texte": "Sauvegarde", "rect": pygame.Rect(cx - 120, 334, 240, 50), "action": "sauvegarde"},
             {"texte": "Quitter", "rect": pygame.Rect(cx - 120, 458, 240, 50), "action": "quitter"},
         ]
+        # Données des différents mondes avec leurs couleurs et positions
         self.donnees_mondes = [
             {"nom": "Monde Pirate", "cle": "pirate", "couleur": (45, 85, 145), "survol": (65, 110, 180), "debloque": True, "rect": pygame.Rect(80, 200, 170, 160)},
             {"nom": "Monde Samourai", "cle": "samourai", "couleur": (145, 45, 45), "survol": (180, 65, 65), "debloque": True, "rect": pygame.Rect(290, 200, 170, 160)},
             {"nom": "Monde Médiéval", "cle": "medieval", "couleur": (45, 110, 55), "survol": (60, 140, 70), "debloque": True, "rect": pygame.Rect(500, 200, 170, 160)},
             {"nom": "Monde Démoniaque", "cle": "demoniaque", "couleur": (55, 55, 55), "survol": (70, 70, 70), "debloque": True, "rect": pygame.Rect(710, 200, 170, 160)},
         ]
+        # Points cliquables sur la map mondiale
         self.points_map_globale = [
             {"nom": "Pirate", "pos": (270, 394), "debloque": True, "cle": "pirate"},
             {"nom": "Medieval", "pos": (240, 288), "debloque": True, "cle": "medieval"}, 
             {"nom": "Samouraï", "pos": (560, 290), "debloque": True, "cle": "samourai"},
             {"nom": "Demoniaque", "pos": (650, 400), "debloque": True, "cle": "demoniaque"},
         ]
+        # Variables pour la gestion de la carte et des niveaux
         self.monde_map_detail = None
         self.afficher_carte_continent = False
         self.continent_carte = None
@@ -73,11 +85,14 @@ class Menu:
         self.niveaux_par_continent = {cle: [] for cle in ["pirate", "medieval", "samourai", "demoniaque"]}
         self.progression_monde = ProgressionMonde()
         self.map_entier = None
-        self.continents_debloques = ["pirate"]  # initialisé avant le premier dessin
-        self._creer_positions_niveaux()
+        self.continents_debloques = ["pirate"]  # Seul le monde pirate est débloqué au début
+        # Initialisation des autres éléments de l'interface
+        self._creer_positions_niveaux()  # Crée les positions des niveaux sur la carte
         self.bouton_retour = pygame.Rect(largeur_ecran - 160, hauteur_ecran - 60, 140, 40)
         self.bouton_volume_moins = pygame.Rect(360, 230, 56, 44)
         self.bouton_volume_plus = pygame.Rect(584, 230, 56, 44)
+        
+        # Variables pour la sauvegarde
         self.nom_sauvegarde = ""
         self.message_sauvegarde = ""
         self.bouton_sauvegarder = pygame.Rect(300, 240, 170, 44)
@@ -87,87 +102,97 @@ class Menu:
     
     def relancer_musique_menu(self): 
         """
-        Explication de ce que fais la fonction : Cette fonction exécute relancer musique menu.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Relance la musique de fond du menu.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
         self.musique.jouer("musique/menu.mp3")
 
     def gerer_evenement(self, evenement):
         """
-        Explication de ce que fais la fonction : Cette fonction gère gerer evenement en fonction du contexte courant.
-        Les entrées : evenement.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Gère tous les événements du menu selon l'état actuel (clics, clavier, etc.).
+        Entrée : evenement.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Gestion du texte de sauvegarde (entrée au clavier)
         if self.etat == "sauvegarde" and evenement.type == pygame.KEYDOWN:
-            if evenement.key == pygame.K_BACKSPACE:
+            if evenement.key == pygame.K_BACKSPACE:  # Supprimer le dernier caractère
                 self.nom_sauvegarde = self.nom_sauvegarde[:-1]
-            elif evenement.key == pygame.K_RETURN and self.nom_sauvegarde.strip():
+            elif evenement.key == pygame.K_RETURN and self.nom_sauvegarde.strip():  # Valider avec Entrée
                 ok = sauvegarder(self.nom_sauvegarde.strip(), self.progression_monde)
                 self.message_sauvegarde = "Sauvegarde creee." if ok else "Erreur de sauvegarde."
-            elif evenement.unicode and evenement.unicode.isprintable() and len(self.nom_sauvegarde) < 24:
+            elif evenement.unicode and evenement.unicode.isprintable() and len(self.nom_sauvegarde) < 24:  # Ajouter un caractère
                 self.nom_sauvegarde += evenement.unicode
             return None
+        # On ne gère que les clics de souris pour le reste
         if evenement.type != pygame.MOUSEBUTTONDOWN:
             return None
-        clic = evenement.pos
+        clic = evenement.pos  # Position du clic
+        # Gestion des clics dans le menu principal
         if self.etat == "principal":
             for bouton in self.boutons_menu_principal:
                 if bouton["rect"].collidepoint(clic):
                     action = bouton["action"]
                     if action == "quitter":
-                        return "quitter"
+                        return "quitter"  # Demande de quitter
                     if action == "ouvrir_mondes":
-                        self.etat = "map"
+                        self.etat = "map"  # Ouvre la carte des mondes
                         self.monde_map_detail = None
                     elif action == "options":
-                        self.etat = "options"
+                        self.etat = "options"  # Ouvre les options
                     elif action == "sauvegarde":
-                        self.etat = "sauvegarde"
+                        self.etat = "sauvegarde"  # Ouvre l'écran de sauvegarde
+        # Gestion des clics dans l'écran des mondes
         elif self.etat == "mondes":
-            if self.bouton_retour.collidepoint(clic):
+            if self.bouton_retour.collidepoint(clic):  # Bouton retour
                 self.etat = "principal"
                 return None
+            # Clic sur un monde
             for monde in self.donnees_mondes:
                 if monde["rect"].collidepoint(clic) and monde["debloque"]:
                     self.continent_carte = monde["cle"]
                     self.afficher_carte_continent = True
                     self.niveau_selectionne = 1
                     return None
+        # Gestion des clics sur la map mondiale
         elif self.etat == "map":
-            if self.bouton_retour.collidepoint(clic):
+            if self.bouton_retour.collidepoint(clic):  # Bouton retour
                 if self.monde_map_detail:
                     self.monde_map_detail = None
                 else:
                     self.etat = "principal"
                 return None
+            # Clic sur un point de la map (calcul de distance circulaire)
             for point in self.points_map_globale:
-                if ((clic[0] - point["pos"][0]) ** 2 + (clic[1] - point["pos"][1]) ** 2) ** 0.5 <= 12:
-                    # Vérifier si le continent est débloqué en utilisant la liste des continents débloqués
+                distance = ((clic[0] - point["pos"][0]) ** 2 + (clic[1] - point["pos"][1]) ** 2) ** 0.5
+                if distance <= 12:  # Rayon de 12 pixels pour le clic
+                    # Vérifier si le continent est débloqué
                     est_debloque = point["cle"] in self.continents_debloques
                     if est_debloque:
                         self.continent_carte = point["cle"]
                         self.afficher_carte_continent = True
                         self.niveau_selectionne = 1
                     return None
+        # Gestion des clics dans les options
         elif self.etat == "options":
-            if self.bouton_retour.collidepoint(clic):
+            if self.bouton_retour.collidepoint(clic):  # Bouton retour
                 self.etat = "principal"
-            elif self.bouton_volume_moins.collidepoint(clic):
+            elif self.bouton_volume_moins.collidepoint(clic):  # Baisser le volume
                 self.volume_son = max(0.0, self.volume_son - 0.1)
                 self.musique.regler_volume(self.volume_son)
-            elif self.bouton_volume_plus.collidepoint(clic):
+            elif self.bouton_volume_plus.collidepoint(clic):  # Augmenter le volume
                 self.volume_son = min(1.0, self.volume_son + 0.1)
                 self.musique.regler_volume(self.volume_son)
+        # Gestion des clics dans l'écran de sauvegarde
         elif self.etat == "sauvegarde":
-            if self.bouton_retour.collidepoint(clic):
+            if self.bouton_retour.collidepoint(clic):  # Bouton retour
                 self.etat = "principal"
                 return None
-            if self.bouton_sauvegarder.collidepoint(clic) and self.nom_sauvegarde.strip():
+            if self.bouton_sauvegarder.collidepoint(clic) and self.nom_sauvegarde.strip():  # Sauvegarder
                 ok = sauvegarder(self.nom_sauvegarde.strip(), self.progression_monde)
                 self.message_sauvegarde = "Sauvegarde creee." if ok else "Erreur de sauvegarde."
                 return None
-            if self.bouton_charger.collidepoint(clic) and self.nom_sauvegarde.strip():
+            if self.bouton_charger.collidepoint(clic) and self.nom_sauvegarde.strip():  # Charger
                 donnees = charger(self.nom_sauvegarde.strip())
                 if donnees:
                     appliquer_sauvegarde(donnees, self.progression_monde)
@@ -175,14 +200,15 @@ class Menu:
                 else:
                     self.message_sauvegarde = "Aucune sauvegarde trouvee."
                 return None
+            # Gestion des actions sur les sauvegardes existantes
             for action, nom, rect in self.boutons_actions_sauvegardes:
                 if rect.collidepoint(clic):
-                    if action == "charger":
+                    if action == "charger":  # Charger une sauvegarde existante
                         donnees = charger(nom)
                         if donnees:
                             appliquer_sauvegarde(donnees, self.progression_monde)
                             self.message_sauvegarde = f"Sauvegarde '{nom}' chargee."
-                    if action == "supprimer":
+                    if action == "supprimer":  # Supprimer une sauvegarde
                         supprimer(nom)
                         self.message_sauvegarde = f"Sauvegarde '{nom}' supprimee."
                     return None
@@ -211,27 +237,30 @@ class Menu:
 
     def mise_a_jour(self, delta_temps):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute mise a jour.
-        Les entrées : delta_temps.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Met à jour les animations et les états du menu.
+        Entrée : delta_temps.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Met à jour l'animation du titre du menu
         self.minuterie_animation += delta_temps
 
     def dessiner(self):
         """
-        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Dessine l'écran du menu selon l'état actuel.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
-        # Fond : image si disponible, sinon grille colorée de secours
+        # Dessine le fond : image si disponible, sinon grille colorée de secours
         if self.image_fond_menu:
-            self.ecran.blit(self.image_fond_menu, (0, 0))
+            self.ecran.blit(self.image_fond_menu, (0, 0))  # Affiche l'image de fond
         else:
-            self.ecran.fill((14, 22, 18))
-            for x in range(0, largeur_ecran, 60):
+            # Crée une grille colorée si pas d'image de fond
+            self.ecran.fill((14, 22, 18))  # Fond principal
+            for x in range(0, largeur_ecran, 60):  # Lignes verticales
                 pygame.draw.line(self.ecran, (20, 32, 24), (x, 0), (x, hauteur_ecran))
-            for y in range(0, hauteur_ecran, 60):
+            for y in range(0, hauteur_ecran, 60):  # Lignes horizontales
                 pygame.draw.line(self.ecran, (20, 32, 24), (0, y), (largeur_ecran, y))
+        # Dessine le contenu selon l'état actuel du menu
         if self.etat == "principal":
             self._dessiner_principal()
         elif self.etat == "mondes":
@@ -243,53 +272,69 @@ class Menu:
         elif self.etat == "sauvegarde":
             self._dessiner_sauvegarde()
 
+        # Affiche la mini-fenêtre de carte continent si nécessaire
         if self.afficher_carte_continent:
             self._dessiner_carte_continent()
 
     def _dessiner_principal(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute dessiner principal.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Dessine le menu principal avec le titre animé et les boutons.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Crée l'effet de pulsation pour le titre
         pulse = int(10 * math.sin(self.minuterie_animation * 2.0))
+        
+        # Dessine le titre principal avec effet de pulsation
         titre = self.police_titre.render("ABYSSAL RAIDERS", True, (210 + pulse, 140 + pulse, 35))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 110))
+        
+        # Dessine le sous-titre
         sous = self.police_sous_titre.render("~ Un tower defense démoniaque ~", True, (90, 110, 95))
         self.ecran.blit(sous, (largeur_ecran // 2 - sous.get_width() // 2, 170))
+        
+        # Dessine les boutons avec effet de survol
         souris = pygame.mouse.get_pos()
         for bouton in self.boutons_menu_principal:
+            # Change la couleur si la souris survole le bouton
             couleur = (60, 110, 72) if bouton["rect"].collidepoint(souris) else (38, 70, 48)
-            pygame.draw.rect(self.ecran, (8, 14, 10), bouton["rect"].move(3, 3), border_radius=6)
-            pygame.draw.rect(self.ecran, couleur, bouton["rect"], border_radius=6)
+            pygame.draw.rect(self.ecran, (8, 14, 10), bouton["rect"].move(3, 3), border_radius=6)  # Ombre
+            pygame.draw.rect(self.ecran, couleur, bouton["rect"], border_radius=6)  # Bouton
             txt = self.police_bouton.render(bouton["texte"], True, (220, 235, 220))
             self.ecran.blit(txt, (bouton["rect"].centerx - txt.get_width() // 2, bouton["rect"].centery - txt.get_height() // 2))
 
     def _dessiner_mondes(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute dessiner mondes.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Dessine l'écran de sélection des mondes.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Dessine le titre de l'écran
         titre = self.police_titre.render("Choisir un Monde", True, (200, 200, 200))
         self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 100))
+        
+        # Dessine les cartes des mondes avec effets de survol
         souris = pygame.mouse.get_pos()
         for monde in self.donnees_mondes:
             rect = monde["rect"]
             if monde["debloque"]:
+                # Change la couleur si la souris survole le monde
                 couleur = monde["survol"] if rect.collidepoint(souris) else monde["couleur"]
             else:
-                couleur = (50, 50, 50)
+                couleur = (50, 50, 50)  # Gris si le monde n'est pas débloqué
             pygame.draw.rect(self.ecran, couleur, rect, border_radius=10)
+            # Dessine le nom du monde avec la couleur appropriée
             nom = self.police_monde.render(monde["nom"], True, (240, 240, 240) if monde["debloque"] else (100, 100, 100))
             self.ecran.blit(nom, (rect.centerx - nom.get_width() // 2, rect.centery - nom.get_height() // 2))
+        
+        # Dessine le bouton retour
         self._dessiner_retour()
 
     def _dessiner_map(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute dessiner map avec débloquage progressif.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Dessine la carte du monde avec débloquage progressif des continents.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
         # Recharger la map progressive au cas où la progression a changé
         self._charger_image_map_progressive()
@@ -519,10 +564,11 @@ class Menu:
 
     def _dessiner_retour(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute dessiner retour.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Dessine le bouton retour avec effet de survol.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Dessine le bouton retour avec effet de survol
         souris = pygame.mouse.get_pos()
         couleur = (60, 80, 60) if self.bouton_retour.collidepoint(souris) else (35, 50, 38)
         pygame.draw.rect(self.ecran, couleur, self.bouton_retour, border_radius=6)

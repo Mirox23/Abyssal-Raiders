@@ -4,15 +4,16 @@ Entrée : Les données nécessaires aux fonctions, classes et paramètres du mod
 Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
+# Importe les bibliothèques nécessaires pour la fenêtre des scores
 import pygame
-from decoration_cadre_abysse import dessiner_cadre_panneau, dessiner_plat_rect
+from decoration_cadre_abysse import dessiner_cadre_panneau
 from interface import Bouton
 from setting import largeur_ecran, hauteur_ecran
 
 # Tableau des meilleurs scores par vague (classement multi-joueurs)
 
-
 class FenetreScores:
+    # Affiche le classement des meilleurs temps par vague, en grille 2x2
     """Affiche le classement des meilleurs temps par vague, en grille 2x2."""
 
     def __init__(self):
@@ -21,17 +22,19 @@ class FenetreScores:
         Les entrées : Cette fonction ne demande pas de paramètre direct.
         Le résultat : Initialise correctement les attributs de l'objet.
         """
-        self.visible = False
-        self.continent = "pirate"
-        self.niveau = 1
+        # Initialise les attributs de la fenêtre des scores
+        self.visible = False  # État de visibilité de la fenêtre
+        self.continent = "pirate"  # Continent actif
+        self.niveau = 1  # Niveau actuel
         # Panneau plus grand pour accueillir le tableau 2x2
-        self.rect = pygame.Rect(largeur_ecran // 2 - 380, hauteur_ecran // 2 - 260, 760, 520)
-        self.police_titre = pygame.font.SysFont("consolas", 20, bold=True)
-        self.police_entete = pygame.font.SysFont("consolas", 13, bold=True)
-        self.police_ligne = pygame.font.SysFont("consolas", 13)
-        self.police_petit = pygame.font.SysFont("consolas", 11)
-        self.bouton_fermer = Bouton(self.rect.right - 100, self.rect.y + 12, 84, 28, "Fermer", 13)
-        self.classement_par_vague = {}
+        self.rect = pygame.Rect(largeur_ecran // 2 - 380, hauteur_ecran // 2 - 260, 760, 520)  # Dimensions et position
+        self.police_titre = pygame.font.SysFont("consolas", 20, bold=True)  # Police pour le titre
+        self.police_entete = pygame.font.SysFont("consolas", 13, bold=True)  # Police pour les en-têtes
+        self.police_ligne = pygame.font.SysFont("consolas", 13)  # Police pour les lignes
+        self.police_petit = pygame.font.SysFont("consolas", 11)  # Police pour le texte petit
+        self.bouton_fermer = Bouton(self.rect.right - 100, self.rect.y + 12, 84, 28, "Fermer", 13)  # Bouton pour fermer
+        self.classement_par_vague = {}  # Données du classement par vague
+        # Noms des continents pour l'affichage
         self.noms_continents = {
             "pirate": "Pirate",
             "samourai": "Samourai",
@@ -45,11 +48,12 @@ class FenetreScores:
         Les entrées : continent, niveau.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Importe la fonction pour obtenir le classement et configure la fenêtre
         from scores import obtenir_classement_par_vague
-        self.continent = continent
-        self.niveau = niveau
-        self.classement_par_vague = obtenir_classement_par_vague(continent)
-        self.visible = True
+        self.continent = continent  # Définit le continent
+        self.niveau = niveau  # Définit le niveau
+        self.classement_par_vague = obtenir_classement_par_vague(continent)  # Charge les données
+        self.visible = True  # Rend la fenêtre visible
 
     def fermer(self):
         """
@@ -65,17 +69,21 @@ class FenetreScores:
         Les entrées : pos.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Gère les clics seulement si la fenêtre est visible
         if not self.visible:
             return False
+        
+        # Vérifie si on clique sur le bouton fermer
         if self.bouton_fermer.rect.collidepoint(pos):
             self.fermer()
             return True
-        return self.rect.collidepoint(pos)
+        
+        return self.rect.collidepoint(pos)  # Vérifie si le clic est dans la fenêtre
 
     def _dessiner_cellule_vague(self, fenetre, numero_vague, rect_cellule):
         """
         Explication de ce que fais la fonction : Dessine une cellule du tableau pour une vague donnée.
-        Les entrées : fenetre, numero_vague (int 1-4), rect_cellule (pygame.Rect).
+        Les entrées : fenetre, numero_vague, rect_cellule.
         Le résultat : Dessine le fond, le titre et les lignes du classement dans la cellule.
         """
         # Fond de la cellule

@@ -1,9 +1,10 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie tower du projet.
+A quoi sert le fichier : Ce fichier gère toutes les tours de défense du jeu. Il contient la classe Tour qui gère les différents types de tours (sniper, canon, ralentissement, support), leurs niveaux d'amélioration, leurs dégâts, leur portée, leur cadence de tir, et le coût de chaque amélioration. Il gère aussi les projectiles et les effets visuels des tours.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
+# Importe les bibliothèques nécessaires pour les tours
 import pygame
 import os
 from setting import portee_tour, cadence_tour, couleur_tour, cout_amelioration, bonus_portee, bonus_cadence, niveau_max
@@ -17,31 +18,34 @@ class Tour:
         Les entrées : position.
         Le résultat : Initialise correctement les attributs de l'objet.
         """
-        self.x, self.y = position
-        self.taille = 15
-        self.portee = portee_tour
-        self.cadence = cadence_tour
-        self.temps_depuis_dernier_tir = 0
-        self.liste_projectiles = []
-        self.couleur = couleur_tour
-        self.type_tour = "Base"
-        self.niveau = 1
-        self.degats_tir = 1
-        self._image_tour = None
+        # Position et caractéristiques de base de la tour
+        self.x, self.y = position  # Position sur la carte
+        self.taille = 15  # Taille pour la détection des ennemis
+        self.portee = portee_tour  # Portée de tir de base
+        self.cadence = cadence_tour  # Cadence de tir (tirs par seconde)
+        self.couleur = couleur_tour  # Couleur de la tour
+        self.cout_amelioration = cout_amelioration  # Coût pour améliorer la tour
+        self.temps_depuis_dernier_tir = 0  # Timer pour la cadence de tir
+        self.liste_projectiles = []  # Liste des projectiles tirés
+        self.type_tour = "Base"  # Type de tour par défaut
+        self.niveau = 1  # Niveau d'amélioration
+        self.degats_tir = 1  # Dégâts de base
+        self._charger_image_tour()  # Charge l'image appropriée = None
         self._taille_image = (56, 56)
         self._charger_image_tour()
 
     def _palier_image(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute palier image.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Retourne l'index de l'image selon le niveau de la tour.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Retourne l'index de l'image selon le niveau de la tour
         if self.niveau >= 5:
-            return 3
+            return 3  # Niveau 5+ = image index 3
         if self.niveau >= 3:
-            return 2
-        return 1
+            return 2  # Niveau 3-4 = image index 2
+        return 1  # Niveau 1-2 = image index 1
 
     def _chemins_images_possibles(self):
         """
@@ -49,23 +53,26 @@ class Tour:
         Les entrées : Cette fonction ne demande pas de paramètre direct.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
-        return []
+        # Construit les chemins possibles pour les images des tours selon le type
+        base = f"Tours/{self.type_tour}"
+        return [f"{base}/lvl{i}.png" for i in range(1, 4)]  # lvl1.png, lvl2.png, lvl3.png, lvl4.png
 
     def _charger_image_tour(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute charger image tour.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Charge l'image appropriée selon le niveau et le type de tour.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Charge l'image de la tour selon son niveau et son type
         chemins = self._chemins_images_possibles()
         palier = self._palier_image()
         if palier <= len(chemins):
-            fichier = chemins[palier - 1]
+            fichier = chemins[palier - 1]  # Sélectionne le fichier approprié
             if os.path.exists(fichier):
                 image = pygame.image.load(fichier).convert_alpha()
                 self._image_tour = pygame.transform.scale(image, self._taille_image)
                 return
-        self._image_tour = None
+        self._image_tour = None  # Pas d'image si le fichier n'existe pas
 
     def ameliorer(self, argent_joueur):
         """
@@ -73,24 +80,28 @@ class Tour:
         Les entrées : argent_joueur.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Vérifie si la tour peut être améliorée
         if self.niveau >= niveau_max:
-            return -1
+            return -1  # Niveau maximum atteint
         if argent_joueur < cout_amelioration:
-            return -1
+            return -1  # Pas assez d'argent
+        
+        # Améliore la tour
         self.niveau += 1
-        self.portee += bonus_portee
-        self.cadence = max(0.15, self.cadence - bonus_cadence)
-        self._charger_image_tour()
-        return argent_joueur - cout_amelioration
+        self.portee += bonus_portee  # Augmente la portée
+        self.cadence = max(0.15, self.cadence - bonus_cadence)  # Réduit la cadence (plus rapide)
+        self._charger_image_tour()  # Recharge l'image du nouveau niveau
+        return argent_joueur - cout_amelioration  # Retourne l'argent restant
 
     def valeur_revente(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute valeur revente.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Calcule la valeur de revente de la tour.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
-        valeur_base = 6
-        bonus_niveaux = max(0, self.niveau - 1) * 3
+        # Calcule la valeur de revente : base + bonus par niveau
+        valeur_base = 6  # Valeur de base d'une tour
+        bonus_niveaux = max(0, self.niveau - 1) * 3  # +3 par niveau au-dessus du 1er
         return valeur_base + bonus_niveaux
 
     def mettre_a_jour(self, delta_temps, liste_ennemis):
@@ -99,19 +110,25 @@ class Tour:
         Les entrées : delta_temps, liste_ennemis.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Met à jour le timer de tir
         self.temps_depuis_dernier_tir += delta_temps
 
+        # Vérifie si la tour peut tirer
         if self.temps_depuis_dernier_tir >= self.cadence:
             for ennemi in liste_ennemis:
+                # Calcule la distance entre la tour et l'ennemi
                 delta_x = ennemi.x - self.x
                 delta_y = ennemi.y - self.y
                 distance = (delta_x**2 + delta_y**2) ** 0.5
+                
+                # Si l'ennemi est dans la portée, tire dessus
                 if distance <= self.portee:
                     nouveau_projectile = Projectile(self.x, self.y, ennemi)
                     self.liste_projectiles.append(nouveau_projectile)
-                    self.temps_depuis_dernier_tir = 0
-                    break
+                    self.temps_depuis_dernier_tir = 0  # Réinitialise le timer
+                    break  # Un seul tir par cycle
 
+        # Met à jour les projectiles et supprime les inactifs
         projectiles_actifs = []
         for projectile in self.liste_projectiles:
             projectile.mettre_a_jour(delta_temps)
@@ -125,19 +142,24 @@ class Tour:
         Les entrées : fenetre.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Dessine l'image de la tour ou un cercle par défaut
         if self._image_tour:
             fenetre.blit(self._image_tour, (int(self.x - self._taille_image[0] // 2), int(self.y - self._taille_image[1] // 2)))
         else:
             pygame.draw.circle(fenetre, self.couleur, (int(self.x), int(self.y)), self.taille)
+        
+        # Dessine la portée de la tour (cercle semi-transparent)
         pygame.draw.circle(fenetre, (80, 80, 160), (int(self.x), int(self.y)), self.portee, 1)
-
+        
+        # Dessine le niveau de la tour
         police_niveau = pygame.font.SysFont("consolas", 10, bold=True)
         surface_niveau = police_niveau.render(str(self.niveau), True, (0, 0, 0))
         fenetre.blit(surface_niveau, (
             int(self.x) - surface_niveau.get_width() // 2,
             int(self.y) - surface_niveau.get_height() // 2
         ))
-
+        
+        # Dessine tous les projectiles de la tour
         for projectile in self.liste_projectiles:
             projectile.dessiner(fenetre)
 

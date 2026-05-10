@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie jeu principal du projet.
+A quoi sert le fichier : Ce fichier gère la boucle principale du jeu et tous ses mécanismes. Il contient la classe Jeu qui initialise la fenêtre, gère les événements (clics, touches), met à jour les entités (tours, mobs, vagues), dessine tous les éléments à l'écran, et gère les transitions entre les vagues, le marché, les récompenses et la fin du jeu. Il contient aussi le système de compétences, les easter eggs, et la gestion de la progression.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import os
@@ -26,60 +26,75 @@ from konami_code import CodeSecret
 
 
 class Jeu:
+    # Classe principale qui gère toute la logique du jeu en cours
+    
     def __init__(self, continent="pirate", volume_musique=0.5, niveau=1, progression_monde=None):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : continent, volume_musique, niveau, progression_monde.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise une nouvelle partie de jeu avec les paramètres donnés.
+        Entrée : continent, volume_musique, niveau, progression_monde.
+        Sortie : Initialise correctement les attributs de l'objet.
         """
         pygame.init()
-        # Fenêtre classique (avec les boutons système Windows).
+        
+        # Configuration de la fenêtre de jeu (redimensionnable)
         self.fenetre = pygame.display.set_mode((largeur_ecran, hauteur_ecran), pygame.RESIZABLE)
-        self.surface_logique = pygame.Surface((largeur_ecran, hauteur_ecran))
+        self.surface_logique = pygame.Surface((largeur_ecran, hauteur_ecran))  # Surface de rendu logique
         pygame.display.set_caption("Abyssal Raiders")
         self.horloge = pygame.time.Clock()
-        self.police_hud = pygame.font.SysFont("consolas", 22)
-        self.police_vague = pygame.font.SysFont("consolas", 24, bold=True)
+        
+        # Polices pour l'affichage du jeu
+        self.police_hud = pygame.font.SysFont("consolas", 22)  # Pour le HUD
+        self.police_vague = pygame.font.SysFont("consolas", 24, bold=True)  # Pour les numéros de vagues
+        
+        # Paramètres de la partie
         self.continent = continent
         self.volume_musique = volume_musique
         self.niveau = niveau
         self.progression_monde = progression_monde
         self.repertoire_jeu = os.path.dirname(os.path.abspath(__file__))
+        
+        # Systèmes audio et secrets
         self.musique = MusiqueManager(self.volume_musique)
         self.code_secret = CodeSecret()  # Système de code Hidden Route
+        
+        # Initialisation des éléments de jeu
         self._lancer_musique_continent()
         self.image_fond = self._charger_image_fond()  # fond spécifique au continent
         self.reinitialiser()
 
     def _lancer_musique_continent(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute lancer musique continent.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Lance la musique de fond du continent pour les vagues normales.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
         # Musique de jeu normale (vagues simples et modifications)
         self.musique.jouer("jeu")  # appelle musique/jeu.mp3
 
     def _lancer_musique_boss(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute lancer musique boss.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Lance la musique de boss pour les vagues de boss.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
         self.musique.jouer("boss")  # appelle musique/boss.mp3
     def _charger_image_fond(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute charger image fond.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Charge l'image de fond spécifique au continent.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Normalise le nom du continent pour éviter les problèmes d'encodage
         continent = self._normaliser_continent(self.continent)
+        
+        # Chemins des images de fond selon le continent
         chemins_fond = {
             "pirate": ["image/pirates/fond.png"],
             "samourai": ["image/samourai/fond.png"],
             "medieval": ["image/medieval/fond.png"],
-            "demoniaque": ["image/demoniaque/fond.png", "image/démoniaque/fond.png"],
+            "demoniaque": ["image/demoniaque/fond.png", "image/démoniaque/fond.png"],  # Deux possibilités
         }
+        
         essais = chemins_fond.get(continent, chemins_fond["pirate"])
         for chemin_relatif in essais:
             chemin = os.path.join(self.repertoire_jeu, chemin_relatif.replace("/", os.sep))
@@ -89,14 +104,14 @@ class Jeu:
                     # On redimensionne pour couvrir tout l'écran
                     return pygame.transform.scale(img, (largeur_ecran, hauteur_ecran))
                 except Exception:
-                    pass
+                    pass  # Continue si l'image ne peut pas être chargée
         return None  # pas d'image trouvée, on utilisera la couleur unie
 
     def _normaliser_continent(self, nom_continent):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute normaliser continent.
-        Les entrées : nom_continent.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Normalise le nom du continent pour éviter les problèmes d'encodage.
+        Entrée : nom_continent.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
         if not nom_continent:
             return "pirate"
@@ -229,24 +244,29 @@ class Jeu:
 
     def lancer(self):
         """
-        Explication de ce que fais la fonction : Cette fonction lance lancer au bon moment du jeu.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Lance la boucle principale du jeu et gère tous les événements.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Variables de contrôle de la boucle de jeu
         jeu_en_cours = True
         fermeture_par_croix = False
+        
+        # Boucle principale du jeu
         while jeu_en_cours:
-            delta_temps = (self.horloge.tick(FPS) / 1000) * self.vitesse_jeu
+            delta_temps = (self.horloge.tick(FPS) / 1000) * self.vitesse_jeu  # Temps avec vitesse de jeu
+            
+            # Gestion des événements
             for evenement in pygame.event.get():
-                if evenement.type == pygame.QUIT:
+                if evenement.type == pygame.QUIT:  # Fermeture par la croix
                     fermeture_par_croix = True
                     jeu_en_cours = False
-                elif evenement.type == pygame.VIDEORESIZE:
+                elif evenement.type == pygame.VIDEORESIZE:  # Redimensionnement de la fenêtre
                     self.fenetre = pygame.display.set_mode((evenement.w, evenement.h), pygame.RESIZABLE)
-                elif evenement.type == pygame.MOUSEBUTTONDOWN:
+                elif evenement.type == pygame.MOUSEBUTTONDOWN:  # Clic de souris
                     self.gerer_clic(self._position_souris_logique(evenement.pos))
-                elif evenement.type == pygame.KEYDOWN:
-                    if evenement.key == pygame.K_F11:
+                elif evenement.type == pygame.KEYDOWN:  # Touche pressée
+                    if evenement.key == pygame.K_F11:  # Plein écran
                         pygame.display.toggle_fullscreen()
                         continue
 
@@ -255,6 +275,7 @@ class Jeu:
                     
                     self.gerer_competence(evenement.key)
                     self.gerer_easter_eggs(evenement.key)
+            # Mise à jour des systèmes de jeu
             self.mettre_a_jour(delta_temps)
             
             # Mettre à jour le système de code Hidden Route
@@ -269,10 +290,14 @@ class Jeu:
                 self._appliquer_mlk()
                 self.code_secret.mlk_active = False  # Réinitialiser après application
             
+            # Affichage
             self.dessiner()
             pygame.display.flip()
+            
+            # Vérification de la demande de retour à la carte
             if self.demande_retour_map:
                 jeu_en_cours = False
+        # Retour des informations de fin de partie
         return {
             "continent": self.continent,
             "niveau": self.niveau,
@@ -283,22 +308,28 @@ class Jeu:
 
     def gerer_competence(self, touche):
         """
-        Explication de ce que fais la fonction : Cette fonction gère gerer competence en fonction du contexte courant.
-        Les entrées : touche.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Gère l'activation des compétences selon la touche pressée.
+        Entrée : touche.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Trouve la compétence correspondant à la touche
         cle = self.gestionnaire_competences.obtenir_competence_par_touche(touche)
         if not cle:
-            return
+            return  # Pas de compétence pour cette touche
+        
+        # Vérifie si la compétence peut être utilisée
         data = self.gestionnaire_competences.competences[cle]
         cout = self._cout_competence(cle)
         if data["cooldown"] > 0 or self.argent < cout:
-            return
+            return  # En cooldown ou pas assez d'argent
+        
+        # Applique les effets selon la compétence
         if cle == "tir_puissant" and self.liste_ennemis:
-            # On vise l'ennemi le plus avancé sur le chemin.
+            # On vise l'ennemi le plus avancé sur le chemin
             ennemi_plus_avance = max(self.liste_ennemis, key=lambda ennemi: ennemi.etape)
             ennemi_plus_avance.vie -= 8 + self.talents_appliques["degats_competence"]
         elif cle == "pluie_bombes" and self.liste_ennemis:
+            # Explosion à la position de la souris
             pos = self._position_souris_logique(pygame.mouse.get_pos())
             self._ajouter_effet(pos, (255, 90, 80), 90, 0.3)
             self._jouer_son_effet("explosion")
@@ -306,21 +337,25 @@ class Jeu:
                 if ((ennemi.x - pos[0]) ** 2 + (ennemi.y - pos[1]) ** 2) ** 0.5 <= 95:
                     ennemi.vie -= 4 + self.talents_appliques["degats_competence"]
         elif cle == "ralentissement_zone":
+            # Ralentit les ennemis dans une zone
             pos = self._position_souris_logique(pygame.mouse.get_pos())
             for ennemi in self.liste_ennemis:
                 if ((ennemi.x - pos[0]) ** 2 + (ennemi.y - pos[1]) ** 2) ** 0.5 <= 130:
                     ennemi.appliquer_ralentissement(0.35, 2.8)
+        
+        # Déduit le coût et active le cooldown
         self.argent -= cout
         self.gestionnaire_competences.activer(cle)
 
     def _cout_competence(self, cle_competence):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute cout competence.
-        Les entrées : cle_competence.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Calcule le coût d'une compétence en tenant compte des réductions.
+        Entrée : cle_competence.
+        Sortie : Retourne la valeur attendue ou applique l'action prévue.
         """
+        # Calcule le coût avec les réductions de talents
         data = self.gestionnaire_competences.competences[cle_competence]
-        return max(1, data["cout"] - self.talents_appliques["reduction_cout"])
+        return max(1, data["cout"] - self.talents_appliques["reduction_cout"])  # Minimum 1
 
     def gerer_easter_eggs(self, touche):
         """

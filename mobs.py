@@ -473,12 +473,12 @@ class MobBoss(Mob):
 
     nom = "BOSS"
     couleur_mob = (200, 30, 200)
-    vie_de_base = 70
+    vie_de_base = 200  # Augmenté de 70 à 200 (presque 3x plus de vie)
     vitesse_de_base = 55.0
     taille_mob = 34
     recompense_mort = 20
     xp_mort = 15
-    degats_mur = 5
+    degats_mur = 10  # Augmenté de 5 à 10 (2x plus de dégâts)
 
     def __init__(self, position_depart, vitesse=None, couleur=None):
         """

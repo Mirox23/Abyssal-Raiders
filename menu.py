@@ -73,6 +73,7 @@ class Menu:
         self.niveaux_par_continent = {cle: [] for cle in ["pirate", "medieval", "samourai", "demoniaque"]}
         self.progression_monde = ProgressionMonde()
         self.map_entier = None
+        self.continents_debloques = ["pirate"]  # initialisé avant le premier dessin
         self._creer_positions_niveaux()
         self.bouton_retour = pygame.Rect(largeur_ecran - 160, hauteur_ecran - 60, 140, 40)
         self.bouton_volume_moins = pygame.Rect(360, 230, 56, 44)
@@ -441,43 +442,37 @@ class Menu:
         Les entrées : Cette fonction ne demande pas de paramètre direct.
         Le résultat : Charge l'image appropriée et met à jour les continents débloqués.
         """
-        # Déterminer quelle map charger selon les continents débloqués
-        if not self.progression_monde:
-            nombre_continents_debloques = 1  # Au moins pirate est débloqué
-        else:
-            # Compter combien de continents sont complètement terminés (7 niveaux chacun)
-            nombre_continents_debloques = 0
-            for continent in ["pirate", "medieval", "samourai", "demoniaque"]:
-                continent_termine = True
-                for niveau in range(1, 6):  # 5 niveaux maintenant
-                    if not self.progression_monde.niveaux_conquis[continent][niveau - 1]:
-                        continent_termine = False
-                        break
-                if continent_termine:
-                    nombre_continents_debloques += 1
-        
-        # Choisir la map selon le nombre de continents débloqués
-        numero_map = min(4, max(1, nombre_continents_debloques))
+        # Ordre de débloquage : pirate → medieval → samourai → demoniaque
+        ordre_continents = ["pirate", "medieval", "samourai", "demoniaque"]
+
+        # Pirate toujours accessible ; chaque continent suivant se débloque
+        # quand le précédent est entièrement terminé (niveau 5 battu).
+        self.continents_debloques = ["pirate"]
+        if self.progression_monde:
+            for i in range(1, len(ordre_continents)):
+                precedent = ordre_continents[i - 1]
+                if self.progression_monde.continent_termine(precedent):
+                    self.continents_debloques.append(ordre_continents[i])
+                else:
+                    break  # On s'arrête au premier continent non terminé
+
+        # Choisir la bonne image (map_entier1 à map_entier4) selon le nombre
+        # de continents débloqués (= accessibles sur la map).
+        numero_map = len(self.continents_debloques)  # 1 à 4
+        numero_map = max(1, min(4, numero_map))
         nom_fichier = f"image/map_entier{numero_map}.png"
-        
+
         # Charger l'image si elle existe
         if os.path.exists(nom_fichier):
             try:
                 self.image_map_actuelle = pygame.image.load(nom_fichier).convert()
-                self.image_map_actuelle = pygame.transform.scale(self.image_map_actuelle, (largeur_ecran, hauteur_ecran))
+                self.image_map_actuelle = pygame.transform.scale(
+                    self.image_map_actuelle, (largeur_ecran, hauteur_ecran)
+                )
             except Exception:
                 self.image_map_actuelle = None
         else:
             self.image_map_actuelle = None
-        
-        # Mettre à jour les continents débloqués pour l'affichage
-        self.continents_debloques = ["pirate"]  # Toujours débloqué
-        if nombre_continents_debloques >= 2:
-            self.continents_debloques.append("medieval")
-        if nombre_continents_debloques >= 3:
-            self.continents_debloques.append("samourai")
-        if nombre_continents_debloques >= 4:
-            self.continents_debloques.append("demoniaque")
 
     def appliquer_progression(self, progression_monde):
         """

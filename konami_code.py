@@ -28,11 +28,16 @@ class CodeSecret:
         self.duree_animation = 180  # 3 secondes à 60 FPS
         self.deblocage_complet = False
         
+        # Easter egg MLK: m-l-k
+        self.sequence_mlk = [pygame.K_m, pygame.K_l, pygame.K_k]
+        self.sequence_mlk_joueur = []
+        self.mlk_active = False
+        
     def ajouter_touche(self, touche):
         """
         Explication de ce que fais la fonction : Cette fonction ajoute une touche à la séquence.
         Les entrées : touche.
-        Le résultat : Vérifie si le code secret est entré.
+        Résultat : Vérifie si le code secret est entré.
         """
         self.sequence_joueur.append(touche)
         
@@ -40,10 +45,22 @@ class CodeSecret:
         if len(self.sequence_joueur) > 8:
             self.sequence_joueur = self.sequence_joueur[-8:]
         
-        # Vérifier si la séquence correspond
+        # Vérifier si la séquence Hidden Route correspond
         if self.sequence_joueur == self.sequence_secrete:
             self.activer_code_secret()
             self.sequence_joueur = []  # Réinitialiser la séquence
+        
+        # Vérifier la séquence MLK
+        self.sequence_mlk_joueur.append(touche)
+        
+        # Garder seulement les 3 dernières touches pour MLK
+        if len(self.sequence_mlk_joueur) > 3:
+            self.sequence_mlk_joueur = self.sequence_mlk_joueur[-3:]
+        
+        # Vérifier si la séquence MLK correspond
+        if self.sequence_mlk_joueur == self.sequence_mlk:
+            self.activer_mlk()
+            self.sequence_mlk_joueur = []  # Réinitialiser la séquence
     
     def activer_code_secret(self):
         """
@@ -58,11 +75,21 @@ class CodeSecret:
         # Effets de déblocage complet
         self.deblocage_complet = True
     
+    def activer_mlk(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction active l'easter egg MLK.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Résultat : Active le mode MLK pour sauter à la dernière vague du dernier niveau du continent actuel.
+        """
+        self.mlk_active = True
+        self.timer_animation = self.duree_animation
+        self.creer_confettis()
+    
     def creer_confettis(self):
         """
         Explication de ce que fais la fonction : Cette fonction crée les confettis.
         Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Génère 100 confettis aléatoires.
+        Résultat : Génère 100 confettis aléatoires.
         """
         self.animation_confettis = []
         

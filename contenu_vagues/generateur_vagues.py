@@ -21,27 +21,59 @@ def _faire_groupe(type_mob, nombre, decalage, bonus_vitesse):
 
 
 def _generer_groupes(continent, niveau, numero_vague):
+    """
+    Génère les groupes de mobs pour une vague donnée.
+
+    Progression cible (mobs totaux, hors boss) :
+        Niveau 1 : V1≈9   V2≈13  V3≈17
+        Niveau 2 : V1≈21  V2≈30  V3≈39
+        Niveau 3 : V1≈42  V2≈54  V3≈66
+        Niveau 4 : V1≈65  V2≈80  V3≈95
+        Niveau 5 : V1≈90  V2≈100 V3≈100 (plafonné)
+    """
     types = _types_pour_continent(continent)
+
+    # Paramètres calibrés par niveau
+    # base_v1  : nombre de mobs dans le 1er groupe à la vague 1
+    # step     : mobs supplémentaires par vague (+step par vague suivante)
+    # nb_g     : nombre de groupes (chaque groupe ajoute 1 mob de plus que le précédent)
+    params = {
+        1: {"base_v1": 4,  "step": 2, "nb_g": 2},
+        2: {"base_v1": 6,  "step": 3, "nb_g": 3},
+        3: {"base_v1": 9,  "step": 3, "nb_g": 4},
+        4: {"base_v1": 11, "step": 3, "nb_g": 5},
+        5: {"base_v1": 16, "step": 2, "nb_g": 5},
+    }
+    p = params.get(niveau, params[5])
+    base  = p["base_v1"] + p["step"] * (numero_vague - 1)
+    nb_g  = p["nb_g"]
+
+    # Plafond dur : jamais plus de 100 mobs au total sur la vague
+    PLAFOND_TOTAL = 100
+    total_prevu = sum(base + i for i in range(nb_g))
+    if total_prevu > PLAFOND_TOTAL:
+        # Réduire la base pour respecter le plafond
+        base = (PLAFOND_TOTAL - nb_g * (nb_g - 1) // 2) // nb_g
+
     groupes = []
-    base_niveau = 10 + (niveau - 1) * 2
-    base_vague = 2 + (numero_vague - 1) * 2
     decalage = 0.0
-    for index in range(6):
+    for index in range(nb_g):
         type_mob = types[(index + niveau + numero_vague) % len(types)]
-        nombre = base_niveau + base_vague + index
+        nombre = base + index
         bonus_vitesse = 0.01 * ((niveau + numero_vague + index) % 9)
         groupes.append(_faire_groupe(type_mob, nombre, decalage, bonus_vitesse))
-        decalage += 0.45
+        decalage += 0.5
     return groupes
 
 
 def _generer_vague(continent, niveau, numero_vague):
-    intervalle = 0.92 - (niveau * 0.02) - (numero_vague * 0.05)
-    intervalle = max(0.2, intervalle)
+    # Intervalle de spawn : plus espacé au niveau 1 pour laisser le temps de réagir
+    intervalle = 1.1 - (niveau * 0.04) - (numero_vague * 0.04)
+    intervalle = max(0.35, intervalle)
     return {
         "intervalle_spawn": round(intervalle, 2),
         "groupes": _generer_groupes(continent, niveau, numero_vague),
-        "commentaire": "Progression equilibree avec alternance d archetypes.",
+        "commentaire": "Progression calibree : ~9 mobs niveau 1 vague 1, ~100 mobs niveau 5.",
     }
 
 

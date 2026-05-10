@@ -72,15 +72,32 @@ class GestionnaireVague:
         intervalle = float(configuration.get("intervalle_spawn", 0.8))
         temps_courant = 0.0
 
+        # Plafond de mobs par vague selon le niveau pour éviter la surcharge
+        # Niveau 1 : 6-10 mobs max, puis ça monte progressivement
+        plafonds_par_niveau = {
+            1: 8,   # niveau 1 : 8 mobs max par vague
+            2: 12,
+            3: 16,
+            4: 20,
+            5: 25,
+        }
+        plafond_mobs = plafonds_par_niveau.get(self.niveau, 25 + (self.niveau - 5) * 4)
+        total_mobs = 0
+
         for groupe in configuration.get("groupes", []):
+            if total_mobs >= plafond_mobs:
+                break
             type_mob = groupe.get("type", "Mob")
             classe_mob = CLASSES_MOBS.get(type_mob, Mob)
             nombre = max(1, int(groupe.get("nombre", 1)))
+            # Limiter le nombre dans ce groupe pour ne pas dépasser le plafond
+            nombre = min(nombre, plafond_mobs - total_mobs)
             decalage = float(groupe.get("decalage", 0.0))
             bonus_vitesse = float(groupe.get("bonus_vitesse", 0.0))
             for _ in range(nombre):
                 self.mobs_a_spawner.append((temps_courant + decalage, classe_mob, bonus_vitesse))
                 temps_courant += intervalle
+                total_mobs += 1
 
     def mettre_a_jour(self, delta_temps, liste_ennemis, chemin):
         """

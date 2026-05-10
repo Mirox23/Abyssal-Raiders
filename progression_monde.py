@@ -12,6 +12,7 @@ class ProgressionMonde:
         Les entrées : Cette fonction ne demande pas de paramètre direct.
         Le résultat : Initialise correctement les attributs de l'objet.
         """
+        self.nom = "Joueur"  # Nom de la sauvegarde, rempli au chargement
         self.niveaux_conquis = {
             "pirate": [False] * 5,
             "medieval": [False] * 5,
@@ -109,3 +110,33 @@ class ProgressionMonde:
             return 0
         nb_conquis = sum(1 for c in self.niveaux_conquis[continent][:numero_niveau] if c)
         return nb_conquis // 3
+
+    def continent_termine(self, continent):
+        """
+        Explication de ce que fais la fonction : Cette fonction vérifie si un continent est entièrement terminé.
+        Les entrées : continent.
+        Le résultat : Retourne True si tous les niveaux du continent sont conquis.
+        """
+        if continent not in self.niveaux_conquis:
+            return False
+        return all(self.niveaux_conquis[continent])
+
+    def charger_depuis_data(self, data):
+        """
+        Explication de ce que fais la fonction : Initialise la progression depuis un dictionnaire JSON de sauvegarde.
+        Les entrées : data (dict issu du fichier JSON).
+        Le résultat : Remplit self.nom et les niveaux conquis depuis la sauvegarde.
+        """
+        self.nom = data.get("nom", "Joueur")
+        niveaux_data = data.get("niveaux_conquis", {})
+        for continent, liste in niveaux_data.items():
+            if continent in self.niveaux_conquis and isinstance(liste, list):
+                for i, val in enumerate(liste[:5]):
+                    self.niveaux_conquis[continent][i] = bool(val)
+        succes_data = data.get("succes_vagues", {})
+        for continent, niveaux in succes_data.items():
+            if continent in self.succes_vagues and isinstance(niveaux, list):
+                for i, vagues in enumerate(niveaux[:5]):
+                    if isinstance(vagues, list):
+                        for j, val in enumerate(vagues[:4]):
+                            self.succes_vagues[continent][i][j] = bool(val)

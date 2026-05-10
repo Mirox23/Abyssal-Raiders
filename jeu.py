@@ -210,6 +210,14 @@ class Jeu:
         self._position_message_victoire = None
         self._message_erreur = None
         self._timer_message_erreur = 0.0
+        # Écran de fin de continent (après avoir battu le boss du niveau 5)
+        self._ecran_fin_continent = False
+        # Confettis de fin de jeu (continent démoniaque niveau 5)
+        self._confettis = []          # liste de particules confetti
+        self._confettis_actifs = False
+        self._bouton_map_fin_continent = pygame.Rect(
+            largeur_ecran // 2 - 100, hauteur_ecran // 2 + 60, 200, 48
+        )
         if self._bonus_fidelite_argent > 0 or self._bonus_fidelite_vie > 0:
             parties = []
             if self._bonus_fidelite_argent > 0:
@@ -255,6 +263,11 @@ class Jeu:
             # Appliquer les effets de déblocage complet si le code secret est activé
             if self.code_secret.deblocage_complet:
                 self._appliquer_deblocage_complet()
+            
+            # Appliquer les effets de l'easter egg MLK
+            if self.code_secret.mlk_active:
+                self._appliquer_mlk()
+                self.code_secret.mlk_active = False  # Réinitialiser après application
             
             self.dessiner()
             pygame.display.flip()
@@ -339,6 +352,11 @@ class Jeu:
                 self.est_mort = False
             elif self.bouton_recommencer.collidepoint(clic):
                 self.reinitialiser()
+            return
+        # Écran de fin de continent : seul le bouton "Map" est actif
+        if self._ecran_fin_continent:
+            if self._bouton_map_fin_continent.collidepoint(clic):
+                self.demande_retour_map = True
             return
         if self.echec_vague:
             if self.bouton_payer_passer.collidepoint(clic) and self.argent >= 100:
@@ -500,7 +518,7 @@ class Jeu:
             self.demande_retour_map = True
             return
         if action_tel == "Scores":
-            self.fenetre_scores.ouvrir(self.continent)
+            self.fenetre_scores.ouvrir(self.continent, self.niveau)
             return
 
         if not self.mode_placement_actif:
@@ -816,30 +834,38 @@ class Jeu:
                     self.progression.niveau,
                     numero_vague=self.vague_locale,
                     temps_vague=self.temps_vague_actuelle,
-                    nom_joueur="Joueur",
+                    nom_joueur=getattr(self.progression_monde, "nom", "Joueur") if self.progression_monde else "Joueur",
                 )
                 degats_vague = max(0, self.vie_debut_vague - self.points_de_vie_mur)
                 if self.vague_locale <= 3:
                     if degats_vague < 3:
                         self.panneau_achevement.marquer_vague(self.continent, self.niveau, self.vague_locale)
-                    else:
-                        self.echec_vague = True
-                        self.vague_echec_numero = self.vague_locale
-                        self.ecran_fin_vague.fermer()
                 if self.vague_locale >= self.vague_max:
                     if self.progression_monde:
                         self.progression_monde.marquer_conquis(self.continent, self.niveau)
                     self.panneau_achevement.marquer_niveau_conquis(self.continent, self.niveau)
                     self._jouer_son_effet("victoire")
                     
-                    # Animation de victoire spéciale pour le niveau 8 du continent démoniaque
-                    if self.continent == "demoniaque" and self.niveau == 8:
+                    # Vérifier si c'est la fin du dernier niveau du continent
+                    est_fin_continent = (self.niveau >= 5)
+                    
+                    # Animation de victoire spéciale pour le niveau 5 du continent démoniaque
+                    if self.continent == "demoniaque" and self.niveau == 5:
                         self._lancer_animation_victoire_finale()
                     
                     # Enregistrer le score total dans le leaderboard local 
                     enregistrer_score(self.continent, self.niveau, self.score_total_partie, self.progression.niveau)
-                    self.fenetre_niveau_conquis.ouvrir()
-
+                    
+                    # Fin du dernier niveau : afficher l'écran de fin de continent
+                    if est_fin_continent:
+                        self.ecran_fin_vague.fermer()
+                        self.fenetre_marche.fermer()
+                        self._ecran_fin_continent = True
+                        # Lancer les confettis pour la fin du dernier continent
+                        if self.continent == "demoniaque" and self.niveau >= 5:
+                            self._lancer_confettis()
+                    else:
+                        self.fenetre_niveau_conquis.ouvrir(est_fin_continent=False, continent_termine=self.continent)
         # Bonus temporaire de cadence lancé par la compétence de buff.
         mult = 1.0
         if self.gestionnaire_competences.buff_actif():
@@ -858,6 +884,9 @@ class Jeu:
             if tour.type_tour == "Support":
                 tour.appliquer_buff(self.liste_tours)
         self._mettre_a_jour_effets(delta_temps)
+        # Mettre à jour les confettis si actifs
+        if self._confettis_actifs:
+            self._mettre_a_jour_confettis(delta_temps)
         # Décrémenter le timer du message d'erreur
         if self._timer_message_erreur > 0:
             self._timer_message_erreur = max(0.0, self._timer_message_erreur - delta_temps)
@@ -1054,6 +1083,11 @@ class Jeu:
             self._dessiner_ecran_defaite()
         if self.echec_vague:
             self._dessiner_ecran_echec_vague()
+        if self._ecran_fin_continent:
+            self._dessiner_ecran_fin_continent()
+        # Dessiner les confettis par-dessus tout (après écran fin continent pour couvrir par-dessus)
+        if self._confettis_actifs:
+            self._dessiner_confettis()
         self.fenetre_recompenses.dessiner(self.fenetre, self.progression)
         self.fenetre_niveau_conquis.dessiner(self.fenetre)
         # Dessin du tutoriel par dessus tout le reste
@@ -1202,26 +1236,146 @@ class Jeu:
         txt = pygame.font.SysFont("consolas", 18, bold=True).render("Retour jeu", True, (230, 245, 255))
         self.fenetre.blit(txt, (self.bouton_retour_jeu.centerx - txt.get_width() // 2, self.bouton_retour_jeu.centery - txt.get_height() // 2))
 
+
+    def _lancer_confettis(self):
+        """
+        Explication de ce que fais la fonction : Lance l'animation de confettis pour la victoire finale.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Initialise les particules de confettis colorées.
+        """
+        import random as _rand
+        self._confettis_actifs = True
+        self._confettis = []
+        couleurs_confetti = [
+            (255, 80, 80),    # rouge
+            (80, 200, 255),   # bleu ciel
+            (80, 255, 120),   # vert
+            (255, 220, 50),   # jaune
+            (220, 80, 255),   # violet
+            (255, 160, 40),   # orange
+            (255, 255, 255),  # blanc
+        ]
+        for _ in range(180):
+            self._confettis.append({
+                "x": float(_rand.randint(0, largeur_ecran)),
+                "y": float(_rand.randint(-hauteur_ecran, 0)),  # démarrent au-dessus de l'écran
+                "vx": _rand.uniform(-60, 60),   # vélocité horizontale (pixels/s)
+                "vy": _rand.uniform(80, 220),   # vélocité verticale descendante (pixels/s)
+                "taille": _rand.randint(6, 14),
+                "couleur": _rand.choice(couleurs_confetti),
+                "angle": _rand.uniform(0, 360),
+                "vitesse_rotation": _rand.uniform(-180, 180),  # degrés/s
+                "duree": _rand.uniform(4.0, 8.0),  # secondes avant disparition
+                "temps": 0.0,
+            })
+
+    def _mettre_a_jour_confettis(self, delta_temps):
+        """
+        Explication de ce que fais la fonction : Met à jour la position et durée de chaque confetti.
+        Les entrées : delta_temps.
+        Le résultat : Déplace les confettis et supprime ceux qui ont expiré.
+        """
+        survivants = []
+        for c in self._confettis:
+            c["x"] += c["vx"] * delta_temps
+            c["y"] += c["vy"] * delta_temps
+            c["angle"] = (c["angle"] + c["vitesse_rotation"] * delta_temps) % 360
+            c["temps"] += delta_temps
+            # Rebond latéral si sort de l'écran
+            if c["x"] < 0 or c["x"] > largeur_ecran:
+                c["vx"] *= -1
+            if c["temps"] < c["duree"]:
+                survivants.append(c)
+        self._confettis = survivants
+        if not self._confettis:
+            self._confettis_actifs = False
+
+    def _dessiner_confettis(self):
+        """
+        Explication de ce que fais la fonction : Dessine tous les confettis à l'écran.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Dessine chaque particule confetti avec rotation et transparence.
+        """
+        import math as _math
+        for c in self._confettis:
+            # Calcul de l'alpha selon l'avancement (fondu en fin de vie)
+            ratio_vie = c["temps"] / c["duree"]
+            alpha = int(255 * (1.0 - max(0.0, ratio_vie - 0.7) / 0.3)) if ratio_vie > 0.7 else 255
+            alpha = max(0, min(255, alpha))
+            t = c["taille"]
+            angle_rad = _math.radians(c["angle"])
+            cx = int(c["x"])
+            cy = int(c["y"])
+            # Dessin d'un petit rectangle orienté (approximation avec 4 points)
+            cos_a = _math.cos(angle_rad)
+            sin_a = _math.sin(angle_rad)
+            demi_l = t
+            demi_h = t // 2 if t > 4 else 2
+            points = [
+                (cx + cos_a * demi_l - sin_a * demi_h,
+                 cy + sin_a * demi_l + cos_a * demi_h),
+                (cx - cos_a * demi_l - sin_a * demi_h,
+                 cy - sin_a * demi_l + cos_a * demi_h),
+                (cx - cos_a * demi_l + sin_a * demi_h,
+                 cy - sin_a * demi_l - cos_a * demi_h),
+                (cx + cos_a * demi_l + sin_a * demi_h,
+                 cy + sin_a * demi_l - cos_a * demi_h),
+            ]
+            # Dessiner avec alpha via surface temporaire
+            surf_c = pygame.Surface((t * 2 + 4, t * 2 + 4), pygame.SRCALPHA)
+            pts_locaux = [
+                (p[0] - cx + t + 2, p[1] - cy + t + 2) for p in points
+            ]
+            r, g, b = c["couleur"]
+            pygame.draw.polygon(surf_c, (r, g, b, alpha), pts_locaux)
+            self.fenetre.blit(surf_c, (cx - t - 2, cy - t - 2))
+
+    def _appliquer_mlk(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction applique l'easter egg MLK.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Résultat : Téléporte le joueur à la dernière vague du dernier niveau du continent actuel en mode modification.
+        """
+        # Passer au dernier niveau du continent actuel (niveau 5)
+        self.niveau = 5
+        
+        # Réinitialiser avec le nouveau niveau
+        # Marquer les niveaux 1 à 4 comme conquis pour que la progression
+        # soit cohérente quand le joueur bat ensuite le niveau 5.
+        if self.progression_monde:
+            for _n_mlk in range(1, 5):
+                self.progression_monde.marquer_conquis(self.continent, _n_mlk)
+
+        self.reinitialiser()
+        
+        # Configurer pour la dernière vague (vague 4 - boss) mais en mode modification
+        self.vague_locale = 3  # Avant la dernière vague
+        
+        # Mettre en mode modification (comme le code flèches)
+        self.en_attente_lancement_vague = True
+        
+        # Donner plus d'argent pour survivre à la vague boss
+        self.argent += 100
+        
+        # Afficher un message spécial
+        self._message_erreur = "MLK ACTIVÉ ! Dernière vague du dernier niveau (mode modification) !"
+        self._timer_message_erreur = 3.0
+
     def _appliquer_deblocage_complet(self):
         """
-        Explication de ce que fais la fonction : Cette fonction applique le déblocage complet du code Hidden Route.
+        Explication de ce que fais la fonction : Cette fonction applique le déblocage complet.
         Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Débloque tous les niveaux, continents et téléporte au dernier niveau démoniaque.
+        Résultat : Débloque tous les niveaux et continents.
         """
-        if not self.code_secret.deblocage_complet:
-            return
-        
-        # Réinitialiser le flag pour éviter les applications multiples
-        self.code_secret.deblocage_complet = False
-        
-        # 1. Débloquer tous les niveaux dans tous les continents
         if self.progression_monde:
-            for continent in ["pirate", "samourai", "medieval", "demoniaque"]:
-                for niveau in range(1, 6):  # 5 niveaux maintenant
-                    self.progression_monde.marquer_conquis(continent, niveau)
-                    # Marquer toutes les vagues comme complétées
-                    for vague in range(1, 5):  # 4 vagues maintenant
-                        self.progression_monde.marquer_succes_vague(continent, niveau, vague)
+            # Débloquer tous les continents et tous les niveaux
+            for continent in ["pirate", "medieval", "samourai", "demoniaque"]:
+                for niveau in range(1, 6):
+                    for niveau in range(1, 6):  # 5 niveaux maintenant
+                        self.progression_monde.marquer_conquis(continent, niveau)
+                        # Marquer toutes les vagues comme complétées
+                        for vague in range(1, 5):  # 4 vagues maintenant
+                            self.progression_monde.marquer_succes_vague(continent, niveau, vague)
         
         # 2. Téléporter directement au dernier continent démoniaque, dernier niveau
         self.continent = "demoniaque"
@@ -1395,6 +1549,67 @@ class Jeu:
             self._ajouter_effet((x + dx, y + dy), couleur, taille, 0.25)
         # Anneau extérieur de la couleur du mob
         self._ajouter_effet((x, y), couleur, 28, 0.2)
+
+    def _dessiner_ecran_fin_continent(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction dessine l'écran de fin de continent.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Affiche le message de victoire et le bouton Map.
+        """
+        import math as _math
+        # Voile sombre sur tout l'écran
+        voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
+        voile.fill((0, 0, 0, 200))
+        self.fenetre.blit(voile, (0, 0))
+
+        # Panneau central
+        rect = pygame.Rect(largeur_ecran // 2 - 360, hauteur_ecran // 2 - 140, 720, 300)
+        pygame.draw.rect(self.fenetre, (18, 22, 35), rect, border_radius=16)
+        pygame.draw.rect(self.fenetre, (200, 175, 80), rect, width=2, border_radius=16)
+
+        # Titre animé (pulsation dorée)
+        pulse = abs(_math.sin(pygame.time.get_ticks() * 0.002)) * 30
+        couleur_titre = (int(220 + pulse), int(180 + pulse * 0.5), 60)
+        police_titre = pygame.font.SysFont("consolas", 30, bold=True)
+        titre = police_titre.render("Bravo !", True, couleur_titre)
+        self.fenetre.blit(titre, (rect.centerx - titre.get_width() // 2, rect.y + 24))
+
+        # Message principal (2 lignes)
+        police_msg = pygame.font.SysFont("consolas", 18)
+        # Message principal adapté selon le continent terminé
+        if self.continent == "demoniaque" and self.niveau >= 5:
+            lignes = [
+                "Félicitations, Capitaine !",
+                "Vous avez survécu à toutes les vagues de tous les mondes !",
+                "Les démons sont vaincus. La légende vous appartient.",
+            ]
+        else:
+            lignes = [
+                "Vous avez réussi à survivre à ces monstres !",
+                "Mais un nouveau monde vous attend ...",
+            ]
+        for i, ligne in enumerate(lignes):
+            surf = police_msg.render(ligne, True, (220, 220, 240))
+            self.fenetre.blit(surf, (rect.centerx - surf.get_width() // 2, rect.y + 90 + i * 32))
+
+        # Bouton Map
+        b = self._bouton_map_fin_continent
+        souris = pygame.mouse.get_pos()
+        # Convertir la position souris en coordonnées logiques pour le survol
+        surf_ecran = pygame.display.get_surface()
+        if surf_ecran:
+            rw, rh = surf_ecran.get_size()
+            sx = int(souris[0] * largeur_ecran / rw)
+            sy = int(souris[1] * hauteur_ecran / rh)
+        else:
+            sx, sy = souris
+        survol = b.collidepoint(sx, sy)
+        couleur_bouton = (60, 130, 80) if survol else (38, 90, 55)
+        pygame.draw.rect(self.fenetre, couleur_bouton, b, border_radius=10)
+        pygame.draw.rect(self.fenetre, (100, 200, 120), b, width=2, border_radius=10)
+        police_btn = pygame.font.SysFont("consolas", 22, bold=True)
+        txt = police_btn.render("🗺  Map", True, (220, 255, 220))
+        self.fenetre.blit(txt, (b.centerx - txt.get_width() // 2, b.centery - txt.get_height() // 2))
 
     def _dessiner_ecran_defaite(self):
         """

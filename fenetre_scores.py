@@ -71,9 +71,9 @@ class FenetreScores:
 
     def dessiner(self, fenetre):
         """
-        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
+        Explication de ce que fais la fonction : Cette fonction dessine le nouveau système de scores.
         Les entrées : fenetre.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        Le résultat : Affiche les records par vague/niveau.
         """
         if not self.visible:
             return
@@ -81,36 +81,23 @@ class FenetreScores:
         voile.fill((0, 0, 0, 140))
         fenetre.blit(voile, (0, 0))
         dessiner_cadre_panneau(fenetre, self.rect)
-
-        rect_top = pygame.Rect(self.rect.x + 20, self.rect.y + 58, self.rect.width - 40, 240)
-        rect_vagues = pygame.Rect(self.rect.x + 20, rect_top.bottom + 12, self.rect.width - 40, 108)
-
-        nom_continent = self.noms_continents.get(self.continent, self.continent.title())
-        dessiner_plat_rect(fenetre, rect_top, (26, 30, 48), (170, 120, 70), 2)
-        titre = self.police_titre.render(f"Meilleurs scores - {nom_continent}", True, (220, 200, 80))
-        fenetre.blit(titre, (self.rect.centerx - titre.get_width() // 2, self.rect.y + 14))
-        self.bouton_fermer.dessiner(fenetre)
-
-        rect_top = pygame.Rect(self.rect.x + 20, self.rect.y + 58, self.rect.width - 40, 240)
-        rect_vagues = pygame.Rect(self.rect.x + 20, rect_top.bottom + 12, self.rect.width - 40, 108)
-
-        pygame.draw.rect(fenetre, (26, 30, 48), rect_top, border_radius=8)
-        pygame.draw.rect(fenetre, (64, 82, 128), rect_top, width=1, border_radius=8)
-        pygame.draw.rect(fenetre, (24, 28, 44), rect_vagues, border_radius=8)
-        pygame.draw.rect(fenetre, (64, 82, 128), rect_vagues, width=1, border_radius=8)
-
-        entetes_y = rect_top.y + 10
-        fenetre.blit(self.police_petit.render("Rang", True, (160, 160, 200)), (rect_top.x + 16, entetes_y))
-        fenetre.blit(self.police_petit.render("Score", True, (160, 160, 200)), (rect_top.x + 90, entetes_y))
-        fenetre.blit(self.police_petit.render("Niveau", True, (160, 160, 200)), (rect_top.x + 210, entetes_y))
-        fenetre.blit(self.police_petit.render("Niveau joueur", True, (160, 160, 200)), (rect_top.x + 350, entetes_y))
-        pygame.draw.line(fenetre, (70, 80, 120), (rect_top.x + 12, entetes_y + 18), (rect_top.right - 12, entetes_y + 18))
-
+        
+        # Première partie : Top runs
+        rect_top = pygame.Rect(self.rect.x + 20, self.rect.y + 58, self.rect.width - 40, 120)
+        titre_top = self.police_titre.render("Meilleurs scores", True, (220, 200, 80))
+        fenetre.blit(titre_top, (self.rect.centerx - titre_top.get_width() // 2, self.rect.y + 14))
+        
         if not self.scores:
-            msg = self.police_ligne.render("Aucun score enregistre pour ce continent.", True, (160, 160, 180))
-            fenetre.blit(msg, (rect_top.centerx - msg.get_width() // 2, rect_top.centery - 10))
-        else:
-            medailles = ["1", "2", "3", "4", "5"]
+            msg = self.police_ligne.render("Aucun score enregistre.", True, (160, 160, 180))
+            fenetre.blit(msg, (self.rect.centerx - msg.get_width() // 2, self.rect.centery - 10))
+            return
+        
+        medailles = ["1", "2", "3", "4", "5"]
+        for index_score, entree in enumerate(self.scores[:5]):
+            y_ligne = rect_top.y + 30 + index_score * 20
+            fond_ligne = pygame.Rect(rect_top.x + 10, y_ligne - 4, rect_top.width - 20, 18)
+            if index_score % 2 == 0:
+                couleur_fond = (32, 38, 58)
             for index_score, entree in enumerate(self.scores[:5]):
                 y_ligne = entetes_y + 30 + index_score * 38
                 fond_ligne = pygame.Rect(rect_top.x + 10, y_ligne - 4, rect_top.width - 20, 32)
@@ -150,3 +137,6 @@ class FenetreScores:
                 position_y = rect_vagues.y + 34 + (numero_vague - 3) * 24
 
             fenetre.blit(self.police_petit.render(texte, True, couleur), (position_x, position_y))
+        
+        # Afficher le bouton Fermer qui manquait
+        self.bouton_fermer.dessiner(fenetre)

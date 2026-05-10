@@ -142,7 +142,7 @@ class JeuDessin:
         
         # Charger et afficher l'image de la pièce à côté de l'argent
         image_piece = None
-        for chemin_piece in ["image/coin.png"]:
+        for chemin_piece in ["image/coin.png", "coin.png"]:
             if os.path.exists(chemin_piece):
                 try:
                     image_piece = pygame.image.load(chemin_piece).convert_alpha()
@@ -163,10 +163,8 @@ class JeuDessin:
             pos_piece = (pos_argent[0] + texte_argent.get_width() + 8, pos_argent[1])
             self.jeu.fenetre.blit(image_piece, pos_piece)
         
-        # Afficher le symbole ¤ après la pièce
-        symbole = self.jeu.police_hud.render("¤", True, couleur_texte)
-        pos_symbole = (pos_argent[0] + texte_argent.get_width() + 40, pos_argent[1]) if image_piece else (pos_argent[0] + texte_argent.get_width() + 8, pos_argent[1])
-        self.jeu.fenetre.blit(symbole, pos_symbole)
+        # Ne plus afficher le symbole ¤ car on a l'image de la pièce
+        # Le symbole est maintenant remplacé par l'image coin.png
 
         # Compteur de mobs restants
         total_restants = len(self.jeu.liste_ennemis) + len(self.jeu.gestionnaire_vague.mobs_a_spawner)

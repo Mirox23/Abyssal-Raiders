@@ -94,10 +94,26 @@ class JeuEvenements:
             action_niveau = self.jeu.fenetre_niveau_conquis.gerer_clic(clic)
             if action_niveau == "retour_map":
                 self.jeu.demande_retour_map = True
+                return None
             elif action_niveau == "niveau_suivant":
                 self.jeu.niveau = min(7, self.jeu.niveau + 1)  # 7 niveaux maintenant
                 self.jeu.reinitialiser()
-            return None
+                if self.jeu.niveau == 5:  # Fin du continent (5 niveaux maintenant)
+                    # Déterminer le nom du continent pour le message
+                    noms_continents = {
+                        "pirate": "Pirate",
+                        "medieval": "Médiéval", 
+                        "samourai": "Samouraï",
+                        "demoniaque": "Démoniaque"
+                    }
+                    continent_nom = noms_continents.get(self.jeu.continent, "Inconnu")
+                    self.jeu.fenetre_niveau_conquis.ouvrir(est_fin_continent=True, continent_termine=continent_nom)
+                return None
+            elif action_niveau == "map":
+                # Ouvrir la carte du monde avec mise à jour du débloquage
+                self.jeu.demande_retour_map = True
+                self.jeu.etat = "map"
+                return None
         
         if self.jeu.fenetre_recompenses.visible:
             action = self.jeu.fenetre_recompenses.gerer_clic(clic, self.jeu.progression)
@@ -194,7 +210,10 @@ class JeuEvenements:
         if not self.jeu.mode_placement_actif:
             self.jeu.tour_actuellement_selectionnee = None
             for tour in self.jeu.liste_tours:
-                if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 <= tour.taille + 4:
+                # Créer le rectangle cliquable de la tour (zone complète)
+                rect_tour = pygame.Rect(tour.x - tour.taille, tour.y - tour.taille, 
+                                       tour.taille * 2, tour.taille * 2)
+                if rect_tour.collidepoint(clic):
                     self.jeu.tour_actuellement_selectionnee = tour
                     if self.jeu.tutoriel:
                         self.jeu.tutoriel.notifier_action("tour_selectionnee")

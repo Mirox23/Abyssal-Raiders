@@ -6,22 +6,8 @@ Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
 
 import os
 import pygame
-import unicodedata
-from setting import *
-from chemin import CHEMIN, draw_decor, draw_path, configurer_chemin_niveau_vague
-from mobs import MobKamikaze, MobSoigneur, MobBoss, MobRapide, definir_continent_mob
-from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
-from ui import (
-    PanneauTelephone, PanneauInfos, PanneauAchevement, EcranFinVague, AffichageXP,
-    FenetreRecompensesTalents, PanneauCompetences, PanneauObjets, PanneauParametresMusique,
-    FenetreNiveauConquis, FenetreMarcheVague, FenetreScores
-)
-from vague import GestionnaireVague
-from progression import Progression
-from competence import GestionnaireCompetences
+from setting import largeur_ecran, hauteur_ecran
 from musique import MusiqueManager
-from scores import enregistrer_score
-from tutoriel import GestionnaireTutoriel, etape_ameliorer_tour, etape_lancer_vague
 
 
 class JeuInitialisation:

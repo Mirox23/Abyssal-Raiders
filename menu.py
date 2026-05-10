@@ -430,10 +430,10 @@ class Menu:
             for x in xs:
                 positions.append((i, (x, y)))
                 i += 1
-        self.niveaux_par_continent["pirate"] = positions[:7]  # 7 niveaux maintenant
-        self.niveaux_par_continent["medieval"] = positions[:7]
-        self.niveaux_par_continent["samourai"] = positions[:7]
-        self.niveaux_par_continent["demoniaque"] = positions[:7]
+        self.niveaux_par_continent["pirate"] = positions[:5]  # 5 niveaux maintenant
+        self.niveaux_par_continent["medieval"] = positions[:5]
+        self.niveaux_par_continent["samourai"] = positions[:5]
+        self.niveaux_par_continent["demoniaque"] = positions[:5]
 
     def _charger_image_map_progressive(self):
         """
@@ -449,7 +449,7 @@ class Menu:
             nombre_continents_debloques = 0
             for continent in ["pirate", "medieval", "samourai", "demoniaque"]:
                 continent_termine = True
-                for niveau in range(1, 8):  # 7 niveaux maintenant
+                for niveau in range(1, 6):  # 5 niveaux maintenant
                     if not self.progression_monde.niveaux_conquis[continent][niveau - 1]:
                         continent_termine = False
                         break

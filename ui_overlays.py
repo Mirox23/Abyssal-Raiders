@@ -63,8 +63,28 @@ class PanneauInfos:
         if tour.niveau >= niveau_max:
             surface_cout = self.police_info.render("Niveau maximum !", True, (255, 180, 50))
         else:
-            surface_cout = self.police_info.render(f"Coût amélioration : {cout_amelioration} ¤", True, (130, 210, 130))
-        fenetre.blit(surface_cout, (pos_x, pos_y))
+            # Charger l'image de la pièce pour remplacer l'émoji
+            image_piece = None
+            for chemin_piece in ["image/coin.png", "coin.png"]:
+                if os.path.exists(chemin_piece):
+                    try:
+                        image_piece = pygame.image.load(chemin_piece).convert_alpha()
+                        # Redimensionner à la taille de la police
+                        taille_police = self.police_info.size("¤")
+                        image_piece = pygame.transform.scale(image_piece, (taille_police[1], taille_police[1]))
+                        break
+                    except Exception:
+                        pass
+
+            if image_piece:
+                surface_cout = self.police_info.render(f"Coût amélioration : {cout_amelioration}", True, (130, 210, 130))
+                fenetre.blit(surface_cout, (pos_x, pos_y))
+                # Afficher l'image de la pièce à côté du texte
+                pos_piece = (pos_x + surface_cout.get_width() + 8, pos_y)
+                fenetre.blit(image_piece, pos_piece)
+            else:
+                surface_cout = self.police_info.render(f"Coût amélioration : {cout_amelioration} ¤", True, (130, 210, 130))
+                fenetre.blit(surface_cout, (pos_x, pos_y))
         self.bouton_ameliorer.dessiner(fenetre)
         self.bouton_fermer.dessiner(fenetre)
 
@@ -152,6 +172,7 @@ class EcranFinVague:
         self.rect = pygame.Rect(centre_x - 250, centre_y - 115, 500, 230)
         self.bouton_nouvelle_vague = Bouton(centre_x - 230, centre_y + 60, 210, 44, "Nouvelle vague", 18)
         self.bouton_modification = Bouton(centre_x + 20, centre_y + 60, 210, 44, "Modification", 18)
+        self.bouton_fermer = Bouton(centre_x + 270, centre_y + 60, 120, 44, "Fermer", 18)
 
     def ouvrir(self, numero, xp_gagnee):
         self.numero_vague = numero
@@ -168,6 +189,8 @@ class EcranFinVague:
             return "nouvelle_vague"
         if self.bouton_modification.rect.collidepoint(position_clic):
             return "modification"
+        if self.bouton_fermer.rect.collidepoint(position_clic):
+            return "fermer"
         return None
 
     def dessiner(self, fenetre):
@@ -187,3 +210,4 @@ class EcranFinVague:
         fenetre.blit(surface_xp, (centre_x - surface_xp.get_width() // 2, self.rect.y + 90))
         self.bouton_nouvelle_vague.dessiner(fenetre)
         self.bouton_modification.dessiner(fenetre)
+        self.bouton_fermer.dessiner(fenetre)

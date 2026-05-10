@@ -1,0 +1,36 @@
+{
+  "demoniaque": {
+    "top_runs": [
+      {
+        "niveau": 5,
+        "score": 3450,
+        "niveau_joueur": 13,
+        "nom_joueur": "Joueur"
+      },
+      {
+        "niveau": 5,
+        "score": 3296,
+        "niveau_joueur": 9,
+        "nom_joueur": "Joueur"
+      },
+      {
+        "niveau": 5,
+        "score": 3273,
+        "niveau_joueur": 9,
+        "nom_joueur": "Joueur"
+      }
+    ],
+    "meilleurs_par_vague": {
+      "1": {
+        "nom_joueur": "Joueur",
+        "temps": 111.35,
+        "score": 3273
+      },
+      "2": {
+        "nom_joueur": "Joueur",
+        "temps": 108.5,
+        "score": 3450
+      }
+    }
+  }
+}

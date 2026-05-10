@@ -142,7 +142,9 @@ class Menu:
                 return None
             for point in self.points_map_globale:
                 if ((clic[0] - point["pos"][0]) ** 2 + (clic[1] - point["pos"][1]) ** 2) ** 0.5 <= 12:
-                    if point["debloque"]:
+                    # Vérifier si le continent est débloqué en utilisant la liste des continents débloqués
+                    est_debloque = point["cle"] in self.continents_debloques
+                    if est_debloque:
                         self.continent_carte = point["cle"]
                         self.afficher_carte_continent = True
                         self.niveau_selectionne = 1
@@ -288,36 +290,35 @@ class Menu:
         Les entrées : Cette fonction ne demande pas de paramètre direct.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
-        titre = self.police_titre.render("Carte du Monde", True, (200, 200, 200))
-        self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 30))
-        rect_carte = pygame.Rect(80, 110, largeur_ecran - 160, hauteur_ecran - 200)
-        if self.map_entier is None:
-            chemin_map = [
-                "image/map_entier.png",
-            ]
-            image_chargee = None
-            for chemin in chemin_map:
-                if os.path.exists(chemin):
-                    try:
-                        image_chargee = pygame.image.load(chemin).convert()
-                        break
-                    except Exception:
-                        image_chargee = None
-            if image_chargee:
-                self.map_entier = pygame.transform.scale(image_chargee, (rect_carte.width, rect_carte.height))
-            else:
-                self.map_entier = False
-        if self.map_entier:
-            self.ecran.blit(self.map_entier, rect_carte.topleft)
+        # Recharger la map progressive au cas où la progression a changé
+        self._charger_image_map_progressive()
+        
+        # Afficher l'image de fond map_entier
+        if self.image_map_actuelle:
+            self.ecran.blit(self.image_map_actuelle, (0, 0))
         else:
-            pygame.draw.rect(self.ecran, (30, 60, 100), rect_carte, border_radius=8)
+            # Fond de secours si pas d'image
+            self.ecran.fill((20, 25, 35))
+            titre = self.police_titre.render("Carte du Monde", True, (200, 200, 220))
+            self.ecran.blit(titre, (largeur_ecran // 2 - titre.get_width() // 2, 50))
+        
+        # Dessiner les points cliquables des continents avec couleurs selon débloquage
+        souris = pygame.mouse.get_pos()
         for point in self.points_map_globale:
-            px, py = point["pos"]
-            couleur = (0, 220, 100) if point["debloque"] else (100, 100, 100)
-            pygame.draw.circle(self.ecran, (255, 255, 255), (px, py), 11)
-            pygame.draw.circle(self.ecran, couleur, (px, py), 9)
-            txt = self.police_avertissement.render(point["nom"], True, (255, 255, 255))
-            self.ecran.blit(txt, (px - txt.get_width() // 2, py - 22))
+            # Vert si débloqué, gris si non débloqué
+            est_debloque = point["cle"] in self.continents_debloques
+            couleur = (80, 180, 80) if est_debloque else (60, 60, 60)
+            if ((souris[0] - point["pos"][0]) ** 2 + (souris[1] - point["pos"][1]) ** 2) ** 0.5 <= 12:
+                couleur = (120, 220, 120) if est_debloque else (80, 80, 80)
+            
+            pygame.draw.circle(self.ecran, couleur, point["pos"], 12)
+            pygame.draw.circle(self.ecran, (40, 40, 50), point["pos"], 12, 2)
+            
+            # Nom du continent (couleur différente si débloqué)
+            couleur_texte = (220, 255, 220) if est_debloque else (120, 120, 120)
+            nom = self.police_monde.render(point["nom"], True, couleur_texte)
+            self.ecran.blit(nom, (point["pos"][0] - nom.get_width() // 2, point["pos"][1] + 20))
+        
         self._dessiner_retour()
 
     def _dessiner_sauvegarde(self):
@@ -449,7 +450,7 @@ class Menu:
             for continent in ["pirate", "medieval", "samourai", "demoniaque"]:
                 continent_termine = True
                 for niveau in range(1, 8):  # 7 niveaux maintenant
-                    if not self.progression_monde.est_niveau_conquis(continent, niveau):
+                    if not self.progression_monde.niveaux_conquis[continent][niveau - 1]:
                         continent_termine = False
                         break
                 if continent_termine:

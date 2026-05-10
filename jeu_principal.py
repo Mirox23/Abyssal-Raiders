@@ -481,7 +481,10 @@ class Jeu:
         if not self.mode_placement_actif:
             self.tour_actuellement_selectionnee = None
             for tour in self.liste_tours:
-                if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 <= tour.taille + 4:
+                # Créer le rectangle cliquable de la tour (zone complète)
+                rect_tour = pygame.Rect(tour.x - tour.taille, tour.y - tour.taille, 
+                                       tour.taille * 2, tour.taille * 2)
+                if rect_tour.collidepoint(clic):
                     self.tour_actuellement_selectionnee = tour
                     if self.tutoriel:
                         self.tutoriel.notifier_action("tour_selectionnee")
@@ -518,12 +521,14 @@ class Jeu:
         cout = self.couts_tours.get(self.type_tour_a_placer, prix_tour)
         emplacement_libre = True
         for tour in self.liste_tours:
-            if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 < (tour.taille + 24):
+            # Créer le rectangle de la tour existante avec marge de 24 pixels
+            rect_tour = pygame.Rect(tour.x - tour.taille - 24, tour.y - tour.taille - 24, 
+                                   (tour.taille + 24) * 2, (tour.taille + 24) * 2)
+            if rect_tour.collidepoint(clic):
                 emplacement_libre = False
                 break
         peut = (
-            len(self.liste_tours) < nb_tours_max
-            and clic[0] < pos_mur - 10
+            clic[0] < pos_mur - 10
             and clic[1] > 80
             and self.argent >= cout
             and emplacement_libre

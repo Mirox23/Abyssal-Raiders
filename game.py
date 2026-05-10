@@ -154,7 +154,7 @@ class Jeu:
         self.bouton_relancer_vague = pygame.Rect(largeur_ecran // 2 + 10, hauteur_ecran // 2 + 40, 170, 44)
         configurer_chemin_niveau_vague(self.continent, self.niveau, 1)
         definir_continent_mob(self.continent)
-        # Le tutoriel ne se lance qu'a la toute premiere vague (niveau 1, pas encore joue)
+        # Le tutoriel ne se lance qu'a la toute premiere vague (niveau 1, pas encore joué)
         tutoriel_deja_fait = False
         if self.progression_monde:
             tutoriel_deja_fait = getattr(self.progression_monde, "tutoriel_termine", False)
@@ -303,7 +303,7 @@ class Jeu:
                 # Tous les talents connus (anciens + nouveaux)
                 if cle_t in self.talents_appliques:
                     self.talents_appliques[cle_t] = niv_t
-                # Talent ingenieur : augmenter portee de toutes les tours existantes
+                # Talent ingenieur : augmenter la portée de toutes les tours existantes
                 if cle_t == "ingenieur":
                     for tour in self.liste_tours:
                         tour.portee += 8
@@ -424,7 +424,10 @@ class Jeu:
         if not self.mode_placement_actif:
             self.tour_actuellement_selectionnee = None
             for tour in self.liste_tours:
-                if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 <= tour.taille + 4:
+                # Créer le rectangle cliquable de la tour (zone complète)
+                rect_tour = pygame.Rect(tour.x - tour.taille, tour.y - tour.taille, 
+                                       tour.taille * 2, tour.taille * 2)
+                if rect_tour.collidepoint(clic):
                     self.tour_actuellement_selectionnee = tour
                     if self.tutoriel:
                         self.tutoriel.notifier_action("tour_selectionnee")
@@ -451,12 +454,14 @@ class Jeu:
         cout = self.couts_tours.get(self.type_tour_a_placer, prix_tour)
         emplacement_libre = True
         for tour in self.liste_tours:
-            if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 < (tour.taille + 24):
+            # Créer le rectangle de la tour existante avec marge de 24 pixels
+            rect_tour = pygame.Rect(tour.x - tour.taille - 24, tour.y - tour.taille - 24, 
+                                   (tour.taille + 24) * 2, (tour.taille + 24) * 2)
+            if rect_tour.collidepoint(clic):
                 emplacement_libre = False
                 break
         peut = (
-            len(self.liste_tours) < nb_tours_max
-            and clic[0] < pos_mur - 10
+            clic[0] < pos_mur - 10
             and clic[1] > 80
             and self.argent >= cout
             and emplacement_libre
@@ -726,7 +731,28 @@ class Jeu:
 
         # HUD principal (avec shake)
         self.fenetre.blit(self.police_hud.render(f"Vie : {self.points_de_vie_mur}", True, couleur_texte), (20 + ox, 20 + oy))
-        self.fenetre.blit(self.police_hud.render(f"Argent : {self.argent} ¤", True, couleur_texte), (20 + ox, 48 + oy))
+        # Charger l'image de la pièce pour remplacer l'émoji
+        image_piece = None
+        for chemin_piece in ["image/coin.png", "coin.png"]:
+            if os.path.exists(chemin_piece):
+                try:
+                    image_piece = pygame.image.load(chemin_piece).convert_alpha()
+                    # Redimensionner à la taille de la police
+                    taille_police = self.police_hud.size("¤")
+                    image_piece = pygame.transform.scale(image_piece, (taille_police[1], taille_police[1]))
+                    break
+                except Exception:
+                    pass
+        
+        # Afficher le texte de l'argent
+        texte_argent = self.police_hud.render(f"Argent : {self.argent}", True, couleur_texte)
+        pos_argent = (20 + ox, 48 + oy)
+        self.fenetre.blit(texte_argent, pos_argent)
+        
+        # Afficher l'image de la pièce si chargée
+        if image_piece:
+            pos_piece = (pos_argent[0] + texte_argent.get_width() + 8, pos_argent[1])
+            self.fenetre.blit(image_piece, pos_piece)
 
         # Compteur de mobs restants
         total_restants = len(self.liste_ennemis) + len(self.gestionnaire_vague.mobs_a_spawner)

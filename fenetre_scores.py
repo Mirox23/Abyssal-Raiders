@@ -93,30 +93,28 @@ class FenetreScores:
             return
         
         medailles = ["1", "2", "3", "4", "5"]
+        entetes_y = rect_top.y + 10
         for index_score, entree in enumerate(self.scores[:5]):
-            y_ligne = rect_top.y + 30 + index_score * 20
-            fond_ligne = pygame.Rect(rect_top.x + 10, y_ligne - 4, rect_top.width - 20, 18)
+            y_ligne = entetes_y + 30 + index_score * 38
+            fond_ligne = pygame.Rect(rect_top.x + 10, y_ligne - 4, rect_top.width - 20, 32)
             if index_score % 2 == 0:
                 couleur_fond = (32, 38, 58)
-            for index_score, entree in enumerate(self.scores[:5]):
-                y_ligne = entetes_y + 30 + index_score * 38
-                fond_ligne = pygame.Rect(rect_top.x + 10, y_ligne - 4, rect_top.width - 20, 32)
-                if index_score % 2 == 0:
-                    couleur_fond = (32, 38, 58)
-                else:
-                    couleur_fond = (28, 34, 52)
-                pygame.draw.rect(fenetre, couleur_fond, fond_ligne, border_radius=5)
+            else:
+                couleur_fond = (28, 34, 52)
+            pygame.draw.rect(fenetre, couleur_fond, fond_ligne, border_radius=5)
 
-                if index_score == 0:
-                    couleur_ligne = (255, 220, 80)
-                else:
-                    couleur_ligne = (205, 210, 225)
+            if index_score == 0:
+                couleur_ligne = (255, 220, 80)
+            else:
+                couleur_ligne = (205, 210, 225)
 
-                fenetre.blit(self.police_ligne.render(medailles[index_score], True, couleur_ligne), (rect_top.x + 20, y_ligne + 4))
-                fenetre.blit(self.police_ligne.render(str(entree["score"]), True, couleur_ligne), (rect_top.x + 90, y_ligne + 4))
-                fenetre.blit(self.police_ligne.render(f"Niv. {entree['niveau']}", True, (200, 210, 230)), (rect_top.x + 210, y_ligne + 4))
-                fenetre.blit(self.police_ligne.render(f"Niv. {entree['niveau_joueur']}", True, (180, 195, 215)), (rect_top.x + 350, y_ligne + 4))
+            fenetre.blit(self.police_ligne.render(medailles[index_score], True, couleur_ligne), (rect_top.x + 20, y_ligne + 4))
+            fenetre.blit(self.police_ligne.render(str(entree["score"]), True, couleur_ligne), (rect_top.x + 90, y_ligne + 4))
+            fenetre.blit(self.police_ligne.render(f"Niv. {entree['niveau']}", True, (200, 210, 230)), (rect_top.x + 210, y_ligne + 4))
+            fenetre.blit(self.police_ligne.render(f"Niv. {entree['niveau_joueur']}", True, (180, 195, 215)), (rect_top.x + 350, y_ligne + 4))
 
+        # Deuxième partie : Records de temps par vague
+        rect_vagues = pygame.Rect(self.rect.x + 20, self.rect.y + 200, self.rect.width - 40, 120)
         titre_vagues = self.police_petit.render("Records de temps par vague", True, (200, 200, 220))
         fenetre.blit(titre_vagues, (rect_vagues.x + 12, rect_vagues.y + 8))
 
@@ -138,5 +136,5 @@ class FenetreScores:
 
             fenetre.blit(self.police_petit.render(texte, True, couleur), (position_x, position_y))
         
-        # Afficher le bouton Fermer qui manquait
+        # Afficher le bouton Fermer visible au-dessus de tout
         self.bouton_fermer.dessiner(fenetre)

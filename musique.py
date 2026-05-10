@@ -59,17 +59,25 @@ class MusiqueManager:
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
         fichier_audio = self._resolver_fichier_audio(fichier_audio)
-        if self.piste_active == fichier_audio:
-            return
+        
         if not os.path.exists(fichier_audio):
-            self.piste_active = None
+            print(f"ERREUR MUSIQUE: Fichier non trouvé - {fichier_audio}")
             return
+        
         try:
+            # Diagnostic: vérifier l'état de pygame.mixer
+            if not pygame.mixer.get_init():
+                print("ERREUR MUSIQUE: pygame.mixer non initialisé, tentative d'initialisation...")
+                pygame.mixer.init()
+            
+            print(f"DIAGNOSTIC MUSIQUE: Tentative de lecture - {fichier_audio}")
             pygame.mixer.music.load(fichier_audio)
             pygame.mixer.music.set_volume(self.volume)
             pygame.mixer.music.play(-1)
             self.piste_active = fichier_audio
-        except Exception:
+            print(f"DIAGNOSTIC MUSIQUE: Lecture démarrée avec succès - {fichier_audio}")
+        except Exception as e:
+            print(f"ERREUR MUSIQUE: Impossible de jouer {fichier_audio} - {e}")
             self.piste_active = None
 
     def regler_volume(self, volume):

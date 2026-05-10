@@ -24,8 +24,8 @@ class PanneauAchevement:
         self.police_titre = pygame.font.SysFont("consolas", 30, bold=True)
         self.police_onglet = pygame.font.SysFont("consolas", 15, bold=True)
         self.police_label = pygame.font.SysFont("consolas", 13)
-        # 7 niveaux × 4 vagues
-        self.progression = {cle: [[False] * 4 for _ in range(7)] for cle in self.cles_mondes}
+        # 5 niveaux × 4 vagues
+        self.progression = {cle: [[False] * 4 for _ in range(5)] for cle in self.cles_mondes}
         self.onglet_actif = 0
         self.progression_monde = None
         self.bouton_fermer = Bouton(self.rect.right - 90, self.rect.y + 8, 80, 30, "Fermer", 14)
@@ -137,7 +137,7 @@ class PanneauAchevement:
         progression_monde = self.progression[self.cles_mondes[self.onglet_actif]]
         if self.progression_monde:
             cle = self.cles_mondes[self.onglet_actif]
-            for niv in range(7):  # 7 niveaux maintenant
+            for niv in range(5):  # 5 niveaux maintenant
                 succes = self.progression_monde.succes_niveau(cle, niv + 1)
                 for v in range(4):
                     progression_monde[niv][v] = succes[v]
@@ -149,7 +149,7 @@ class PanneauAchevement:
             x_entete = marge_gauche + 80 + v * (taille_rect_vague + espacement_vague)
             fenetre.blit(self.police_label.render(f"V{v+1}", True, (160, 160, 200)), (x_entete, zone_y_depart))
 
-        for niv in range(7):  # 7 niveaux maintenant
+        for niv in range(5):  # 5 niveaux maintenant
             y_ligne = zone_y_depart + 20 + niv * (taille_rect_vague + espacement_niveau)
             fenetre.blit(self.police_label.render(f"Niveau {niv + 1}", True, (200, 200, 200)), (marge_gauche, y_ligne + 3))
             for vague in range(4):

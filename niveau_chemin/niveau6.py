@@ -29,17 +29,17 @@ liste_decors = [
 ]
 
 def draw_decor(fenetre, pygame):
-for decor in liste_decors:
-if decor["type"] == "rock":
-couleur = couleur_decor_rock
-else:
-couleur = couleur_decor_grass
-pygame.draw.circle(fenetre, couleur, (decor["x"], decor["y"]), decor["r"])
+    for decor in liste_decors:
+        if decor["type"] == "rock":
+            couleur = couleur_decor_rock
+        else:
+            couleur = couleur_decor_grass
+            pygame.draw.circle(fenetre, couleur, (decor["x"], decor["y"]), decor["r"])
 
 def draw_path(fenetre, pygame):
-if len(CHEMIN) >= 2:
-pygame.draw.lines(fenetre, (60, 80, 60), False, CHEMIN, 28)
-pygame.draw.lines(fenetre, (75, 95, 75), False, CHEMIN, 4)
+    if len(CHEMIN) >= 2:
+        pygame.draw.lines(fenetre, (60, 80, 60), False, CHEMIN, 28)
+        pygame.draw.lines(fenetre, (75, 95, 75), False, CHEMIN, 4)
 
-rect_mur = pygame.Rect(position_mur, 0, largeur_ecran - position_mur, hauteur_ecran)
-fenetre.fill(couleur_wall, rect_mur)
+        rect_mur = pygame.Rect(position_mur, 0, largeur_ecran - position_mur, hauteur_ecran)
+        fenetre.fill(couleur_wall, rect_mur)

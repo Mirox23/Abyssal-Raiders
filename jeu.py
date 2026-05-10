@@ -22,6 +22,7 @@ from competence import GestionnaireCompetences
 from musique import MusiqueManager
 from scores import enregistrer_score
 from tutoriel import GestionnaireTutoriel, etape_ameliorer_tour, etape_lancer_vague
+from konami_code import CodeSecret
 
 
 class Jeu:
@@ -45,6 +46,7 @@ class Jeu:
         self.progression_monde = progression_monde
         self.repertoire_jeu = os.path.dirname(os.path.abspath(__file__))
         self.musique = MusiqueManager(self.volume_musique)
+        self.code_secret = CodeSecret()  # Système de code Hidden Route
         self._lancer_musique_continent()
         self.image_fond = self._charger_image_fond()  # fond spécifique au continent
         self.reinitialiser()
@@ -203,9 +205,11 @@ class Jeu:
         self._position_indicateur = (0, 0)
         self._direction_indicateur = (0, 0)
         # Système d'animation de victoire finale
-        self._message_victoire = ""
+        self._message_victoire = None
         self._timer_message_victoire = 0.0
-        self._position_message_victoire = (0, 0)
+        self._position_message_victoire = None
+        self._message_erreur = None
+        self._timer_message_erreur = 0.0
         if self._bonus_fidelite_argent > 0 or self._bonus_fidelite_vie > 0:
             parties = []
             if self._bonus_fidelite_argent > 0:
@@ -237,9 +241,21 @@ class Jeu:
                     if evenement.key == pygame.K_F11:
                         pygame.display.toggle_fullscreen()
                         continue
+
+                    # Gérer le code secret
+                    self.code_secret.ajouter_touche(evenement.key)
+                    
                     self.gerer_competence(evenement.key)
                     self.gerer_easter_eggs(evenement.key)
             self.mettre_a_jour(delta_temps)
+            
+            # Mettre à jour le système de code Hidden Route
+            self.code_secret.mettre_a_jour()
+            
+            # Appliquer les effets de déblocage complet si le code secret est activé
+            if self.code_secret.deblocage_complet:
+                self._appliquer_deblocage_complet()
+            
             self.dessiner()
             pygame.display.flip()
             if self.demande_retour_map:
@@ -490,7 +506,10 @@ class Jeu:
         if not self.mode_placement_actif:
             self.tour_actuellement_selectionnee = None
             for tour in self.liste_tours:
-                if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 <= tour.taille + 4:
+                # Créer le rectangle cliquable de la tour (zone complète)
+                rect_tour = pygame.Rect(tour.x - tour.taille, tour.y - tour.taille, 
+                                       tour.taille * 2, tour.taille * 2)
+                if rect_tour.collidepoint(clic):
                     self.tour_actuellement_selectionnee = tour
                     if self.tutoriel:
                         self.tutoriel.notifier_action("tour_selectionnee")
@@ -516,7 +535,9 @@ class Jeu:
         for zone, classe in zones:
             if zone.collidepoint(clic):
                 self.type_tour_a_placer = classe
+                print(f"DEBUG: Tour sélectionnée - {classe.__name__}")
                 return
+        print(f"DEBUG: Clic en dehors des zones - clic: {clic}")
 
     def _placer_tour(self, clic):
         """
@@ -527,17 +548,38 @@ class Jeu:
         cout = self.couts_tours.get(self.type_tour_a_placer, prix_tour)
         emplacement_libre = True
         for tour in self.liste_tours:
-            if ((clic[0] - tour.x) ** 2 + (clic[1] - tour.y) ** 2) ** 0.5 < (tour.taille + 24):
+            # Créer le rectangle de la tour existante avec marge de 24 pixels
+            rect_tour = pygame.Rect(tour.x - tour.taille - 24, tour.y - tour.taille - 24, 
+                                   (tour.taille + 24) * 2, (tour.taille + 24) * 2)
+            if rect_tour.collidepoint(clic):
                 emplacement_libre = False
                 break
         peut = (
-            len(self.liste_tours) < nb_tours_max
-            and clic[0] < pos_mur - 10
+            clic[0] < pos_mur - 10
             and clic[1] > 80
             and self.argent >= cout
             and emplacement_libre
             and not self.est_sur_chemin(clic)
         )
+        
+        # Vérifier chaque condition d'échec et afficher le message approprié
+        if not peut:
+            if self.est_sur_chemin(clic):
+                self._message_erreur = "La tour ne tiendra pas ici. Essayez ailleurs"
+                self._timer_message_erreur = 1.0
+            elif self.argent < cout:
+                self._message_erreur = "Pas assez d'argent"
+                self._timer_message_erreur = 1.0
+            elif not emplacement_libre:
+                self._message_erreur = "Une autre tour est déjà là"
+                self._timer_message_erreur = 1.0
+            elif clic[0] >= pos_mur - 10:
+                self._message_erreur = "Trop près du mur"
+                self._timer_message_erreur = 1.0
+            elif clic[1] <= 80:
+                self._message_erreur = "Zone interdite (HUD)"
+                self._timer_message_erreur = 1.0
+        
         if peut:
             self.liste_tours.append(self.type_tour_a_placer(clic))
             self.argent -= cout
@@ -658,16 +700,6 @@ class Jeu:
                 if self.progression_monde:
                     self.progression_monde.tutoriel_termine = True
                 self.tutoriel = None
-
-        # Timers divers
-        self._alarme_clignotement += delta_temps
-        if self._timer_message_fidelite > 0:
-            self._timer_message_fidelite = max(0.0, self._timer_message_fidelite - delta_temps)
-        # Mise à jour du timer de victoire
-        if self._timer_message_victoire > 0:
-            self._timer_message_victoire -= delta_temps
-
-        # Screen shake : décrémente et recalcule l'offset à appliquer au dessin
         if self._shake_timer > 0:
             self._shake_timer = max(0.0, self._shake_timer - delta_temps)
             amp = self._shake_amplitude
@@ -826,6 +858,11 @@ class Jeu:
             if tour.type_tour == "Support":
                 tour.appliquer_buff(self.liste_tours)
         self._mettre_a_jour_effets(delta_temps)
+        # Décrémenter le timer du message d'erreur
+        if self._timer_message_erreur > 0:
+            self._timer_message_erreur = max(0.0, self._timer_message_erreur - delta_temps)
+            if self._timer_message_erreur == 0.0:
+                self._message_erreur = None
 
     def dessiner(self):
         """
@@ -980,6 +1017,15 @@ class Jeu:
             
             # Texte principal
             self.fenetre.blit(surf_victoire, (pos_x, pos_y))
+        
+        # Message d'erreur de placement de tour (blanc, disparaît après 1 seconde)
+        if self._timer_message_erreur > 0 and self._message_erreur:
+            police_erreur = pygame.font.SysFont("consolas", 16, bold=True)
+            surf_erreur = police_erreur.render(self._message_erreur, True, (255, 255, 255))
+            surf_erreur.set_alpha(255)
+            pos_x = 140
+            pos_y = 120
+            self.fenetre.blit(surf_erreur, (pos_x, pos_y))
 
         if self.tour_actuellement_selectionnee:
             self._dessiner_info_tour()
@@ -987,6 +1033,10 @@ class Jeu:
             self._dessiner_menu_type_tour()
         self.telephone.dessiner(self.fenetre)
         self.panneau_infos.dessiner(self.fenetre)
+        
+        # Dessiner l'animation du code Hidden Route si active
+        self.code_secret.dessiner(self.fenetre)
+        
         self.panneau_achevement.dessiner(self.fenetre)
         self.ecran_fin_vague.dessiner(self.fenetre)
         # marché et scores 
@@ -1152,6 +1202,50 @@ class Jeu:
         txt = pygame.font.SysFont("consolas", 18, bold=True).render("Retour jeu", True, (230, 245, 255))
         self.fenetre.blit(txt, (self.bouton_retour_jeu.centerx - txt.get_width() // 2, self.bouton_retour_jeu.centery - txt.get_height() // 2))
 
+    def _appliquer_deblocage_complet(self):
+        """
+        Explication de ce que fais la fonction : Cette fonction applique le déblocage complet du code Hidden Route.
+        Les entrées : Cette fonction ne demande pas de paramètre direct.
+        Le résultat : Débloque tous les niveaux, continents et téléporte au dernier niveau démoniaque.
+        """
+        if not self.code_secret.deblocage_complet:
+            return
+        
+        # Réinitialiser le flag pour éviter les applications multiples
+        self.code_secret.deblocage_complet = False
+        
+        # 1. Débloquer tous les niveaux dans tous les continents
+        if self.progression_monde:
+            for continent in ["pirate", "samourai", "medieval", "demoniaque"]:
+                for niveau in range(1, 6):  # 5 niveaux maintenant
+                    self.progression_monde.marquer_conquis(continent, niveau)
+                    # Marquer toutes les vagues comme complétées
+                    for vague in range(1, 5):  # 4 vagues maintenant
+                        self.progression_monde.marquer_succes_vague(continent, niveau, vague)
+        
+        # 2. Téléporter directement au dernier continent démoniaque, dernier niveau
+        self.continent = "demoniaque"
+        self.niveau = 5
+        self.vague_locale = 4  # Dernière vague (boss)
+        
+        # 3. Donner beaucoup d'argent et de vie
+        self.argent = 99999
+        self.points_de_vie_mur = 999
+        
+        # 4. Relancer le jeu avec les nouveaux paramètres
+        self._lancer_musique_continent()
+        self.image_fond = self._charger_image_fond()
+        self.reinitialiser()
+        
+        # 5. Mettre en mode modification avec la vague boss finale prête
+        self.en_attente_lancement_vague = True
+        self.gestionnaire_vague.demarrer_vague(self.vague_locale, est_boss=True)
+        
+        # 6. Afficher un message spécial
+        self._message_victoire = "TÉLÉPORTATION VERS LE NIVEAU FINAL !"
+        self._timer_message_victoire = 4.0
+        self._position_message_victoire = (largeur_ecran // 2, hauteur_ecran // 2 - 100)
+
     def _jouer_son_effet(self, type_effet):
         """
         Explication de ce que fais la fonction : Cette fonction exécute jouer son effet.
@@ -1198,6 +1292,7 @@ class Jeu:
         Les entrées : Cette fonction ne demande pas de paramètre direct.
         Le résultat : Retourne la valeur attendue ou applique l'action prévue.
         """
+        print(f"DEBUG: Dessin du menu de sélection de tour - mode_placement: {self.mode_placement_actif}, type_tour: {self.type_tour_a_placer}")
         police_menu = pygame.font.SysFont("consolas", 18)
         police_desc = pygame.font.SysFont("consolas", 11)
         donnees = [

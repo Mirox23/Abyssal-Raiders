@@ -4,6 +4,7 @@ Qu'est-ce que le fichier gère :
 Entrée : aucune (constantes)
 Résultat : CHEMINS_VAGUES, une liste de 4 chemins (liste de tuples (x, y))
 """
+# créé par Diego
 
 from setting import position_mur, hauteur_ecran
 

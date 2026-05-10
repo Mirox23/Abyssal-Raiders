@@ -3,6 +3,7 @@ largeur_ecran, hauteur_ecran,
 position_mur,
 couleur_decor_rock, couleur_decor_grass, couleur_wall,
 )
+# créé par Diego
 
 CHEMINS = [
 [ # spawn gauche → centre

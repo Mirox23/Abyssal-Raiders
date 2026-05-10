@@ -1,4 +1,5 @@
 import pygame
+import os
 from setting import largeur_ecran, hauteur_ecran, cout_amelioration, niveau_max
 from ui_noyau import Bouton
 
@@ -65,7 +66,7 @@ class PanneauInfos:
         else:
             # Charger l'image de la pièce pour remplacer l'émoji
             image_piece = None
-            for chemin_piece in ["image/coin.png", "coin.png"]:
+            for chemin_piece in ["image/coin.png"]:
                 if os.path.exists(chemin_piece):
                     try:
                         image_piece = pygame.image.load(chemin_piece).convert_alpha()

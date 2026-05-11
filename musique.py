@@ -54,6 +54,7 @@ class MusiqueManager:
             return fichier_audio
         
         # Si le fichier commence par "musique" ou "musique/", construit le chemin complet
+        # permet d'éviter les problèmes d'arborescence
         if fichier_audio.startswith("musique" + os.sep) or fichier_audio.startswith("musique/"):
             return os.path.join(self.repertoire_jeu, fichier_audio)
         

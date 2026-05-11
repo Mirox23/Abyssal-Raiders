@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre arbre talents du projet.
+A quoi sert le fichier : Ce fichier gère la fenêtre de l'arbre de talents où le joueur peut dépenser ses points pour améliorer ses compétences. Il contient la classe FenetreArbreTalents qui affiche les talents disponibles, leurs icônes, descriptions et coûts. L'arbre se réinitialise à chaque niveau mais conserve un bonus permanent basé sur le niveau précédent du joueur.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import os
@@ -12,10 +12,12 @@ from interface import Bouton
 from setting import largeur_ecran, hauteur_ecran
 
 class FenetreArbreTalents:
+    # Classe qui gère l'arbre de talents avec icônes PNG et bonus permanents
+    
     """
-    Arbre à talents avec icônes PNG (dossier image/talent/).
-    L'arbre se reset à chaque nouveau niveau de jeu, mais le joueur
-    repart avec un petit bonus permanent basé sur son niveau précédent.
+    A quoi sert la fonction : Crée la fenêtre de l'arbre de talents avec les compétences disponibles, leurs icônes et descriptions.
+    Entrée : Cette fonction ne demande pas de paramètre direct.
+    Sortie : Initialise une fenêtre d'arbre de talents prête à être affichée.
     """
 
     TALENTS = {

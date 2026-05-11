@@ -14,7 +14,7 @@ from tower import TourSniper, TourCanonnier, TourRalentissement, TourSupport
 from ui import (
     PanneauTelephone, PanneauInfos, PanneauAchevement, EcranFinVague, AffichageXP,
     FenetreRecompensesTalents, PanneauCompetences, PanneauObjets, PanneauParametresMusique,
-    FenetreNiveauConquis, FenetreMarcheVague, FenetreScores
+    FenetreNiveauConquis, FenetreMarcheVague, FenetreScores, PanneauInfosTour
 )
 from vague import GestionnaireVague
 from progression import Progression
@@ -141,7 +141,7 @@ class Jeu:
             self._bonus_fidelite_argent = 0
             self._bonus_fidelite_vie = 0
         self.telephone = PanneauTelephone()
-        self.panneau_infos = PanneauInfos()
+        self.panneau_infos = PanneauInfosTour()
         self.panneau_achevement = PanneauAchevement()
         self.panneau_achevement.lier_progression_monde(self.progression_monde)
         self.ecran_fin_vague = EcranFinVague()

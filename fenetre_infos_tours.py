@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre infos tours du projet.
+A quoi sert le fichier : Ce fichier gère la fenêtre d'informations des tours qui affiche les détails d'une tour sélectionnée. Il contient la classe PanneauInfos qui présente les statistiques de la tour (dégâts, portée, niveau), les coûts d'amélioration et les boutons pour améliorer, revendre ou fermer la fenêtre. Cette interface permet au joueur de prendre des décisions stratégiques sur ses défenses.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -14,9 +14,9 @@ from setting import cout_amelioration, hauteur_ecran, largeur_ecran, niveau_max
 class PanneauInfos:
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise le panneau d'informations des tours avec les boutons et les polices nécessaires.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un panneau d'informations prêt à être affiché.
         """
         self.visible = False
         self.tour_selectionnee = None

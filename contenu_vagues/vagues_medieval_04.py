@@ -1,10 +1,18 @@
 """
-A quoi sert le fichier : Ce fichier contient la configuration des vagues pour le monde médiéval niveau 4. Il charge automatiquement les vagues 1 à 4 depuis le générateur de vagues, ce qui permet de définir les ennemis, leur nombre, leur timing et leurs caractéristiques pour chaque vague de ce niveau spécifique.
-Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
+À quoi sert le fichier : Ici on n'expose que la configuration des vagues
+    pour le monde médiéval, pour le niveau 4 du jeu. Le fichier appelle le
+    générateur partagé pour remplir CONFIGURATION_VAGUES : types
+    d'ennemis, quantités, délais entre les apparitions, etc. Comme ça le
+    moteur lit une seule constante claire.
+
+Entrée : Rien n'est passé en paramètre à l'import : le continent et le
+    numéro de niveau sont déjà choisis dans le nom du fichier.
+
+Sortie : La variable CONFIGURATION_VAGUES, un dictionnaire que le jeu
+    utilise pour enchaîner les quatre vagues de ce palier.
 """
 
-# Importe le chargeur de configuration depuis le générateur de vagues
+# On récupère la fonction du générateur (même logique pour tous les mondes)
 from contenu_vagues.generateur_vagues import charger_configuration as _charger_configuration
 
 # Charge la configuration des vagues pour le monde médiéval niveau 4

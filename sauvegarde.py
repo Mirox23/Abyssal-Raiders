@@ -1,5 +1,9 @@
 """
+<<<<<<< HEAD
 A quoi sert le fichier : Ce fichier gère tout le système de sauvegarde du jeu. Il permet de sauvegarder et charger les parties des joueurs, de gérer les noms de fichiers, de créer les dossiers de sauvegarde, de préparer les données à sauvegarder, et d'appliquer les sauvegardes chargées. Il contient aussi des fonctions pour lister et supprimer les sauvegardes existantes.
+=======
+A quoi sert le fichier : Ce fichier gère tout le système de sauvegarde du jeu. Il permet de sauvegarder la progression du joueur, les niveaux débloqués, l'argent, l'expérience et toutes les données importantes. Il contient les fonctions pour créer des fichiers de sauvegarde, les charger, les lister et les supprimer. Il gère aussi la validation des noms de fichiers et l'organisation du dossier de sauvegardes.
+>>>>>>> 748d3c9f568d902f0ccf5d54be22eb153730bd13
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
 Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """

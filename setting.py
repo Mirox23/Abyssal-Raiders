@@ -1,8 +1,7 @@
 """
 A quoi sert le fichier : Ce fichier contient toutes les constantes et paramètres de configuration du jeu. Il définit les dimensions de l'écran, les couleurs, les caractéristiques des ennemis, des tours, des projectiles, ainsi que les paramètres économiques (argent, coûts, etc.) et les valeurs d'expérience. C'est le fichier central de configuration pour tout le projet.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Sortie : Des comportements, calculs ou affichages utilisés par le jeu. --> Ce fichier contient les constantes de configuration du jeu,
-telles que les dimensions de l'écran, les couleurs, les paramètres de jeu (comme la vitesse des ennemis, les coûts des tours, etc.) et d'autres valeurs utilisées dans le projet.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 # Taille de la fenêtre et paramètres d'affichage

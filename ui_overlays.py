@@ -2,6 +2,7 @@ import pygame
 import os
 from setting import largeur_ecran, hauteur_ecran, cout_amelioration, niveau_max
 from ui_noyau import Bouton
+from fenetre_infos_tours import PanneauInfos as PanneauInfosTour
 
 
 class PanneauInfos:

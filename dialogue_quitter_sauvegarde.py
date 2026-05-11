@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie dialogue quitter sauvegarde du projet.
+A quoi sert le fichier : Ce fichier gère les boîtes de dialogue qui apparaissent quand le joueur veut quitter le jeu. Il contient les fonctions pour afficher une fenêtre de confirmation qui demande si le joueur veut sauvegarder sa partie avant de quitter, et gère les réponses (oui/non) pour soit sauvegarder et quitter, soit annuler l'action.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -12,19 +12,19 @@ from setting import FPS, hauteur_ecran, largeur_ecran
 
 def _dessiner_centre(surface, texte, police, couleur, x, y):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute dessiner centre.
-    Les entrées : surface, texte, police, couleur, x, y.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Dessine un texte parfaitement centré aux coordonnées spécifiées sur la surface.
+    Entrée : surface (la surface où dessiner), texte (le texte à afficher), police (la police de caractères), couleur (la couleur du texte), x (coordonnée X du centre), y (coordonnée Y du centre).
+    Sortie : Dessine le texte centré sur la surface.
     """
-    rendu = police.render(texte, True, couleur)
-    surface.blit(rendu, (x - rendu.get_width() // 2, y - rendu.get_height() // 2))
+    rendu = police.render(texte, True, couleur)  # Crée la surface du texte
+    surface.blit(rendu, (x - rendu.get_width() // 2, y - rendu.get_height() // 2))  # Centre le texte
 
 
 def demander_sauvegarde_avant_quitter(ecran, progression_monde):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute demander sauvegarde avant quitter.
-    Les entrées : ecran, progression_monde.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Affiche une boîte de dialogue pour demander si le joueur veut sauvegarder avant de quitter et gère la réponse.
+    Entrée : ecran (l'écran de jeu où afficher le dialogue), progression_monde (les données de progression à sauvegarder).
+    Sortie : Retourne True si le joueur confirme vouloir quitter, False s'il annule.
     """
     horloge = pygame.time.Clock()
     police_titre = pygame.font.SysFont("consolas", 30, bold=True)

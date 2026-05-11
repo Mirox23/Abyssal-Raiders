@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre recompenses talents du projet.
+A quoi sert le fichier : Ce fichier gère la fenêtre combinée des récompenses et des talents qui permet au joueur de passer entre les deux onglets. Il contient la classe FenetreRecompensesTalents qui encapsule les fonctionnalités des fenêtres de récompenses et d'arbre de talents tout en gardant la compatibilité avec le code existant du jeu.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -10,16 +10,19 @@ from fenetre_recompenses import FenetreRecompenses
 from fenetre_arbre_talents import FenetreArbreTalents
 
 class FenetreRecompensesTalents:
+    # Classe de compatibilité qui encapsule les fenêtres de récompenses et de talents
+    
     """
-    Classe de compatibilité qui encapsule FenetreRecompenses + FenetreArbreTalents.
-    game.py l'utilise via l'ancien nom, on délègue les appels aux deux nouvelles fenêtres.
+    A quoi sert la fonction : Crée la fenêtre combinée des récompenses et talents pour maintenir la compatibilité avec le code existant.
+    Entrée : Cette fonction ne demande pas de paramètre direct.
+    Sortie : Initialise une fenêtre combinée prête à être utilisée.
     """
 
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise la fenêtre combinée en créant les sous-fenêtres de récompenses et de talents.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un objet fenêtre combinée prêt à être affiché.
         """
         self.fenetre_recompenses = FenetreRecompenses()
         self.fenetre_talents = FenetreArbreTalents()

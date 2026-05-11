@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre achevements du projet.
+A quoi sert le fichier : Ce fichier gère la fenêtre des achievements qui affiche les succès et accomplissements du joueur. Il contient la classe PanneauAchevement qui présente la progression par monde et par vague, avec des onglets pour naviguer entre les différents continents. Cette interface permet au joueur de suivre ses accomplissements et de voir ce qu'il reste à débloquer.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -15,9 +15,9 @@ class PanneauAchevement:
 
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise le panneau des achievements avec les onglets, les polices et les données de progression.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un panneau d'achievements prêt à être affiché.
         """
         self.visible = False
         self.rect = pygame.Rect(largeur_ecran // 2 - 340, hauteur_ecran // 2 - 230, 680, 460)

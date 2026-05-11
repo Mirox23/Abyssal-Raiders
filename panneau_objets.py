@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie panneau objets du projet.
+A quoi sert le fichier : Ce fichier gère le panneau des objets qui affiche les items et équipements du joueur. Il contient la classe PanneauObjets qui présente les objets disponibles, leurs descriptions et permet au joueur d'interagir avec son inventaire. Le panneau s'intègre dans l'interface du jeu pour donner accès aux ressources et équipements.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -12,9 +12,9 @@ from setting import largeur_ecran, hauteur_ecran
 class PanneauObjets:
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise le panneau des objets avec le bouton fermer et les polices nécessaires.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un panneau d'objets prêt à être affiché.
         """
         self.visible = False
         self.rect = pygame.Rect(235, 120, 530, 320)

@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre recompenses du projet.
+A quoi sert le fichier : Ce fichier gère la fenêtre des récompenses qui affiche les récompenses d'or débloquées à chaque niveau. Il contient la classe FenetreRecompenses qui montre les montants d'or gagnés pour chaque niveau, avec des montants progressifs qui augmentent à chaque cycle de 8 niveaux pour encourager la progression continue du joueur.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -10,17 +10,19 @@ from interface import Bouton
 from setting import largeur_ecran, hauteur_ecran
 
 class FenetreRecompenses:
+    # Classe qui affiche les récompenses d'or débloquées à chaque niveau
+    
     """
-    Affiche les récompenses d'or débloquées à chaque niveau.
-    Les récompenses sont infinies : tous les 8 niveaux on repart sur un cycle
-    avec des montants un peu plus élevés.
+    A quoi sert la fonction : Crée la fenêtre des récompenses avec les montants d'or par niveau.
+    Entrée : Cette fonction ne demande pas de paramètre direct.
+    Sortie : Initialise une fenêtre de récompenses prête à être affichée.
     """
 
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise la fenêtre des récompenses avec les polices, le bouton fermer et le rectangle de positionnement.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un objet fenêtre de récompenses prêt à être affiché.
         """
         self.visible = False
         self.rect = pygame.Rect(200, 80, 600, 420)

@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre marche du projet.
+A quoi sert le fichier : Ce fichier gère la fenêtre de marché qui apparaît entre les vagues pour permettre au joueur d'acheter des bonus. Il contient la classe FenetreMarcheVague qui affiche 3 cartes aléatoires avec des récompenses comme de l'or bonus, des tours gratuites, des améliorations de compétences, etc. Le joueur peut choisir une seule carte avant de continuer la partie.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -24,17 +24,32 @@ CATALOGUE_CARTES = [
 
 
 class FenetreMarcheVague:
+    # Classe qui gère le marché entre les vagues avec 3 cartes aléatoires
+    
     """
-    Marché entre les vagues : 3 cartes aléatoires apparaissent,
-    le joueur en choisit UNE. Puis il clique 'Continuer'.
+    A quoi sert la fonction : Crée la fenêtre du marché qui propose 3 cartes aléatoires avec des bonus.
+    Entrée : Cette fonction ne demande pas de paramètre direct.
+    Sortie : Initialise une fenêtre de marché prête à être affichée.
     """
 
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise la fenêtre du marché avec les cartes proposées, les polices et le bouton continuer.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un objet fenêtre de marché prêt à être affiché.
         """
+        self.visible = False  # État de visibilité de la fenêtre
+        self.cartes_proposees = []  # Liste des cartes proposées au joueur
+        self.carte_choisie = None  # Carte choisie par le joueur
+        # Rectangle de positionnement de la fenêtre (centré)
+        self.rect = pygame.Rect(largeur_ecran // 2 - 360, hauteur_ecran // 2 - 200, 720, 400)
+        # Polices pour les différents textes
+        self.police_titre = pygame.font.SysFont("consolas", 22, bold=True)  # Police pour le titre
+        self.police_nom = pygame.font.SysFont("consolas", 16, bold=True)  # Police pour les noms
+        self.police_desc = pygame.font.SysFont("consolas", 13)  # Police pour les descriptions
+        # Bouton pour continuer après avoir choisi une carte
+        self.bouton_continuer = Bouton(self.rect.centerx - 110, self.rect.bottom - 52, 220, 40, "Continuer", 17)
+        self._rects_cartes = []  # Rectangles pour les cartes (calculés dynamiquement)
         self.visible = False
         self.cartes_proposees = []
         self.carte_choisie = None
@@ -47,17 +62,30 @@ class FenetreMarcheVague:
 
     def ouvrir(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Ouvre la fenêtre du marché en générant 3 cartes aléatoires et en la rendant visible.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Affiche la fenêtre du marché avec les cartes proposées.
         """
+        self.visible = True  # Rend la fenêtre visible
+        self.carte_choisie = None  # Réinitialise la carte choisie
+        # Génère 3 cartes aléatoires depuis le catalogue
+        self.cartes_proposees = random.sample(CATALOGUE_CARTES, min(3, len(CATALOGUE_CARTES)))
+        largeur_carte = 190  # Largeur de chaque carte
+        espacement = 30  # Espacement entre les cartes
+        total = largeur_carte * 3 + espacement * 2  # Largeur totale occupée
+        depart_x = self.rect.centerx - total // 2  # Position de départ pour centrer
+        # Crée les rectangles pour les 3 cartes
+        self._rects_cartes = [
+            pygame.Rect(depart_x + i * (largeur_carte + espacement), self.rect.y + 65, largeur_carte, 240)
+            for i in range(3)
+        ]
         self.visible = True
         self.carte_choisie = None
-        self.cartes_proposees = random.sample(CATALOGUE_CARTES, min(3, len(CATALOGUE_CARTES)))
-        largeur_carte = 190
-        espacement = 30
-        total = largeur_carte * 3 + espacement * 2
-        depart_x = self.rect.centerx - total // 2
+        self.cartes_proposees = random.sample(CATALOGUE_CARTES, min(3, len(CATALOGUE_CARTES)))  # Sélectionne 3 cartes aléatoires
+        largeur_carte = 190  # Largeur de chaque carte
+        espacement = 30  # Espacement entre les cartes
+        total = largeur_carte * 3 + espacement * 2  # Largeur totale occupée
+        depart_x = self.rect.centerx - total // 2  # Position de départ pour centrer
         self._rects_cartes = [
             pygame.Rect(depart_x + i * (largeur_carte + espacement), self.rect.y + 65, largeur_carte, 240)
             for i in range(3)
@@ -65,17 +93,17 @@ class FenetreMarcheVague:
 
     def fermer(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute fermer.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Ferme la fenêtre du marché et cache la carte choisie par le joueur.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Cache la fenêtre et efface la sélection de carte.
         """
         self.visible = False
 
     def gerer_clic(self, pos):
         """
-        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
-        Les entrées : pos.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Gère les clics sur les cartes du marché pour sélectionner une carte ou continuer.
+        Entrée : pos (la position du clic de souris).
+        Sortie : Retourne la carte choisie ou l'action 'continuer' si le bouton est cliqué.
         """
         if not self.visible:
             return None
@@ -85,7 +113,7 @@ class FenetreMarcheVague:
                 self.carte_choisie = i
                 return None
         # Bouton continuer : Attention ! ne fonctionne que si une carte est choisie
-        if self.bouton_continuer.rect.collidepoint(pos) and self.carte_choisie is not None:
+        if self.bouton_continuer.rect.collidepoint(pos) and self.carte_choisie is not None:  # Vérifie si le bouton continuer est cliqué et une carte est choisie
             carte = self.cartes_proposees[self.carte_choisie]
             self.fermer()
             return carte["id"]
@@ -93,9 +121,9 @@ class FenetreMarcheVague:
 
     def dessiner(self, fenetre):
         """
-        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
-        Les entrées : fenetre.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Dessine la fenêtre du marché avec les 3 cartes, leurs descriptions et le bouton continuer.
+        Entrée : fenetre (la surface où dessiner la fenêtre).
+        Sortie : Affiche le marché avec les cartes proposées et les éléments interactifs.
         """
         if not self.visible:
             return

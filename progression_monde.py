@@ -1,16 +1,16 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie progression monde du projet.
+A quoi sert le fichier : Ce fichier gère la progression du joueur à travers les différents continents et niveaux du jeu. Il contient la classe ProgressionMonde qui suit quels niveaux ont été débloqués dans chaque continent (pirate, samouraï, médiéval, démoniaque) et quels succès ont été obtenus pour chaque vague. Il permet de vérifier si un niveau est accessible et de stocker la progression globale du joueur.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 
 class ProgressionMonde:
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise la progression du joueur avec tous les niveaux verrouillés et aucun succès obtenu.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un objet progression avec 5 niveaux par continent et des grilles de succès vides.
         """
         self.nom = "Joueur"  # Nom de la sauvegarde, rempli au chargement
         self.niveaux_conquis = {
@@ -26,9 +26,9 @@ class ProgressionMonde:
 
     def est_niveau_debloque(self, continent, numero_niveau):
         """
-        Explication de ce que fais la fonction : Cette fonction vérifie est niveau debloque.
-        Les entrées : continent, numero_niveau.
-        Le résultat : Retourne True ou False selon la condition vérifiée.
+        A quoi sert la fonction : Vérifie si un niveau spécifique est débloqué en fonction du niveau précédent dans le même continent.
+        Entrée : continent (le nom du continent à vérifier), numero_niveau (le numéro du niveau à vérifier).
+        Sortie : Retourne True si le niveau est débloqué, False sinon.
         """
         if numero_niveau <= 1:
             return True
@@ -39,9 +39,9 @@ class ProgressionMonde:
 
     def marquer_conquis(self, continent, numero_niveau):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute marquer conquis.
-        Les entrées : continent, numero_niveau.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Marque un niveau comme conquis dans un continent et débloque automatiquement les succès de ce niveau.
+        Entrée : continent (le nom du continent où marquer le niveau), numero_niveau (le numéro du niveau à marquer).
+        Sortie : Met à jour les niveaux conquis et les succès associés dans la progression.
         """
         if continent not in self.niveaux_conquis:
             return
@@ -51,9 +51,9 @@ class ProgressionMonde:
 
     def est_conquis(self, continent, numero_niveau):
         """
-        Explication de ce que fais la fonction : Cette fonction vérifie est conquis.
-        Les entrées : continent, numero_niveau.
-        Le résultat : Retourne True ou False selon la condition vérifiée.
+        A quoi sert la fonction : Vérifie si un niveau spécifique a déjà été conquis dans un continent.
+        Entrée : continent (le nom du continent à vérifier), numero_niveau (le numéro du niveau à vérifier).
+        Sortie : Retourne True si le niveau est conquis, False sinon.
         """
         if continent not in self.niveaux_conquis:
             return False
@@ -63,9 +63,9 @@ class ProgressionMonde:
 
     def marquer_succes_vague(self, continent, numero_niveau, numero_vague):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute marquer succes vague.
-        Les entrées : continent, numero_niveau, numero_vague.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Marque une vague spécifique comme réussie dans un niveau et continent donnés.
+        Entrée : continent (le nom du continent), numero_niveau (le numéro du niveau), numero_vague (le numéro de la vague).
+        Sortie : Met à jour le tableau des succès pour la vague spécifiée.
         """
         if continent not in self.succes_vagues:
             return

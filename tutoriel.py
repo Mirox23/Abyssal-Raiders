@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie tutoriel du projet.
+A quoi sert le fichier : Ce fichier gère le système de tutoriel interactif du jeu. Il guide les nouveaux joueurs à travers les mécaniques principales comme placer des tours, lancer des vagues, améliorer les défenses, utiliser les compétences et gérer l'arbre de talents. Il contient des messages d'aide contextuels, des étapes progressives et des déclencheurs automatiques pour aider le joueur à apprendre à jouer.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame

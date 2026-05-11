@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre fin vague du projet.
+A quoi sert le fichier : Ce fichier gère l'écran de fin de vague qui s'affiche lorsque le joueur termine une vague d'ennemis. Il contient la classe EcranFinVague qui présente les résultats de la vague (numéro, XP gagnée, score), les récompenses obtenues et les boutons pour continuer vers la vague suivante ou accéder aux modifications. Cet écran permet au joueur de voir sa progression et de choisir ses prochaines actions.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -11,9 +11,9 @@ from setting import largeur_ecran, hauteur_ecran
 class EcranFinVague:
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise l'écran de fin de vague avec les boutons et les polices nécessaires.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un écran de fin de vague prêt à être affiché.
         """
         self.visible = False
         self.numero_vague = 0

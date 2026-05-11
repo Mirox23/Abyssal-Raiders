@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetres du projet.
+A quoi sert le fichier : Ce fichier sert de module d'importation central pour toutes les fenêtres et panneaux d'interface du jeu. Il regroupe et exporte les classes principales comme les panneaux d'informations, les fenêtres d'achievements, les écrans de fin de vague, les fenêtres de niveaux conquis, le marché et les scores pour faciliter leur utilisation dans les autres parties du jeu.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 from fenetre_infos_tours import PanneauInfos

@@ -1,15 +1,7 @@
 """
-À quoi sert le fichier : Ici on n'expose que la configuration des vagues
-    pour le monde samouraï, pour le niveau 1 du jeu. Le fichier appelle le
-    générateur partagé pour remplir CONFIGURATION_VAGUES : types
-    d'ennemis, quantités, délais entre les apparitions, etc. Comme ça le
-    moteur lit une seule constante claire.
-
-Entrée : Rien n'est passé en paramètre à l'import : le continent et le
-    numéro de niveau sont déjà choisis dans le nom du fichier.
-
-Sortie : La variable CONFIGURATION_VAGUES, un dictionnaire que le jeu
-    utilise pour enchaîner les quatre vagues de ce palier.
+A quoi sert le fichier : Ce fichier contient la configuration des vagues pour le monde samouraï au niveau 1. Il utilise le générateur partagé pour créer les quatre vagues de ce palier en définissant les types d'ennemis, quantités, délais d'apparition et autres paramètres. Le moteur de jeu lit ensuite la constante CONFIGURATION_VAGUES pour enchaîner les vagues.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 # On récupère la fonction du générateur (même logique pour tous les mondes)

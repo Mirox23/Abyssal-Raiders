@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie fenetre scores du projet.
+A quoi sert le fichier : Ce fichier gère la fenêtre des scores qui affiche les meilleurs temps par vague, par continent et par vague. Il contient la classe FenetreScores qui présente les classements des joueurs dans un tableau 2x2 avec les temps, les noms et les dates. La fenêtre permet de comparer les performances et de voir les records personnels.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 # Importe les bibliothèques nécessaires pour la fenêtre des scores
@@ -13,15 +13,37 @@ from setting import largeur_ecran, hauteur_ecran
 # Tableau des meilleurs scores par vague (classement multi-joueurs)
 
 class FenetreScores:
-    # Affiche le classement des meilleurs temps par vague, en grille 2x2
+    # Classe qui affiche le classement des meilleurs temps par vague, en grille 2x2
+    
+    """
+    A quoi sert la fonction : Crée la fenêtre des scores qui présente les classements dans un tableau 2x2.
+    Entrée : Cette fonction ne demande pas de paramètre direct.
+    Sortie : Initialise une fenêtre de scores prête à être affichée.
+    """
     """Affiche le classement des meilleurs temps par vague, en grille 2x2."""
 
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise la fenêtre des scores avec le continent, le niveau et les polices nécessaires.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un objet fenêtre de scores prêt à être affiché.
         """
+        self.visible = False  # État de visibilité de la fenêtre
+        self.continent = "pirate"  # Continent actif
+        self.niveau = 1  # Niveau actuel
+        # Polices pour les différents textes
+        self.police_titre = pygame.font.SysFont("consolas", 18, bold=True)  # Police pour les titres
+        self.police_noms = pygame.font.SysFont("consolas", 14)  # Police pour les noms
+        self.police_temps = pygame.font.SysFont("consolas", 12)  # Police pour les temps
+        self.police_dates = pygame.font.SysFont("consolas", 10)  # Police pour les dates
+        self.visible = False  # État de visibilité de la fenêtre
+        self.continent = "pirate"  # Continent actif
+        self.niveau = 1  # Niveau actif
+        # Polices pour les différents textes
+        self.police_titre = pygame.font.SysFont("consolas", 18, bold=True)  # Police pour les titres
+        self.police_noms = pygame.font.SysFont("consolas", 14)  # Police pour les noms
+        self.police_temps = pygame.font.SysFont("consolas", 12)  # Police pour les temps
+        self.police_dates = pygame.font.SysFont("consolas", 10)  # Police pour les dates
         # Initialise les attributs de la fenêtre des scores
         self.visible = False  # État de visibilité de la fenêtre
         self.continent = "pirate"  # Continent actif
@@ -44,9 +66,9 @@ class FenetreScores:
 
     def ouvrir(self, continent, niveau=1):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute ouvrir.
-        Les entrées : continent, niveau.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Ouvre la fenêtre des scores en chargeant les données du continent et du niveau spécifiés.
+        Entrée : continent (le continent à afficher), niveau (le niveau, par défaut 1).
+        Sortie : Charge et affiche les scores du continent et niveau spécifiés.
         """
         # Importe la fonction pour obtenir le classement et configure la fenêtre
         from scores import obtenir_classement_par_vague
@@ -57,17 +79,17 @@ class FenetreScores:
 
     def fermer(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute fermer.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Ferme la fenêtre des scores en la rendant invisible.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Cache la fenêtre des scores.
         """
         self.visible = False
 
     def gerer_clic(self, pos):
         """
-        Explication de ce que fais la fonction : Cette fonction gère gerer clic en fonction du contexte courant.
-        Les entrées : pos.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Gère les clics sur la fenêtre des scores pour fermer la fenêtre.
+        Entrée : pos (la position du clic de souris).
+        Sortie : Retourne True si le clic ferme la fenêtre, False sinon.
         """
         # Gère les clics seulement si la fenêtre est visible
         if not self.visible:
@@ -82,13 +104,13 @@ class FenetreScores:
 
     def _dessiner_cellule_vague(self, fenetre, numero_vague, rect_cellule):
         """
-        Explication de ce que fais la fonction : Dessine une cellule du tableau pour une vague donnée.
-        Les entrées : fenetre, numero_vague, rect_cellule.
-        Le résultat : Dessine le fond, le titre et les lignes du classement dans la cellule.
+        A quoi sert la fonction : Dessine une cellule du tableau pour une vague donnée avec le fond, le titre et les scores.
+        Entrée : fenetre (la surface où dessiner), numero_vague (le numéro de la vague), rect_cellule (le rectangle de la cellule).
+        Sortie : Affiche la cellule complète avec le fond, le titre et les lignes de classement.
         """
         # Fond de la cellule
-        pygame.draw.rect(fenetre, (22, 30, 44), rect_cellule, border_radius=8)
-        pygame.draw.rect(fenetre, (70, 95, 140), rect_cellule, width=1, border_radius=8)
+        pygame.draw.rect(fenetre, (22, 30, 44), rect_cellule, border_radius=8)  # Dessine le fond de la cellule
+        pygame.draw.rect(fenetre, (70, 95, 140), rect_cellule, width=1, border_radius=8)  # Dessine le contour de la cellule
 
         # Titre de la vague
         couleurs_vague = {
@@ -101,8 +123,8 @@ class FenetreScores:
         label = "BOSS" if numero_vague == 4 else f"Vague {numero_vague}"
         surf_titre = self.police_entete.render(f"— {label} —", True, couleur_titre)
         fenetre.blit(surf_titre, (
-            rect_cellule.centerx - surf_titre.get_width() // 2,
-            rect_cellule.y + 8
+            rect_cellule.centerx - surf_titre.get_width() // 2,  # Centre le titre horizontalement
+            rect_cellule.y + 8  # Positionne le titre en haut de la cellule
         ))
 
         # En-têtes colonnes
@@ -119,7 +141,7 @@ class FenetreScores:
         sep_y = y_entete + 14
         pygame.draw.line(fenetre, (55, 70, 100),
                          (rect_cellule.x + 6, sep_y),
-                         (rect_cellule.right - 6, sep_y))
+                         (rect_cellule.right - 6, sep_y))  # Dessine la ligne de séparation sous les en-têtes
 
         # Données du classement
         entrees = self.classement_par_vague.get(str(numero_vague), [])
@@ -142,14 +164,16 @@ class FenetreScores:
         for i, entree in enumerate(entrees[:4]):
             y_ligne = sep_y + 8 + i * 20
             couleur_rang = couleurs_rang.get(i, (170, 180, 200))
-
+            
             # Numéro de rang
             fenetre.blit(
                 self.police_ligne.render(str(i + 1), True, couleur_rang),
                 (col_rang, y_ligne)
             )
+            
             # Temps formaté
-            temps_str = f"{entree['temps']:.2f}s"
+            temps_str = f"{entree['temps']:.2f}s"  # Formate le temps avec 2 décimales
+            # Cette ligne formate le temps en secondes avec deux décimales pour une meilleure lisibilité
             fenetre.blit(
                 self.police_ligne.render(temps_str, True, (200, 220, 200)),
                 (col_temps, y_ligne)

@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie scores du projet.
+A quoi sert le fichier : Ce fichier gère le système de scores et de classements du jeu. Il permet d'enregistrer les scores des joueurs dans un fichier JSON, de maintenir les meilleurs scores par continent et par vague, et d'afficher les classements. Il contient les fonctions pour charger, sauvegarder et trier les scores, ainsi que pour ajouter de nouvelles performances au classement.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 import json
 import os

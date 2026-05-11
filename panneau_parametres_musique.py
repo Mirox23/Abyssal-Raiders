@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie panneau parametres musique du projet.
+A quoi sert le fichier : Ce fichier gère le panneau de paramètres de musique qui permet au joueur de régler le volume principal, le volume des effets sonores et la vitesse de jeu. Il contient la classe PanneauParametresMusique avec des boutons pour ajuster ces paramètres et les appliquer immédiatement dans le jeu.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -12,9 +12,9 @@ from setting import largeur_ecran, hauteur_ecran
 class PanneauParametresMusique:
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise le panneau de paramètres de musique avec tous les boutons et les polices nécessaires.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un panneau de paramètres prêt à être affiché.
         """
         self.visible = False
         self.rect = pygame.Rect(260, 130, 480, 290)

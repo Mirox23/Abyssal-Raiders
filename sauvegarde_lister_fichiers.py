@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie sauvegarde lister fichiers du projet.
+A quoi sert le fichier : Ce fichier gère la liste des sauvegardes disponibles pour le joueur. Il scanne le dossier de sauvegardes, lit tous les fichiers JSON valides, et extrait les informations importantes comme le nom du joueur, la date de sauvegarde et le niveau atteint. Il présente ces données de manière organisée pour que le menu puisse afficher la liste des parties à charger.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import os
@@ -12,9 +12,9 @@ from sauvegarde_dossier_parties import DOSSIER_SAUVEGARDES, assurer_le_dossier
 
 def obtenir_liste_des_sauvegardes():
     """
-    Explication de ce que fais la fonction : Cette fonction récupère obtenir liste des sauvegardes.
-    Les entrées : Cette fonction ne demande pas de paramètre direct.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Scan le dossier de sauvegardes, lit tous les fichiers JSON valides et retourne une liste organisée des informations de chaque sauvegarde.
+    Entrée : Cette fonction ne demande pas de paramètre direct.
+    Sortie : Retourne une liste de dictionnaires contenant le nom, la date et le niveau de chaque sauvegarde, triée par date décroissante.
     """
     assurer_le_dossier()
     resultats = []

@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie interface du projet.
+A quoi sert le fichier : Ce fichier contient tous les éléments d'interface utilisateur de base du jeu. Il définit la classe Bouton pour créer des boutons interactifs, la classe AffichageXP pour gérer l'affichage de l'expérience et des niveaux, et la classe PanneauTelephone qui simule un téléphone avec des applications. Ces composants sont utilisés partout dans le jeu pour créer des interfaces interactives et responsives.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -11,9 +11,9 @@ from setting import largeur_ecran, hauteur_ecran, couleur_bouton, couleur_bouton
 class Bouton:
     def __init__(self, x, y, largeur, hauteur, texte, taille_police=20):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : x, y, largeur, hauteur, texte, taille_police.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Crée un nouveau bouton interactif avec sa position, sa taille et son texte.
+        Entrée : x (position horizontale du bouton), y (position verticale du bouton), largeur (largeur du bouton), hauteur (hauteur du bouton), texte (texte affiché sur le bouton), taille_police (taille de la police du texte).
+        Sortie : Initialise un objet bouton prêt à être utilisé dans l'interface.
         """
         self.rect = pygame.Rect(x, y, largeur, hauteur)
         self.texte = texte
@@ -21,9 +21,9 @@ class Bouton:
 
     def dessiner(self, fenetre, couleur_fond=None, couleur_texte=(255, 255, 255)):
         """
-        Explication de ce que fais la fonction : Cette fonction dessine dessiner à l'écran.
-        Les entrées : fenetre, couleur_fond, couleur_texte.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Dessine le bouton à l'écran avec un effet de survol et le texte centré.
+        Entrée : fenetre (la surface où dessiner le bouton), couleur_fond (couleur de fond personnalisée optionnelle), couleur_texte (couleur du texte optionnelle).
+        Sortie : Dessine le bouton sur la fenêtre avec les couleurs appropriées.
         """
         position_souris = pygame.mouse.get_pos()
         if couleur_fond is None:

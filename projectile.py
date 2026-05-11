@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie projectile du projet.
+A quoi sert le fichier : Ce fichier gère tous les projectiles tirés par les tours de défense. Il contient la classe Projectile qui gère le déplacement des projectiles depuis les tours jusqu'aux ennemis, les collisions, les dégâts infligés et l'affichage graphique. Il contient aussi la classe ProjectileRalentissement qui ralentit les ennemis touchés. Les projectiles suivent automatiquement leur cible et disparaissent après l'impact.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame

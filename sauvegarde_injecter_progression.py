@@ -1,15 +1,15 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie sauvegarde injecter progression du projet.
+A quoi sert le fichier : Ce fichier gère l'injection des données de sauvegarde dans l'objet de progression du monde. Il s'assure que les données chargées sont correctement formatées et alignées avec la structure attendue par le jeu, en gérant les cas où les anciennes sauvegardes peuvent avoir des structures différentes. Il convertit et nettoie les données pour garantir la compatibilité entre les versions.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 
 def _aligner_liste_niveaux(liste_en_entree):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute aligner liste niveaux.
-    Les entrées : liste_en_entree.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : S'assure que la liste des niveaux a exactement 8 éléments en ajoutant des valeurs False si nécessaire pour garantir la compatibilité.
+    Entrée : liste_en_entree (la liste de niveaux à aligner, peut être vide ou incomplète).
+    Sortie : Retourne une liste de 8 éléments avec les valeurs d'origine complétées par False.
     """
     if isinstance(liste_en_entree, list) is False:
         liste_en_entree = []
@@ -20,9 +20,9 @@ def _aligner_liste_niveaux(liste_en_entree):
 
 def _aligner_ligne_vagues(ligne):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute aligner ligne vagues.
-    Les entrées : ligne.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : S'assure que la ligne de vagues a exactement 4 éléments en ajoutant des valeurs False si nécessaire pour maintenir la cohérence des données.
+    Entrée : ligne (la ligne de vagues à aligner, peut être vide ou incomplète).
+    Sortie : Retourne une liste de 4 éléments avec les valeurs d'origine complétées par False.
     """
     ligne_ok = list(ligne) if isinstance(ligne, list) else [False, False, False, False]
     complete = ligne_ok + [False, False, False, False]
@@ -32,9 +32,9 @@ def _aligner_ligne_vagues(ligne):
 
 def copier_donnees_dans_progression(donnees, progression_monde):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute copier donnees dans progression.
-    Les entrées : donnees, progression_monde.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Copie les données de sauvegarde dans l'objet de progression du monde en s'assurant que tous les niveaux et succès sont correctement formatés et alignés.
+    Entrée : donnees (le dictionnaire contenant les données de sauvegarde à injecter), progression_monde (l'objet de progression du monde à mettre à jour).
+    Sortie : Retourne le niveau du joueur depuis les données de sauvegarde, ou 1 si les données sont invalides.
     """
     if donnees is None:
         return 1

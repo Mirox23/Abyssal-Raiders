@@ -1,5 +1,5 @@
 """
-A quoi sert le fichier : Ce fichier gère toutes les tours de défense du jeu. Il contient la classe Tour qui gère les différents types de tours (sniper, canon, ralentissement, support), leurs niveaux d'amélioration, leurs dégâts, leur portée, leur cadence de tir, et le coût de chaque amélioration. Il gère aussi les projectiles et les effets visuels des tours.
+A quoi sert le fichier : Ce fichier gère toutes les tours de défense que le joueur peut poser dans le jeu. Il contient la classe Tour de base et ses variantes spécialisées comme TourSniper (attaques à longue distance), TourCanonnier (dégâts élevés), TourRalentissement (ralentit les ennemis) et TourSupport (améliore les tours voisines). Il gère aussi les projectiles, les niveaux d'amélioration, les coûts et les animations des tours.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
 Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
@@ -14,9 +14,9 @@ from projectile import Projectile, ProjectileRalentissement
 class Tour:
     def __init__(self, position):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : position.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise une tour de défense avec sa position et ses caractéristiques de base.
+        Entrée : position (les coordonnées x, y où placer la tour).
+        Sortie : Crée une tour avec les attributs par défaut prête à être placée sur la carte.
         """
         # Position et caractéristiques de base de la tour
         self.x, self.y = position  # Position sur la carte
@@ -30,9 +30,8 @@ class Tour:
         self.type_tour = "Base"  # Type de tour par défaut
         self.niveau = 1  # Niveau d'amélioration
         self.degats_tir = 1  # Dégâts de base
-        self._charger_image_tour()  # Charge l'image appropriée = None
         self._taille_image = (56, 56)
-        self._charger_image_tour()
+        self._charger_image_tour()  # Charge l'image appropriée
 
     def _palier_image(self):
         """

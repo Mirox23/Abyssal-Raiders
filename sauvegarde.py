@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie sauvegarde du projet.
+A quoi sert le fichier : Ce fichier gère tout le système de sauvegarde du jeu. Il permet de sauvegarder la progression du joueur, les niveaux débloqués, l'argent, l'expérience et toutes les données importantes. Il contient les fonctions pour créer des fichiers de sauvegarde, les charger, les lister et les supprimer. Il gère aussi la validation des noms de fichiers et l'organisation du dossier de sauvegardes.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 from sauvegarde_dossier_parties import assurer_le_dossier

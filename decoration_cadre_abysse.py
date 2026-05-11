@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie decoration cadre abysse du projet.
+A quoi sert le fichier : Ce fichier gère tous les éléments de décoration et les cadres visuels du style abyssal du jeu. Il contient les couleurs du thème, les fonctions pour dessiner des rectangles arrondis, des cadres décoratifs et des éléments graphiques qui donnent l'apparence sombre et mystérieuse aux menus et interfaces du jeu.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -22,19 +22,19 @@ COULEURS_THEME = {
 
 def dessiner_plat_rect(surface, rect, couleur_fond, couleur_bord, rayon=8, largeur_bord=1):
     """
-    Explication de ce que fais la fonction : Cette fonction dessine dessiner plat rect à l'écran.
-    Les entrées : surface, rect, couleur_fond, couleur_bord, rayon, largeur_bord.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Dessine un rectangle avec des coins arrondis et une bordure personnalisée pour créer des éléments d'interface stylisés.
+    Entrée : surface (la surface où dessiner), rect (le rectangle à dessiner), couleur_fond (la couleur de remplissage), couleur_bord (la couleur de la bordure), rayon (le rayon des coins), largeur_bord (l'épaisseur de la bordure).
+    Sortie : Dessine le rectangle stylisé sur la surface fournie.
     """
-    pygame.draw.rect(surface, couleur_fond, rect, border_radius=rayon)
-    pygame.draw.rect(surface, couleur_bord, rect, width=largeur_bord, border_radius=rayon)
+    pygame.draw.rect(surface, couleur_fond, rect, border_radius=rayon)  # Dessine le fond avec coins arrondis
+    pygame.draw.rect(surface, couleur_bord, rect, width=largeur_bord, border_radius=rayon)  # Dessine la bordure
 
 
 def _dessiner_ornements_coin(surface, rect):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute dessiner ornements coin.
-    Les entrées : surface, rect.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Dessine les ornements décoratifs dans les coins d'un rectangle pour donner un style abyssal.
+    Entrée : surface (la surface où dessiner), rect (le rectangle à décorer).
+    Sortie : Ajoute des éléments graphiques stylisés dans les coins du rectangle.
     """
     taille = 14
     coins = [

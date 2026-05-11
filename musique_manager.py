@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie musique manager du projet.
+A quoi sert le fichier : Ce fichier gère la lecture et le contrôle des fichiers musicaux du jeu. Il contient la classe MusiqueManager qui permet de jouer des musiques de fond, de contrôler le volume, de gérer les transitions entre morceaux, et d'assurer que l'audio est correctement initialisé. Il gère aussi l'arrêt et la reprise de la musique selon le contexte du jeu.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -10,9 +10,9 @@ import pygame
 class MusiqueManager:
     def __init__(self, volume=0.5):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : volume.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise le gestionnaire de musique avec le volume spécifié et prépare le système audio.
+        Entrée : volume (le volume audio initial entre 0.0 et 1.0, par défaut 0.5).
+        Sortie : Crée un objet MusiqueManager prêt à jouer des musiques.
         """
         self.volume = volume
         self.piste_active = None
@@ -24,9 +24,9 @@ class MusiqueManager:
 
     def jouer(self, chemin_fichier):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute jouer.
-        Les entrées : chemin_fichier.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Joue un fichier musical en boucle avec le volume actuel et gère les erreurs de chargement.
+        Entrée : chemin_fichier (le chemin complet du fichier musical à jouer).
+        Sortie : Charge et joue la musique en boucle, ou arrête la musique si erreur.
         """
         if self.piste_active == chemin_fichier:
             return
@@ -40,9 +40,9 @@ class MusiqueManager:
 
     def regler_volume(self, volume):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute regler volume.
-        Les entrées : volume.
-        Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+        A quoi sert la fonction : Ajuste le volume audio entre 0.0 et 1.0 et l'applique immédiatement à la musique en cours.
+        Entrée : volume (le nouveau volume audio entre 0.0 et 1.0).
+        Sortie : Met à jour le volume et l'applique à la musique actuelle.
         """
         self.volume = max(0.0, min(1.0, volume))
         try:

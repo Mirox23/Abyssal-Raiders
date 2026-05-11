@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie vague du projet.
+A quoi sert le fichier : Ce fichier gère le système de vagues d'ennemis du jeu. Il contient la classe GestionnaireVague qui charge les configurations de vagues depuis les fichiers, crée les ennemis selon les vagues définies, gère le timing d'apparition des ennemis et suit la progression à travers les différentes vagues. Il permet aussi de configurer des vagues personnalisées pour chaque niveau et continent.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 from mobs import Mob, MobBoss, MobKamikaze, MobRapide, MobSoigneur, MobTank

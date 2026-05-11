@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie panneau competences du projet.
+A quoi sert le fichier : Ce fichier gère le panneau des compétences qui affiche les pouvoirs et capacités du joueur. Il contient la classe PanneauCompetences qui présente les compétences disponibles, leurs niveaux, leurs descriptions et permet au joueur d'utiliser ou d'améliorer ses pouvoirs pendant le jeu. Le panneau s'intègre dans l'interface pour donner accès aux capacités spéciales.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 import pygame
@@ -12,9 +12,9 @@ from setting import largeur_ecran, hauteur_ecran
 class PanneauCompetences:
     def __init__(self):
         """
-        Explication de ce que fais la fonction : Cette fonction exécute init.
-        Les entrées : Cette fonction ne demande pas de paramètre direct.
-        Le résultat : Initialise correctement les attributs de l'objet.
+        A quoi sert la fonction : Initialise le panneau des compétences avec le bouton fermer et les polices nécessaires.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Crée un panneau de compétences prêt à être affiché.
         """
         self.visible = False
         self.rect = pygame.Rect(200, 90, 600, 380)

@@ -1,7 +1,7 @@
 """
-Qu'est-ce que le fichier gère : Ce fichier gère la partie sauvegarde preparation donnees du projet.
+A quoi sert le fichier : Ce fichier gère la préparation des données avant la sauvegarde en convertissant les objets complexes du jeu en dictionnaires simples compatibles JSON. Il extrait les informations importantes des objets de progression, ajoute la date et l'heure actuelles, et structure toutes les données dans un format standardisé qui peut être facilement sauvegardé et rechargé plus tard.
 Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
-Résultat : Des comportements, calculs ou affichages utilisés par le jeu.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
 """
 
 from datetime import datetime
@@ -9,9 +9,9 @@ from datetime import datetime
 
 def _copie_niveaux_conquis(progression_monde):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute copie niveaux conquis.
-    Les entrées : progression_monde.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Extrait et copie les niveaux conquis de l'objet de progression du monde dans un dictionnaire simple pour la sauvegarde.
+    Entrée : progression_monde (l'objet contenant les niveaux conquis à copier).
+    Sortie : Retourne un dictionnaire avec les niveaux conquis par continent, ou un dictionnaire vide si progression_monde est None.
     """
     resultat = {}
     if progression_monde is None:
@@ -23,9 +23,9 @@ def _copie_niveaux_conquis(progression_monde):
 
 def _copie_succes_vagues(progression_monde):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute copie succes vagues.
-    Les entrées : progression_monde.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Extrait et copie les succès de vagues de l'objet de progression du monde dans un dictionnaire simple pour la sauvegarde.
+    Entrée : progression_monde (l'objet contenant les succès de vagues à copier).
+    Sortie : Retourne un dictionnaire avec les succès de vagues par continent et par niveau, ou un dictionnaire vide si progression_monde est None.
     """
     resultat = {}
     if progression_monde is None:
@@ -40,9 +40,9 @@ def _copie_succes_vagues(progression_monde):
 
 def fabriquer_dict_sauvegarde(nom_final, progression_monde, progression_joueur=None):
     """
-    Explication de ce que fais la fonction : Cette fonction exécute fabriquer dict sauvegarde.
-    Les entrées : nom_final, progression_monde, progression_joueur.
-    Le résultat : Retourne la valeur attendue ou applique l'action prévue.
+    A quoi sert la fonction : Crée le dictionnaire complet de sauvegarde en assemblant toutes les données nécessaires : nom, date, niveau du joueur, niveaux conquis et succès de vagues.
+    Entrée : nom_final (le nom final de la sauvegarde), progression_monde (les données de progression du monde), progression_joueur (les données de progression du joueur, optionnel).
+    Sortie : Retourne un dictionnaire structuré contenant toutes les informations à sauvegarder.
     """
     niveau_joueur = 1
     if progression_joueur is not None and hasattr(progression_joueur, "niveau"):

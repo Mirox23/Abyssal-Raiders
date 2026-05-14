@@ -1,3 +1,9 @@
+"""
+A quoi sert le fichier : Ce fichier regroupe des panneaux qui s'affichent par-dessus le jeu (fenêtre d'infos tour, succès, fin de vague). Il utilise la classe Bouton de ui_noyau pour les actions comme fermer ou améliorer une tour.
+Entrée : Les données nécessaires aux fonctions, classes et paramètres du module.
+Sortie : Des comportements, calculs ou affichages utilisés par le jeu.
+"""
+
 import pygame
 import os
 from setting import largeur_ecran, hauteur_ecran, cout_amelioration, niveau_max
@@ -6,9 +12,16 @@ from fenetre_infos_tours import PanneauInfos as PanneauInfosTour
 
 
 class PanneauInfos:
+    # Petite fenêtre pour voir les stats d'une tour et l'améliorer ou fermer
+
     def __init__(self):
-        self.visible = False
-        self.tour_selectionnee = None
+        """
+        A quoi sert la fonction : Prépare le panneau (taille, polices, boutons) au centre de l'écran.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Initialise un panneau fermé au départ, sans tour sélectionnée.
+        """
+        self.visible = False  # True quand le joueur a cliqué sur une tour
+        self.tour_selectionnee = None  # Référence vers l'objet tour affiché
         self.police_info = pygame.font.SysFont("consolas", 18)
         self.police_titre = pygame.font.SysFont("consolas", 20, bold=True)
         self.rect = pygame.Rect(largeur_ecran // 2 - 150, hauteur_ecran // 2 - 105, 300, 210)
@@ -18,14 +31,29 @@ class PanneauInfos:
         self.bouton_fermer = Bouton(base_x + 140, base_y, 120, 38, "Fermer")
 
     def ouvrir(self, tour):
+        """
+        A quoi sert la fonction : Affiche le panneau pour une tour donnée.
+        Entrée : tour (l'objet tour dont on veut lire les stats).
+        Sortie : Met visible à True et mémorise la tour.
+        """
         self.tour_selectionnee = tour
         self.visible = True
 
     def fermer(self):
+        """
+        A quoi sert la fonction : Cache le panneau et enlève la sélection.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Remet visible à False et tour_selectionnee à None.
+        """
         self.visible = False
         self.tour_selectionnee = None
 
     def gerer_clic(self, position_clic, argent_joueur):
+        """
+        A quoi sert la fonction : Réagit aux clics sur Améliorer ou Fermer si le panneau est ouvert.
+        Entrée : position_clic (tuple x, y de la souris), argent_joueur (int, argent actuel).
+        Sortie : Un couple (action, nouvel_argent) ; action peut être "ameliore", "ferme" ou None.
+        """
         if not self.visible:
             return None, argent_joueur
         if self.bouton_ameliorer.rect.collidepoint(position_clic):
@@ -39,6 +67,11 @@ class PanneauInfos:
         return None, argent_joueur
 
     def dessiner(self, fenetre):
+        """
+        A quoi sert la fonction : Dessine le cadre, le texte des stats et les deux boutons.
+        Entrée : fenetre (surface pygame du jeu).
+        Sortie : Ne retourne rien ; dessine seulement si le panneau est visible.
+        """
         if not self.visible or not self.tour_selectionnee:
             return
         tour = self.tour_selectionnee
@@ -64,14 +97,14 @@ class PanneauInfos:
             pos_y += 24
         if tour.niveau >= niveau_max:
             surface_cout = self.police_info.render("Niveau maximum !", True, (255, 180, 50))
+            fenetre.blit(surface_cout, (pos_x, pos_y))
         else:
-            # Charger l'image de la pièce pour remplacer l'émoji
+            # Petite image de pièce à côté du prix si le fichier existe
             image_piece = None
             for chemin_piece in ["image/coin.png"]:
                 if os.path.exists(chemin_piece):
                     try:
                         image_piece = pygame.image.load(chemin_piece).convert_alpha()
-                        # Redimensionner à la taille de la police
                         taille_police = self.police_info.size("¤")
                         image_piece = pygame.transform.scale(image_piece, (taille_police[1], taille_police[1]))
                         break
@@ -81,7 +114,6 @@ class PanneauInfos:
             if image_piece:
                 surface_cout = self.police_info.render(f"Coût amélioration : {cout_amelioration}", True, (130, 210, 130))
                 fenetre.blit(surface_cout, (pos_x, pos_y))
-                # Afficher l'image de la pièce à côté du texte
                 pos_piece = (pos_x + surface_cout.get_width() + 8, pos_y)
                 fenetre.blit(image_piece, pos_piece)
             else:
@@ -92,10 +124,17 @@ class PanneauInfos:
 
 
 class PanneauAchevement:
+    # Grille des succès par monde (onglets + cases vertes/grises)
+
     noms_mondes = ["Pirate", "Samouraï", "Médiéval", "Démoniaque"]
     cles_mondes = ["pirate", "Samouraï", "medieval", "Démoniaque"]
 
     def __init__(self):
+        """
+        A quoi sert la fonction : Crée la grande fenêtre succès avec 4 onglets et une grille 8x4.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Initialise progression vide et le bouton fermer.
+        """
         self.visible = False
         self.rect = pygame.Rect(largeur_ecran // 2 - 340, hauteur_ecran // 2 - 230, 680, 460)
         self.police_titre = pygame.font.SysFont("consolas", 20, bold=True)
@@ -108,12 +147,27 @@ class PanneauAchevement:
         self.rects_onglets = [pygame.Rect(self.rect.x + i * largeur_onglet, self.rect.y + 48, largeur_onglet, 30) for i in range(4)]
 
     def ouvrir(self):
+        """
+        A quoi sert la fonction : Affiche le panneau succès.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Met visible à True.
+        """
         self.visible = True
 
     def fermer(self):
+        """
+        A quoi sert la fonction : Cache le panneau succès.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Met visible à False.
+        """
         self.visible = False
 
     def gerer_clic(self, position_clic):
+        """
+        A quoi sert la fonction : Gère fermer, changement d'onglet, ou clic dans le panneau.
+        Entrée : position_clic (tuple x, y).
+        Sortie : True si un clic a été "consommé" (fermer, onglet, ou dans le rect), sinon False.
+        """
         if not self.visible:
             return False
         if self.bouton_fermer.rect.collidepoint(position_clic):
@@ -126,6 +180,11 @@ class PanneauAchevement:
         return self.rect.collidepoint(position_clic)
 
     def dessiner(self, fenetre):
+        """
+        A quoi sert la fonction : Dessine le voile sombre, le cadre, les onglets et les cases de progression.
+        Entrée : fenetre (surface pygame).
+        Sortie : Ne dessine rien si le panneau n'est pas visible.
+        """
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
@@ -162,7 +221,14 @@ class PanneauAchevement:
 
 
 class EcranFinVague:
+    # Message après une vague réussie avec choix nouvelle vague / modification / fermer
+
     def __init__(self):
+        """
+        A quoi sert la fonction : Place les trois boutons sous le texte central.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Initialise l'écran caché avec numero_vague et xp à zéro.
+        """
         self.visible = False
         self.numero_vague = 0
         self.xp_gagnee = 0
@@ -177,14 +243,29 @@ class EcranFinVague:
         self.bouton_fermer = Bouton(centre_x + 270, centre_y + 60, 120, 44, "Fermer", 18)
 
     def ouvrir(self, numero, xp_gagnee):
+        """
+        A quoi sert la fonction : Affiche l'écran avec le numéro de vague finie et l'XP gagnée.
+        Entrée : numero (int), xp_gagnee (int).
+        Sortie : Met visible à True et enregistre les valeurs affichées.
+        """
         self.numero_vague = numero
         self.xp_gagnee = xp_gagnee
         self.visible = True
 
     def fermer(self):
+        """
+        A quoi sert la fonction : Cache l'écran fin de vague.
+        Entrée : Cette fonction ne demande pas de paramètre direct.
+        Sortie : Met visible à False.
+        """
         self.visible = False
 
     def gerer_clic(self, position_clic):
+        """
+        A quoi sert la fonction : Détecte quel bouton a été cliqué.
+        Entrée : position_clic (tuple x, y).
+        Sortie : Une chaîne "nouvelle_vague", "modification", "fermer", ou None.
+        """
         if not self.visible:
             return None
         if self.bouton_nouvelle_vague.rect.collidepoint(position_clic):
@@ -196,6 +277,11 @@ class EcranFinVague:
         return None
 
     def dessiner(self, fenetre):
+        """
+        A quoi sert la fonction : Dessine le voile, le cadre, les textes de félicitations et les boutons.
+        Entrée : fenetre (surface pygame).
+        Sortie : Ne fait rien si l'écran n'est pas visible.
+        """
         if not self.visible:
             return
         voile = pygame.Surface((largeur_ecran, hauteur_ecran), pygame.SRCALPHA)
